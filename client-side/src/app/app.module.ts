@@ -10,10 +10,12 @@ import { TranslateModule, TranslateLoader, TranslateStore } from '@ngx-translate
 import { AppRoutingModule } from './app.routes';
 import { AddonModule } from './addon/addon.module';
 import { AppComponent } from './app.component';
+import { QueryManagerComponent } from './query-manager/query-manager.component';
 
 @NgModule({
     declarations: [
-        AppComponent
+        AppComponent,
+        QueryManagerComponent
     ],
     imports: [
         BrowserModule,

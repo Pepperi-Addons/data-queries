@@ -1,12 +1,16 @@
-import MyService from './my.service'
 import { Client, Request } from '@pepperi-addons/debug-server'
+import QueryService from './services/query.service'
+import ClientService from './services/client.service';
 
-// add functions here
-// this function will run on the 'api/foo' endpoint
-// the real function is runnning on another typescript file
-export async function foo(client: Client, request: Request) {
-    const service = new MyService(client)
-    const res = await service.getAddons()
-    return res
+export async function queries(client: Client, request: Request) {
+    const service = new QueryService(client)
+    if (request.method == 'POST') {
+        return await service.upsert(client, request);
+    }
+    else if (request.method == 'GET') {
+        return await service.find(request.query);
+    }
 };
+
+
 

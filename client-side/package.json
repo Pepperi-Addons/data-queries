@@ -34,6 +34,7 @@
         "@ngx-translate/http-loader": "^6.0.0",
         "@pepperi-addons/ngx-lib": "^0.3.10",
         "@pepperi-addons/papi-sdk": "*",
+        "@pepperi-addons/system-addon-utils": "^1.0.4",
         "@tweenjs/tween.js": "^17.1.1",
         "disable-scroll": "^0.5.1",
         "hammerjs": "^2.0.8",

@@ -1,0 +1,201 @@
+<div style="width: 832px;">
+    <pep-dialog [title]="'EditQuery' | translate" >
+        <ng-container pep-dialog-content>
+            <div>
+                <div class="flex-gap">
+                    <pep-textbox [disabled]="!isLoaded" class="flex" [(value)]="series.Name" [label]="'Name' | translate" [type]="'text'"></pep-textbox>
+                    <pep-select [disabled]="!isLoaded" class="flex" [mandatory]="true" [emptyOption]="false" [(value)]="series.Resource" [key]="'resourceSelect'" [label]="'Resource' | translate" [xAlignment]="'left'" [options]='resourceOptions' (valueChange)="onResourceChange($event)">
+                    </pep-select>
+                </div>
+                <h4>
+                    {{'LabelFormat' | translate}}
+                </h4>
+                <pep-field-title [label]="'LabelFormatDescription' | translate" class="header" [inputLength]="900">
+                </pep-field-title>
+                <pep-textbox [disabled]="!isLoaded" class="half-width no-title" [(value)]="series.Label" [showTitle]="false" [type]="'text'"></pep-textbox>
+                <div id="metric">
+                    <h2>{{'Metric' | translate}}
+                    </h2>
+                    <hr>
+                    <pep-field-title [label]="'AggregationDescription' | translate" class="header">
+                    </pep-field-title>
+                    <div class="flex-gap">
+                        <pep-select [disabled]="!isLoaded" class="flex" [emptyOption]="false" [(value)]="series.AggregatedFields[0].Aggregator" [key]="'aggregationsSelect'" [label]="'Aggregator' | translate" [xAlignment]="'left'" 
+                        [options]='aggregationsOptions' (valueChange)="onAggregatorSelected($event)">
+                        </pep-select>
+                        <pep-select [disabled]="!isLoaded" *ngIf="series.AggregatedFields[0].Aggregator=='Sum' || series.AggregatedFields[0].Aggregator=='Average' || series.AggregatedFields[0].Aggregator=='CountDistinct'"
+                         [mandatory]="true" class="flex" [emptyOption]="false" [(value)]="series.AggregatedFields[0].FieldID" [key]="'fieldAggregationsSelect'" [label]="'AggregatedField' | translate" [xAlignment]="'left'" 
+                        [options]="series.AggregatedFields[0].Aggregator=='Sum' || series.AggregatedFields[0].Aggregator=='Average' ? aggregationsFieldsOptions['Number'] : aggregationsFieldsOptions['All']" (valueChange)="onChartSelected($event)">
+                        </pep-select>
+                    </div>
+                    <div id="scripts" *ngIf="series.AggregatedFields[0].Aggregator === 'Script'">
+                        <!-- <pep-field-title [label]="'ScriptParameters' | translate" class="header">
+                        </pep-field-title> -->
+                        <h4>
+                            {{'ScriptParameters' | translate}}
+                        </h4>
+                        <pep-field-title [label]="'ScriptParametersDescription' | translate" class="header">
+                        </pep-field-title>
+                        <pep-field-title [label]="'ScriptParametersDescriptionExample' | translate" class="header">
+                        </pep-field-title>
+                        <div class="space-between">
+                            <div class="tab">
+                                <pep-field-title [label]="'ScriptParametersDescriptionExampleOne' | translate" class="header">
+                                </pep-field-title>
+                                <pep-field-title [label]="'ScriptParametersDescriptionExampleTwo' | translate" class="header">
+                                </pep-field-title>
+                                <pep-field-title [label]="'ScriptParametersDescriptionExampleThree' | translate" class="header">
+                                </pep-field-title>
+
+                            </div>
+                            <button mat-button class="pep-spacing-element pep-button md strong" (click)="addAggregatedParam()">
+                                {{'Add'| translate}}
+                            </button>
+                        </div>
+                        <div>
+
+                            <div *ngFor="let aggregatedParam of series.AggregatedParams; let i = index">
+                                <div style="display: flex;">
+                                    <pep-textbox [disabled]="!isLoaded" class="flex margin3" [(value)]="aggregatedParam.Name" [label]="'Name' | translate" [showTitle]="i==0" [type]="'text'"></pep-textbox>
+                                    <pep-select [disabled]="!isLoaded" class="flex22 margin3" [(value)]="aggregatedParam.Aggregator" [emptyOption]="false" [label]="'Aggregation' | translate" [showTitle]="i==0"
+                                     [options]="scriptAggregationsOptions"></pep-select>
+                                    <pep-select [disabled]="!isLoaded" *ngIf="aggregatedParam.Aggregator=='Sum' || aggregatedParam.Aggregator=='CountDistinct'" class="flex22 margin3" [mandatory]="true" [(value)]="aggregatedParam.FieldID" [emptyOption]="false" [label]="'Field' | translate" [showTitle]="i==0"
+                                     [options]="aggregatedParam.Aggregator=='Sum'  ? aggregationsFieldsOptions['Number'] : aggregationsFieldsOptions['All']"></pep-select>
+                                    <button  [disabled]="!isLoaded" (click)="deleteAggregatedParam(i)" class="flex5 margin3 top mat-focus-indicator mat-button mat-button-base pep-button md weak caution pull-left flip last-button icon-button ng-star-inserted">
+                                        <mat-icon style="padding: 1.2rem;">
+                                            <pep-icon name="system_bin"></pep-icon>
+                                        </mat-icon>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <pep-textarea [disabled]="!isLoaded" [key]="'textarea1'" [label]="'Script' | translate" [(value)]="series.AggregatedFields[0].Script" [rowSpan]="2" [xAlignment]="'left'">
+                        </pep-textarea>
+                    </div>
+                </div>
+                <div id="categories" *ngIf="this.seriesEditorType !== 'scorecards'">
+                    <pep-checkbox  [disabled]="!isLoaded" [value]="formFlags.useCategories" [label]="'Categories' | translate" [renderTitle]="false" (valueChange)="onEventCheckboxChanged('Categories',$event)"></pep-checkbox>
+                    <hr>
+                    <pep-field-title [label]="'CategoriesDescription' | translate" class="header">
+                    </pep-field-title>
+                    <div class="flex-gap">
+                        <pep-select class="flex" [disabled]=" !isLoaded || !formFlags.useCategories" [emptyOption]="false" [(value)]="series.GroupBy && series.GroupBy[0] && series.GroupBy[0].FieldID" 
+                        [key]="'GroupBySelect'" [label]="'GroupByField'  | translate" [xAlignment]="'left'" [options]='aggregationsFieldsOptions["All"]' (valueChange)="onGroupByFieldSelected($event)">
+                        </pep-select>
+                        <!-- <pep-textbox class="flex" [disabled]="!useCategories" [value]="series.GroupBy && series.GroupBy[0] &&series.GroupBy[0].Interval"  [label]="'Interval'  | translate" [type]="'int'" (valueChange)="onGroupByIntervalChanged($event)"></pep-textbox> -->
+                        <pep-select  *ngIf="IsDateGroupBy"  class="flex25" [label]="'Interval' | translate" [disabled]=" !isLoaded || !formFlags.useCategories" [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [(value)]="series.GroupBy && series.GroupBy[0] &&series.GroupBy[0].Interval" [options]='intervalOptions' >
+                        </pep-select>
+                        <pep-select *ngIf="IsDateGroupBy"  class="flex25" [label]="'Format' | translate" [disabled]=" !isLoaded || !formFlags.useCategories" [emptyOption]="false" [key]="'formatSelect'" [xAlignment]="'left'" [(value)]="series.GroupBy && series.GroupBy[0] &&series.GroupBy[0].Format" [options]='formatOptions'>
+                        </pep-select>
+                    </div>
+                    <pep-textbox class="half-width" [disabled]=" !isLoaded || !formFlags.useCategories" [mandatory]="formFlags.useCategories" [(value)]="series.GroupBy[0].Alias" [label]="'Alias' | translate" [type]="'text'"></pep-textbox>
+                </div>
+                <div id="dynamic-series" *ngIf="this.seriesEditorType !== 'scorecards'">
+                    <pep-checkbox  [disabled]="!isLoaded" [value]="formFlags.useDynamicSeries" [label]="'DynamicSeries' | translate" [renderTitle]="false" (valueChange)="onEventCheckboxChanged('DynamicSeries',$event)"></pep-checkbox>
+
+                    <pep-field-title [label]="'DynamicSeriesDescriptions' | translate" class="header">
+                    </pep-field-title>
+                    <div class="flex-gap">
+                        <pep-select class="flex" [disabled]=" !isLoaded || !formFlags.useDynamicSeries" [mandatory]="formFlags.useDynamicSeries" [emptyOption]="false" [key]="'groupBySelect'" [(value)]="series.BreakBy.FieldID" [label]="'BreakByField' | translate" [xAlignment]="'left'" [options]='aggregationsFieldsOptions["All"]' (valueChange)="onBreakByFieldSelected($event)" >
+                        </pep-select>
+                        <pep-select *ngIf="IsDateBreakBy" class="flex25" [disabled]="!isLoaded ||!formFlags.useDynamicSeries"   [(value)]="series.BreakBy.Interval"  [label]="'Interval' | translate"  [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [options]='intervalOptions' (valueChange)="onChartSelected($event)">
+                        </pep-select>
+                        <pep-select *ngIf="IsDateBreakBy" class="flex25" [label]="'Format' | translate" [(value)]="series.BreakBy.Format" [disabled]=" !isLoaded || !formFlags.useCategories" [emptyOption]="false" [key]="'formatSelect'" [xAlignment]="'left'" [(value)]="series.BreakBy && series.BreakBy.Format" [options]='formatOptions'>
+                        </pep-select>
+                    </div>
+                </div>
+
+                <div id="limit-number">
+                    <pep-checkbox [value]="formFlags.limitNumber" [label]="'LimitNumberOfResults' | translate" [renderTitle]="false" (valueChange)="onEventCheckboxChanged('LimitNumberResults',$event)"></pep-checkbox>
+
+                    <div class="flex-gap">
+                        <pep-textbox class="flex" [(value)]="series.Top.Max"  [disabled]=" !isLoaded ||!formFlags.limitNumber" [label]="'NumberOf' | translate" [type]="'text'" (valueChange)="onTopMaxChanged($event)"></pep-textbox>
+                        <pep-select class="flex" [value]="series.Top.Ascending === true? 'Ascending': 'Decending'" [disabled]="!isLoaded && !formFlags.limitNumber" [label]="'Order'" [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [options]='orderOptions' (valueChange)="onOrderChanged($event)">
+                        </pep-select>
+                    </div>
+                </div>
+
+
+
+                <div id="filter">
+                    <h2>{{'Filter' | translate}}
+                    </h2>
+                    <hr>
+                <div *ngIf="series.Resource == 'all_activities' || series.Resource == 'transaction_lines'">
+                    <div class="flex-gap">
+                        <pep-select class="flex" [emptyOption]="false" [(value)]="series.Scope.Account" [label]="'AccountFilter' | translate" 
+                        [key]="'accountFilterSelect'" [xAlignment]="'left'" [options]='accountFilterOptions'>
+                        </pep-select>
+                    </div>
+                    <div class="flex-gap">
+                        <pep-select class="flex" [emptyOption]="false" [(value)]="series.Scope.User" [label]="'UserFilter' | translate" [key]="'userFilterSelect'" 
+                        [xAlignment]="'left'" [options]='userFilterOptions'>
+                        </pep-select>
+                    </div>
+                </div>
+               <!--   <div class="flex-gap">
+                        <pep-select class="flex" [emptyOption]="false" [label]="'PeriodFilter' | translate" [key]="'intervalSelect'" [xAlignment]="'left'" [options]='periodOptions' (valueChange)="onChartSelected($event)">
+                        </pep-select>
+                        <pep-textbox class="flex" [type]="'text'" (valueChange)="onValueChanged('Name', $event)"></pep-textbox>
+                        <pep-select class="flex" [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [options]='intervalOptions' (valueChange)="onChartSelected($event)">
+                        </pep-select>
+                    </div> -->
+                    <!--<pep-textarea [key]="'textarea1'" [label]="'FilterRules' | translate" [value]="JSON.stringify(series.Filter, null, 2)" [rowSpan]="2" [maxFieldCharacters]="1000" (valueChange)="onFilterRuleChanged($event)" [xAlignment]="'left'">
+                   </pep-textarea>-->
+                    <pep-query-builder
+                    [query]="seriesFilterRule" [fields]="filterRuleFieldsOptions" (queryChange)="onFilterRuleChanged($event)" (formValidationChange)="isformValid = $event">
+                    </pep-query-builder>
+
+                </div>
+
+                <!-- dynamicFilter is not relevant since page builder filter not deleped yet -->
+                <!-- <div id="dynamicFilter">
+                    <h2>{{'DynamicFilter' | translate}}
+                    </h2>
+                    <hr>cd
+                    <div class="space-between">
+                        <pep-field-title [label]="'DynamicFilterDescription' | translate" class="header">
+                        </pep-field-title>
+                        <button mat-button class="pep-spacing-element pep-button md strong" (click)="addDynamicFilterFields()">
+                            {{'Add'| translate}}
+                        </button>
+                    </div>
+
+                    <div id="fields-container">
+                        <div class="fieldRow" *ngFor="let dynamicFilterFields of series.DynamicFilterFields;  let i = index">
+                            <div id="aggregators-params-container">
+                                <pep-select [disabled]="false" [showTitle]="false" [emptyOption]="false" [options]="aggregationsFieldsOptions["All"]" class="pull-left flip" [value]="series.DynamicFilterFields[i]"></pep-select>
+
+                                <button (click)="deleteDynamicFilterFields(i)" class="mat-focus-indicator mat-button mat-button-base pep-button md weak caution pull-left flip last-button icon-button ng-star-inserted">
+                                    <mat-icon style="padding: 1.2rem;">
+                                        <pep-icon name="system_bin"></pep-icon>
+                                    </mat-icon>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div> -->
+
+            </div>
+        </ng-container>
+        <ng-container pep-dialog-actions>
+            <div class="pep-spacing-element-negative">
+                <div>
+                    <button  mat-button class="pep-spacing-element pep-button md weak" [mat-dialog-close]>
+                        {{'ACTIONS.CANCEL' | translate}}
+                    </button>
+                    <button mat-button class="pep-spacing-element pep-button md strong" (click)="onSave($event)" [mat-dialog-close]="series" 
+                    
+                    [disabled]="!isLoaded ||!isformValid || (formFlags.useDynamicSeries && !series.BreakBy.FieldID) ||
+                     (formFlags.useCategories && !series.GroupBy[0].FieldID) || 
+                    (!series.AggregatedFields[0].FieldID && series.AggregatedFields[0].Aggregator!=='Script' && series.AggregatedFields[0].Aggregator!=='Count') ||
+                    (formFlags.limitNumber && !series.Top.Max) || 
+                    (series.AggregatedFields[0].Aggregator==='Script' && !series.AggregatedParams[0].FieldID)">
+                        {{(mode == 'Add' ? 'Add' : 'Update') | translate}}
+                    </button>
+                </div>
+            </div>
+        </ng-container>
+    </pep-dialog>
+</div>

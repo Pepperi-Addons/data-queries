@@ -2,6 +2,7 @@ import { NgModule } from '@angular/core';
 import { Component } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { AddonComponent } from './addon/addon.component';
+import { QueryManagerComponent } from './query-manager/query-manager.component';
 
 // Important for single spa
 @Component({
@@ -15,11 +16,8 @@ const routes: Routes = [
         path: `settings/:addon_uuid`,
         children: [
             {
-                path: ':editor',
-                component: AddonComponent
-                // TODO: solve routing
-                // path: '**',
-                // loadChildren: () => import('./addon/addon.module').then(m => m.AddonModule)
+                path: 'data-queries',
+                component: QueryManagerComponent //the component files name will be query-manager.component.ts/css/html
             }
         ]
     },

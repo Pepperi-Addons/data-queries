@@ -20,7 +20,9 @@
 				"Description": "CHANGE_TO_ADDON_DESCRIPTION"
 			}
 		],
-		"Dependencies": {},
+		"Dependencies": {
+			"adal": "1.0.196"
+		},
 		"CPISide": []
 	}
 }

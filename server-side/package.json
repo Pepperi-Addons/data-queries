@@ -29,6 +29,8 @@
     },
     "dependencies": {
         "@pepperi-addons/debug-server": "*",
-        "@pepperi-addons/papi-sdk": "*"
+        "@pepperi-addons/papi-sdk": "*",
+        "json-schema": "^0.4.0",
+        "jsonschema": "^1.4.0"
     }
 }

@@ -15,17 +15,23 @@ class MyService {
         });
     }
 
-    doSomething() {
-        console.log("doesn't really do anything....");
-    }
-    
-    // For page block template
     upsertRelation(relation): Promise<any> {
         return this.papiClient.post('/addons/data/relations', relation);
     }
 
-    getAddons(): Promise<InstalledAddon[]> {
-        return this.papiClient.addons.installedAddons.find({});
+    upsertChart(chart) {
+        return this.papiClient.post('/charts', chart);
+    }
+
+    getCharts(chartsNames) {
+        var namesString = "("
+        for(var name of chartsNames){
+            namesString+= `"`+name+`",`;
+        }
+        namesString = namesString.substring(0,namesString.length-1)
+        namesString+= ")"
+        
+        return this.papiClient.get(`/charts?where=Name in ${namesString}`)
     }
 }
 

@@ -1,0 +1,123 @@
+#aggregators-params-container{
+    display: flex;
+    gap: 0.5rem;
+} 
+
+.space-between
+{
+    display: flex;
+    justify-content: space-between;
+    align-items:flex-end;
+
+}
+.margin3{
+    margin: 3px;
+}
+.flex-gap{
+    display: flex; gap: 0.5rem;
+}
+.flex{
+    flex-basis: 50%;
+}
+.flex25{
+    flex-basis: 25%;
+}
+.flex5{
+    flex-basis: 5%;
+}
+.flex22{
+    flex-basis: 22.5%;
+}
+.half-width{
+    width: 50%;
+}
+.flex-grow{
+    flex-grow: 2.2;
+}
+.tab{
+    padding-left:1em
+}
+.top{
+    top:1.5rem;
+}
+.no-title{
+    margin:-1.5rem 1rem 0 0;
+}
+#fields-container{
+ 
+
+    .fieldRow{
+
+        height: 2.5rem;
+        margin-bottom: .5rem;
+            
+            label{
+                margin: .5rem 0 0 0;
+                min-width: 2rem;
+            }
+    
+            pep-select{
+                width: 14rem;
+                max-width: 14rem;
+                margin: -1.5rem 1rem 0 0;
+
+                &:last-of-type {
+                    margin-right: 0rem;
+                }
+            }
+            mat-icon{
+                cursor: pointer;
+            }
+    
+            &:last-of-type {
+                margin-bottom:  1.5rem;
+            }
+        }
+} 
+
+pep-checkbox{
+    height: 2rem;
+    min-height: 2rem !important;
+    margin-bottom: .5rem !important;
+  
+    ::ng-deep .pep-checkbox-container {
+        background: transparent !important;
+        padding-inline: 0;
+  
+        label{
+            &.mat-checkbox-layout{
+                font-weight:  600;
+                font-size: 1.25rem;
+  
+                .mat-checkbox-inner-container{
+                    margin-inline-start: 0 !important;
+                    margin-inline-end: .25rem !important;
+                }
+            }
+        }
+    }
+  
+    &.body-sm{
+  
+        height: 1.5rem;
+        min-height: 1.5rem;
+        margin-bottom: .25rem;
+  
+        ::ng-deep .pep-checkbox-container{
+            height: 1.5rem;
+  
+            label{
+            &.mat-checkbox-layout{
+                font-weight:  400;
+                font-size: 1rem;
+  
+                .mat-checkbox-inner-container{
+                    height: 1rem;
+                    width: 1rem;
+                }
+            }
+        }
+    }
+    }
+  }
+  
