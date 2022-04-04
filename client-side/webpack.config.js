@@ -3,9 +3,10 @@ const mf = require("@angular-architects/module-federation/webpack");
 const path = require("path");
 const share = mf.share;
 const singleSpaAngularWebpack = require('single-spa-angular/lib/webpack').default;
+const webpack = require('webpack');
 const { merge } = require('webpack-merge');
 
-const filename = 'addon'; // addon
+const filename = 'query_manager'; // addon
 
 const sharedMappings = new mf.SharedMappings();
 sharedMappings.register(
@@ -15,6 +16,17 @@ sharedMappings.register(
     ]);
 
 module.exports = (config, options, env) => {
+
+    config.plugins.push(
+        new webpack.DefinePlugin({
+          CLIENT_MODE: JSON.stringify(env.configuration),
+        })
+    )
+    // Only if you need standalone
+    if (env.configuration === 'Standalone') {
+        return config;
+    }
+    else {
     const mfConfig = {
         output: {
             uniqueName: `${filename}`,
@@ -34,7 +46,8 @@ module.exports = (config, options, env) => {
                 name: `${filename}`,
                 filename: `${filename}.js`,
                 exposes: {
-                  './AddonModule': './src/app/addon/index.ts'
+                  './QueryManagerComponent': './src/app/query_manager/index.ts',
+                  './QueryManagerModule': './src/app/query_manager/index.ts'
                 },
                 shared: share({
                     "@angular/core": { eager: true, singleton: true, strictVersion: true, requiredVersion: 'auto' },
@@ -46,12 +59,13 @@ module.exports = (config, options, env) => {
                 })
             }),
             sharedMappings.getPlugin()
-        ],
+        ]
     }
 
     const merged = merge(config, mfConfig);
     const singleSpaWebpackConfig = singleSpaAngularWebpack(merged, options);
     singleSpaWebpackConfig.entry.main = [...new Set(singleSpaWebpackConfig.entry.main)];
     return singleSpaWebpackConfig;
+    }
     // Feel free to modify this webpack config however you'd like to
 };

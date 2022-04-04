@@ -2,27 +2,26 @@ import { NgModule } from '@angular/core';
 import { HttpClientModule } from '@angular/common/http';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-
+import { AddonService } from '../services/addon.service';
 import { PepAddonService } from '@pepperi-addons/ngx-lib';
-
 import { TranslateModule, TranslateLoader, TranslateStore } from '@ngx-translate/core';
-
 import { AppRoutingModule } from './app.routes';
-import { AddonModule } from './addon/addon.module';
 import { AppComponent } from './app.component';
-import { QueryManagerComponent } from './query-manager/query-manager.component';
+import { QueryManagerModule } from './query_manager/query-manager.module'
+import { SeriesEditorModule } from './series-editor/series-editor.module'
+
 
 @NgModule({
     declarations: [
-        AppComponent,
-        QueryManagerComponent
+        AppComponent
     ],
     imports: [
         BrowserModule,
         BrowserAnimationsModule,
         HttpClientModule,
-        AddonModule,
         AppRoutingModule,
+        SeriesEditorModule,
+        QueryManagerModule,
         TranslateModule.forRoot({
             loader: {
                 provide: TranslateLoader,
@@ -33,6 +32,7 @@ import { QueryManagerComponent } from './query-manager/query-manager.component';
     ],
     providers: [
         TranslateStore,
+        AddonService
         // When loading this module from route we need to add this here (because only this module is loading).
     ],
     bootstrap: [AppComponent]

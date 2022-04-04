@@ -4,7 +4,7 @@ import { Injectable } from '@angular/core';
 import { PepDataConvertorService, PepHttpService, PepSessionService } from '@pepperi-addons/ngx-lib';
 
 
-@Injectable({ providedIn: 'root' })
+@Injectable()
 export class AddonService {
 
     accessToken = '';
@@ -46,6 +46,10 @@ export class AddonService {
 
     async getDataQueryByKey(Key: string) {
         return this.papiClient.get(`/data_queries?where=Key='${Key}'`);
+    }
+
+    async getAllQueries(){
+        return this.papiClient.get(`/data_queries`);
     }
 
     async upsertDataQuery(body) {

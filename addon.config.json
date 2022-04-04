@@ -1,28 +1,32 @@
 {
-	"AddonUUID": "",
-	"AddonVersion": "0.0.0",
-	"DebugPort": 4500,
-	"WebappBaseUrl": "https://app.sandbox.pepperi.com",
-	"DefaultEditor": "main",
-	"Endpoints": [
-		"installation.ts",
-		"api.ts"
-	],
-	"Editors": [
-		"main"
-	],
-	"PublishConfig": {
-		"ClientStack": "ng10",
-		"Editors": [
-			{
-				"ParentPackageName": "CHANGE_TO_ADDON_CONTAINER_NAME",
-				"PackageName": "CHANGE_TO_ADDON_PATH",
-				"Description": "CHANGE_TO_ADDON_DESCRIPTION"
-			}
-		],
-		"Dependencies": {
-			"adal": "1.0.196"
-		},
-		"CPISide": []
-	}
+  "AddonUUID": "c7544a9d-7908-40f9-9814-78dc9c03ae77",
+  "AddonVersion": "0.0.6",
+  "DebugPort": 4500,
+  "WebappBaseUrl": "https://app.sandbox.pepperi.com",
+  "DefaultEditor": "main",
+  "Endpoints": [
+    "installation.ts",
+    "api.ts"
+  ],
+  "Editors": [
+    "main"
+  ],
+  "Assets": [
+    "en.json",
+    "en.ngx-lib.json"
+  ],
+  "PublishConfig": {
+    "ClientStack": "ng10",
+    "Editors": [
+      {
+        "ParentPackageName": "Configuration",
+        "PackageName": "query_manager",
+        "Description": "Query Manager"
+      }
+    ],
+    "Dependencies": {
+      "adal": "1.0.196"
+    },
+    "CPISide": []
+  }
 }

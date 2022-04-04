@@ -1,0 +1,45 @@
+<pep-page-layout>
+    <!-- <ng-container pep-top-area>
+        <pep-top-bar [title]="('Title_Addon' | translate)">
+            <div header-start-content>
+            </div>
+            <div header-end-content>
+            </div>
+        </pep-top-bar>
+    </ng-container> -->
+
+    <ng-container pep-main-area>
+        <pep-generic-list class="generic-list"
+            [title] = "'Query_Manager_Title' | translate"
+            [showTopBar]="true" 
+            [dataSource]="dataSource" 
+            [inline]="false"
+            [actions]="actions"
+            [addPadding]="false"
+            [showSearch]="true"
+            [uuidMapping]="'Name'"
+            >
+            <ng-container right-buttons>
+                <pep-menu
+                classNames="pep-spacing-element"
+                iconName="system_menu"
+                type="action"
+                styleType="strong"
+                sizeType="md"
+                [items]="menuItems"
+                [disabled]="false"
+                (menuItemClick)="menuItemClick($event)"
+                ></pep-menu>
+                <pep-button 
+                    class="pep-spacing-element"
+                    [sizeType]="'md'" 
+                    [value]="'Add' | translate"
+                    [styleType]="'strong'" 
+                    (buttonClick)="navigateToQueryForm('Add', EMPTY_OBJECT_NAME)"
+                    *ngIf="!recycleBin"
+                ></pep-button>
+            </ng-container>
+        </pep-generic-list>
+    
+    </ng-container>
+</pep-page-layout>

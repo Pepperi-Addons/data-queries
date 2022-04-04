@@ -26,6 +26,7 @@
         "src/polyfills.ts"
     ],
     "include": [
-        "src/**/*.d.ts"
+        "src/**/*.d.ts",
+        "src/app/query_manager/index.ts"
     ]
 }

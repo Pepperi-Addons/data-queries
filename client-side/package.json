@@ -32,8 +32,9 @@
         "@mat-datetimepicker/moment": "^6.0.2",
         "@ngx-translate/core": "^13.0.0",
         "@ngx-translate/http-loader": "^6.0.0",
-        "@pepperi-addons/ngx-lib": "^0.3.10",
-        "@pepperi-addons/papi-sdk": "*",
+        "@pepperi-addons/ngx-composite-lib": "^0.0.13",
+        "@pepperi-addons/ngx-lib": "^0.3.12-beta.4",
+        "@pepperi-addons/papi-sdk": "^1.31.1",
         "@pepperi-addons/system-addon-utils": "^1.0.4",
         "@tweenjs/tween.js": "^17.1.1",
         "disable-scroll": "^0.5.1",
@@ -49,7 +50,6 @@
         "rxjs": "^6.6.2",
         "single-spa": "^5.9.1",
         "single-spa-angular": "^5.0.2",
-        "tslib": "^2.0.0",
         "zone.js": "~0.11.4"
     },
     "devDependencies": {
@@ -72,7 +72,9 @@
         "protractor": "~7.0.0",
         "ts-node": "~8.3.0",
         "tslint": "~6.1.0",
-        "typescript": "~4.2.4"
+        "typescript": "~4.2.4",
+        "ngx-virtual-scroller":"^4.0.3"
+        
     },
     "browserslist": [
         "supports es6-module"
