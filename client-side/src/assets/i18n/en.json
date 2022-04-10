@@ -1,4 +1,9 @@
 {
     "Title_Addon": "Title of the addon",
-    "Query_Manager_Title": "Query Manager"
+    "Query_Manager_Title": "Query Manager",
+    "Query_DeleteDialogTitle": "Delete Query",
+    "Query_DeleteDialogContent": "Are you sure you want to delete this query?",
+    "Query_DeleteDialogError": "Cannot delete query with items not hidden",
+    "Query_Add_Title": "Create Query",
+    "Query_Edit_Title": "Edit - {{query_uuid}}"
 }
