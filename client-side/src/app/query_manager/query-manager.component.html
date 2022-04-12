@@ -1,7 +1,7 @@
 <pep-page-layout>
     <ng-container pep-main-area>
         <pep-generic-list class="generic-list"
-            [title] = "'Query_Manager_Title' | translate"
+            [title] = "'Query_Manager_Title' | translate: {recycle_bin: recycleBinTitle}"
             [showTopBar]="true" 
             [dataSource]="dataSource" 
             [inline]="false"

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListInitData, IPepGenericListPager, PepGenericListService } from "@pepperi-addons/ngx-composite-lib/generic-list";
@@ -6,6 +6,7 @@ import { PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog'
 import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
 import { PepMenuItem } from '@pepperi-addons/ngx-lib/menu';
 import { AddonService } from 'src/services/addon.service';
+import { UtilitiesService } from 'src/services/utilities.service';
 import { v4 as uuid } from 'uuid';
 
 export type FormMode = 'Add' | 'Edit';
@@ -17,6 +18,9 @@ export const EMPTY_OBJECT_NAME = 'NewCollection';
   styleUrls: ['./query-manager.component.scss']
 })
 export class QueryManagerComponent implements OnInit {
+    @Input() hostObject: any;
+    
+    @Output() hostEvents: EventEmitter<any> = new EventEmitter<any>();
 
   dataSource: IPepGenericListDataSource = this.getDataSource();
 
@@ -27,6 +31,7 @@ export class QueryManagerComponent implements OnInit {
   menuItems:PepMenuItem[] = []
 
   recycleBin: boolean = false;
+  recycleBinTitle = '';
 
   deleteError = 'Cannot delete';
 
@@ -36,11 +41,15 @@ export class QueryManagerComponent implements OnInit {
     public genericListService: PepGenericListService,
     public activateRoute: ActivatedRoute,
     private router: Router,
-    public dialogService: PepDialogService
-    ) { }
+    public dialogService: PepDialogService,
+    private utilitiesService: UtilitiesService) { }
+
 
   ngOnInit(): void {
+    this.recycleBin = this.activateRoute.snapshot.queryParams.recycle_bin == 'true' || false;
+    this.utilitiesService.addonUUID = this.activateRoute.snapshot.params.addon_uuid || '';
     this.menuItems = this.getMenuItems();
+    this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
   }
 
   uuidGenerator(){
@@ -70,9 +79,13 @@ export class QueryManagerComponent implements OnInit {
     return {
         init: async(params:any) => {
             let queries = await this.addonService.getAllQueries();
-            if(params.searchString!=null && params.searchString!=""){
-                queries = queries.filter(x => x.Name == params.searchString)
+            if(this.recycleBin) {
+                queries = await this.utilitiesService.getRecycledQueries();
             }
+            if(params.searchString){
+                queries = await this.utilitiesService.getQueriesByName(params.searchString);
+            }
+
             return Promise.resolve({
                 dataView: {
                     Context: {
@@ -135,7 +148,7 @@ actions: IPepGenericListActions = {
                     title: this.translate.instant('Restore'),
                     handler: async (objs) => {
                         await this.addonService.upsertDataQuery({
-                            Name: objs.rows[0],
+                            Key: objs.rows[0],
                             Hidden: false,
                         });
                         this.dataSource = this.getDataSource();
@@ -172,6 +185,7 @@ menuItemClick(event: any) {
         case 'RecycleBin':
         case 'BackToList': {
             this.recycleBin = !this.recycleBin;
+            this.recycleBinTitle = this.recycleBin ? 'Recycle Bin' : '';
             setTimeout(() => {
                 this.router.navigate([], {
                     queryParams: {

@@ -4,7 +4,6 @@ import { JSONFilter } from "@pepperi-addons/pepperi-filters/build/json-filter";
 
 export interface DataQuery extends AddonData {
     Key: string;
-    Type: DataType,
     Name: string;
     Description?: string;
     Resource: string;

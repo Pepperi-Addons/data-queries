@@ -27,7 +27,7 @@ export const QueriesScheme =
                                     "enum": ["None", "Sum", "Count", "Average","CountDistinct","Script"]
                                 }
                             },
-                            "if": {
+                            "if": { 
                                 "properties": {
                                     "Aggregator": { "const": "Script" }
                                 },
@@ -185,9 +185,12 @@ export const QueriesScheme =
         "Name": {
             "type": "string"
         },
-        "Description": {
+        "Resource": {
             "type": "string"
         },
+        "Description": {
+            "type": "string"
+        }
     },
     "anyOf": [
         {
@@ -195,6 +198,9 @@ export const QueriesScheme =
         },
         {
             "required": { "required": ["Series"] }
+        },
+        {
+            "required": { "required": ["Resource"] }
         }
     ],
     "additionalProperties": false

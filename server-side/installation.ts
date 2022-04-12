@@ -34,7 +34,16 @@ export async function install(client: Client, request: Request): Promise<any> {
 }
 
 export async function uninstall(client: Client, request: Request): Promise<any> {
-    return {success:true,resultObject:{}}
+    try{
+        const service = new UtilitiesService(client)
+        await service.papiClient.post(`/addons/data/schemes/${DATA_QUREIES_TABLE_NAME}/purge`);
+        return { success: true, resultObject: {} }
+    }
+    catch(err){
+        console.log('Failed to uninstall data-queries addon', err)
+        return handleException(err);
+
+    }
 }
 
 export async function upgrade(client: Client, request: Request): Promise<any> {
@@ -74,4 +83,16 @@ async function createPageBlockRelation(client: Client): Promise<any> {
     } catch(err) {
         return { success: false, resultObject: err , errorMessage: `Error in upsert relation. error - ${err}`};
     }
+}
+
+function handleException(err: unknown): any {
+    let errorMessage = 'Unknown Error Occured';
+    if (err instanceof Error) {
+        errorMessage = err.message;
+    }
+    return {
+        success: false,
+        errorMessage: errorMessage,
+        resultObject: {}
+    };
 }
