@@ -1,0 +1,15 @@
+.flex {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    gap:1rem;
+    margin: 2rem 0;
+    pep-textbox, pep-select {
+        width: 100%;
+        align-content: space-between;
+    }
+}
+
+.genericListContainer {
+    height: 20.75rem;
+}

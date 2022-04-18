@@ -11,16 +11,39 @@ The error Message is importent! it will be written in the audit log and help the
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { Relation } from '@pepperi-addons/papi-sdk'
 import MyService from './my.service';
+import { DATA_QUREIES_TABLE_NAME } from './models';
+import { UtilitiesService } from './services/utilities.service';
+
 
 export async function install(client: Client, request: Request): Promise<any> {
     // For page block template uncomment this.
     // const res = await createPageBlockRelation(client);
     // return res;
-    return {success:true,resultObject:{}}
+    try {
+        const service = new UtilitiesService(client);
+        await service.createADALSchemes()
+        return {success:true, resultObject:{}}
+    }
+    catch (err) {
+        return { 
+            success: false, 
+            resultObject: err , 
+            errorMessage: `Error in creating necessary objects . error - ${err}`
+        };
+    }
 }
 
 export async function uninstall(client: Client, request: Request): Promise<any> {
-    return {success:true,resultObject:{}}
+    try{
+        const service = new UtilitiesService(client)
+        await service.papiClient.post(`/addons/data/schemes/${DATA_QUREIES_TABLE_NAME}/purge`);
+        return { success: true, resultObject: {} }
+    }
+    catch(err){
+        console.log('Failed to uninstall data-queries addon', err)
+        return handleException(err);
+
+    }
 }
 
 export async function upgrade(client: Client, request: Request): Promise<any> {
@@ -60,4 +83,16 @@ async function createPageBlockRelation(client: Client): Promise<any> {
     } catch(err) {
         return { success: false, resultObject: err , errorMessage: `Error in upsert relation. error - ${err}`};
     }
+}
+
+function handleException(err: unknown): any {
+    let errorMessage = 'Unknown Error Occured';
+    if (err instanceof Error) {
+        errorMessage = err.message;
+    }
+    return {
+        success: false,
+        errorMessage: errorMessage,
+        resultObject: {}
+    };
 }

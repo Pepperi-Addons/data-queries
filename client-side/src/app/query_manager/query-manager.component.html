@@ -1,23 +1,14 @@
 <pep-page-layout>
-    <!-- <ng-container pep-top-area>
-        <pep-top-bar [title]="('Title_Addon' | translate)">
-            <div header-start-content>
-            </div>
-            <div header-end-content>
-            </div>
-        </pep-top-bar>
-    </ng-container> -->
-
     <ng-container pep-main-area>
         <pep-generic-list class="generic-list"
-            [title] = "'Query_Manager_Title' | translate"
+            [title] = "'Query_Manager_Title' | translate: {recycle_bin: recycleBinTitle}"
             [showTopBar]="true" 
             [dataSource]="dataSource" 
             [inline]="false"
             [actions]="actions"
             [addPadding]="false"
             [showSearch]="true"
-            [uuidMapping]="'Name'"
+            [uuidMapping]="'Key'"
             >
             <ng-container right-buttons>
                 <pep-menu
@@ -35,11 +26,10 @@
                     [sizeType]="'md'" 
                     [value]="'Add' | translate"
                     [styleType]="'strong'" 
-                    (buttonClick)="navigateToQueryForm('Add', EMPTY_OBJECT_NAME)"
+                    (buttonClick)="navigateToQueryForm('Add', uuidGenerator())"
                     *ngIf="!recycleBin"
                 ></pep-button>
             </ng-container>
         </pep-generic-list>
-    
     </ng-container>
 </pep-page-layout>

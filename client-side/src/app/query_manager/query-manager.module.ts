@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterModule, Routes } from '@angular/router';
 import { HttpClientModule } from '@angular/common/http';
 import { QueryManagerComponent } from './query-manager.component'
-import { PepNgxLibModule, PepAddonService } from '@pepperi-addons/ngx-lib';
+import { PepNgxLibModule, PepAddonService, PepTextboxField } from '@pepperi-addons/ngx-lib';
 import { PepTopBarModule } from '@pepperi-addons/ngx-lib/top-bar';
 import { PepSizeDetectorModule } from '@pepperi-addons/ngx-lib/size-detector';
 import { PepPageLayoutModule } from '@pepperi-addons/ngx-lib/page-layout';
@@ -15,6 +15,10 @@ import { TranslateLoader, TranslateModule, TranslateService, TranslateStore } fr
 import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { PepMenuModule } from '@pepperi-addons/ngx-lib/menu';
 import { PepButtonModule } from '@pepperi-addons/ngx-lib/button';
+import { QueryFormComponent } from '../query-form/query-form.component';
+import { PepSelectModule } from '@pepperi-addons/ngx-lib/select';
+import { PepTextboxModule } from '@pepperi-addons/ngx-lib/textbox';
+
 
 const pepIcons = [
     pepIconSystemClose,
@@ -30,6 +34,7 @@ export const routes: Routes = [
 @NgModule({
     declarations: [
         QueryManagerComponent,
+        QueryFormComponent
     ],
     imports: [
         CommonModule,
@@ -41,6 +46,8 @@ export const routes: Routes = [
         PepMenuModule,
         PepTopBarModule,
         PepPageLayoutModule,
+        PepSelectModule,
+        PepTextboxModule,
         TranslateModule.forChild({
             loader: {
                 provide: TranslateLoader,

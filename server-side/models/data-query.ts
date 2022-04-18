@@ -3,9 +3,10 @@ import { AddonData } from "@pepperi-addons/papi-sdk";
 import { JSONFilter } from "@pepperi-addons/pepperi-filters/build/json-filter";
 
 export interface DataQuery extends AddonData {
-    Type: DataType,
+    Key: string;
     Name: string;
     Description?: string;
+    Resource: string;
     Series: Serie[],
 }
 
