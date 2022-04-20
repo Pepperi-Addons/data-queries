@@ -8,7 +8,7 @@ import { callElasticSearchLambda } from '@pepperi-addons/system-addon-utils';
 import jwtDecode from 'jwt-decode';
 import { DataQueryResponse, SeriesData } from '../models/data-query-response';
 import { QueryExecutionScheme } from '../models/query-execution-scheme';
-import { JSONFilter, toApiQueryString, toKibanaQuery } from '@pepperi-addons/pepperi-filters';
+import {JSONFilter, toKibanaQuery} from '@pepperi-addons/pepperi-filters'
 
 class ElasticService {
 
@@ -64,17 +64,23 @@ class ElasticService {
     const body = elasticRequestBody.toJSON();
     console.log(`lambdaBody: ${JSON.stringify(body)}`);
 
-    const lambdaResponse = await callElasticSearchLambda(endpoint, method, JSON.stringify(body), null, true);
-    console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
+    //const lambdaResponse = await callElasticSearchLambda(endpoint, method, JSON.stringify(body), null, true);
 
-    if (!lambdaResponse.success) {
-      console.log(`Failed to execute data query ID: ${query.Key}, lambdaBody: ${JSON.stringify(body)}`)
+    // if (!lambdaResponse.success) {
+    //   console.log(`Failed to execute data query ID: ${query.Key}, lambdaBody: ${JSON.stringify(body)}`)
+    //   throw new Error(`Failed to execute data query ID: ${query.Key}`);
+    // }
+    try {
+      const lambdaResponse = await this.papiClient.post(`/elasticsearch/search/${query.Resource}`,body);
+      console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
+      let response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query);
+      return response;
+    }
+    catch(ex){
+      console.log(`Failed to execute data query ID: ${query.Key}, lambdaBody: ${JSON.stringify(body)}`,ex)
       throw new Error(`Failed to execute data query ID: ${query.Key}`);
     }
 
-    let response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse.resultObject, query);
-
-    return response;
   }
 
   private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery) {

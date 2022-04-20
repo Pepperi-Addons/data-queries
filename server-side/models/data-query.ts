@@ -1,5 +1,4 @@
-
-import { AddonData } from "@pepperi-addons/papi-sdk";
+import { AddonData, AddonDataScheme } from "@pepperi-addons/papi-sdk";
 import { JSONFilter } from "@pepperi-addons/pepperi-filters/build/json-filter";
 
 export interface DataQuery extends AddonData {
@@ -7,7 +6,7 @@ export interface DataQuery extends AddonData {
     Name: string;
     Description?: string;
     Resource: string;
-    Series: Serie[],
+    Series: Serie[];
 }
 
 export interface GroupBy {
@@ -81,4 +80,23 @@ export const OrderType = ["Ascending", "Decending"];
 export const DATA_QUREIES_TABLE_NAME = 'DataQueries';
 export const SERIES_LABEL_DEFAULT_VALUE = '${label}';
 
+export const queriesTableScheme: AddonDataScheme = {
+    Name: DATA_QUREIES_TABLE_NAME,
+    Type: 'data',
+    Fields: {
+        Key: {
+            Type: "String"
+        },
+        Name: {
+            Type: "String"
+        },
+        Resource: {
+            Type: "String",
+        },
+        Series: {
+            Type: "Array",
+            Items: {Type: "Object"}
+        },
+    },
+}
 

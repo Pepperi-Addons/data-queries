@@ -12,21 +12,21 @@
         </pep-top-bar>
     </ng-container>
 
-    <ng-container pep-main-area> 
+    <ng-container pep-main-area>
         <div class="flex">
             <pep-textbox
                 [(value)]="query.Name"
                 [label]="'Name' | translate"
                 type="text"
-                [mandatory]="false"
+                [mandatory]="true"
                 [disabled]="false"
             ></pep-textbox>
             <pep-select
                 [(value)]="query.Resource"
                 [label]="'Resource' | translate"
                 type="select"
-                [mandatory]="false"
-                [disabled]="false"
+                [mandatory]="true"
+                [disabled]="query.Series.length>0"
                 xAlignment="left"
                 [options]="resourceOptions"
                 [showTitle]="true"
@@ -44,16 +44,32 @@
                 [addPadding]="false"
                 [showSearch]="false"
                 [uuidMapping]="'Key'"
+                [noDataFoundMsg] = "'SeriesNoDataFound' | translate"
+                *ngIf="query.Resource"
                 >
                 <ng-container right-buttons>
                     <pep-button
                         class="pep-spacing-element"
-                        [sizeType]="'sm'" 
-                        [value]="'Add' | translate" 
+                        [sizeType]="'sm'"
+                        [value]="'Add' | translate"
                         [styleType]="'strong'" 
-                        (buttonClick)="showSeriesEditorDialog()"
+                        (buttonClick)="showSeriesEditorDialog(null)"
                     ></pep-button>
                 </ng-container>
+            </pep-generic-list>
+        </div>
+        <div class="genericListContainer">
+            <pep-generic-list class="generic-list"
+                [title] = "'Preview' | translate"
+                [showTopBar]="true"
+                [dataSource]="previewDataSource"
+                [inline]="true"
+                [addPadding]="false"
+                [showSearch]="false"
+                [uuidMapping]="'Key'"
+                [selectionType] = "'none'"
+                *ngIf="mode == 'Edit'"
+                >
             </pep-generic-list>
         </div>
     </ng-container>

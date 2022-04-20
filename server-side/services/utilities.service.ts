@@ -1,6 +1,6 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk';
 import { Client } from '@pepperi-addons/debug-server';
-import { DataQuery, DATA_QUREIES_TABLE_NAME } from '../models/data-query';
+import { DimxRelations } from '../models/metadata';
 
 export class UtilitiesService {
     
@@ -16,21 +16,11 @@ export class UtilitiesService {
         });
     }
 
-    async createRelations(relations) {
-        await Promise.all(relations.map(async (singleRelation) => {
+    async createDIMXRelations() {
+        await Promise.all(DimxRelations.map(async (singleRelation) => {
+            singleRelation.Name = 'DataQueries';
             await this.papiClient.addons.data.relations.upsert(singleRelation);
         }));
-    }
-
-    async createADALSchemes() {
-        return await this.papiClient.addons.data.schemes.post({
-            Name: DATA_QUREIES_TABLE_NAME,
-            Type: 'data',
-            Fields: {
-                Name: {Type: 'String'},
-                Resource: {Type: 'String'} // ask shir if its ok
-            }
-        });
     }
 }
 

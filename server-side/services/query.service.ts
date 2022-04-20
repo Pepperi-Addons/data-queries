@@ -21,7 +21,7 @@ class QueryService {
     }
 
     async upsert(client: Client, request: Request) {
-
+        
         const userType = (<any>jwtDecode(client.OAuthAccessToken))["pepperi.employeetype"];
         // Hack until Addons permission will be developed
         if (userType !== 1) {
@@ -90,6 +90,18 @@ class QueryService {
             throw new Error('Series Key must be unique');
         }
     }
+
+    //DIMX
+    // for the AddonRelativeURL of the relation
+    async importDataSource(body) {
+        console.log("importing data")
+        return body;
+    }
+
+    async exportDataSource(body) {
+        console.log("exporting data")
+        return body;
+     }
 
 }
 

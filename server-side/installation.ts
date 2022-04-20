@@ -11,7 +11,7 @@ The error Message is importent! it will be written in the audit log and help the
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { Relation } from '@pepperi-addons/papi-sdk'
 import MyService from './my.service';
-import { DATA_QUREIES_TABLE_NAME } from './models';
+import { DATA_QUREIES_TABLE_NAME, queriesTableScheme } from './models';
 import { UtilitiesService } from './services/utilities.service';
 
 
@@ -21,13 +21,14 @@ export async function install(client: Client, request: Request): Promise<any> {
     // return res;
     try {
         const service = new UtilitiesService(client);
-        await service.createADALSchemes()
+        await service.papiClient.addons.data.schemes.post(queriesTableScheme);
+        await service.createDIMXRelations();
         return {success:true, resultObject:{}}
     }
     catch (err) {
         return { 
             success: false, 
-            resultObject: err , 
+            resultObject: err ,
             errorMessage: `Error in creating necessary objects . error - ${err}`
         };
     }
