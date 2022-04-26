@@ -7,11 +7,11 @@ import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
 import { AddonService } from 'src/services/addon.service';
 import { UtilitiesService } from 'src/services/utilities.service';
 import { PepButton } from '@pepperi-addons/ngx-lib/button';
-import { DataVisualizationService } from "src/services/data-visualization.service";
 import { SeriesEditorComponent } from '../series-editor/series-editor.component';
 import { DataQuery } from '../../../../server-side/models/data-query';
 import { PepLoaderService } from '@pepperi-addons/ngx-lib';
 import { GridDataViewField } from '@pepperi-addons/papi-sdk';
+import { MatDialogRef } from '@angular/material/dialog';
 
 
 
@@ -33,6 +33,7 @@ export class QueryFormComponent implements OnInit {
   deleteError = 'Cannot delete Series';
   previewDataSource: IPepGenericListDataSource;
   PreviewListFields: GridDataViewField[];
+  dialogRef: MatDialogRef<any>;
 
   constructor(
     public addonService: AddonService,
@@ -42,7 +43,6 @@ export class QueryFormComponent implements OnInit {
     private router: Router,
     public dialogService: PepDialogService,
     private utilitiesService: UtilitiesService,
-    private dataVisualizationService: DataVisualizationService,
     public loaderService: PepLoaderService) { }
 
    async ngOnInit() {
@@ -115,7 +115,7 @@ export class QueryFormComponent implements OnInit {
       parent: 'query',
       seriesName: series?.Name ? series.Name : `Series ${seriesCount + 1}`
     };
-    this.dataVisualizationService.openDialog(this.translate.instant('EditQuery'), SeriesEditorComponent, actionButton, input, callbackFunc);
+    this.openDialog(this.translate.instant('EditQuery'), SeriesEditorComponent, actionButton, input, callbackFunc);
   }
 
   protected updateQuerySeries(seriesToAddOrUpdate: any) {
@@ -358,5 +358,30 @@ async previewDataHandler(data){
     });
     return previewFields;
   }
+
+  openDialog(title, content, buttons, input, callbackFunc = null): void {
+    const config = this.dialogService.getDialogConfig(
+        {
+            disableClose: true,
+            panelClass: 'pepperi-standalone'
+        },
+        'inline'
+    );
+    const data = new PepDialogData({
+        title: title,
+        content: content,
+        actionButtons: buttons,
+        actionsType: "custom",
+        showHeader: true,
+        showFooter: true,
+        showClose: true
+    })
+    config.data = data;
+
+    this.dialogRef = this.dialogService.openDialog(content, input, config);
+    this.dialogRef.afterClosed().subscribe(res => {
+        callbackFunc(res);
+    });
+}
 
 }
