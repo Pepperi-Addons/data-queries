@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListInitData, IPepGenericListPager, PepGenericListService } from "@pepperi-addons/ngx-composite-lib/generic-list";
@@ -8,6 +8,7 @@ import { PepMenuItem } from '@pepperi-addons/ngx-lib/menu';
 import { AddonService } from 'src/services/addon.service';
 import { UtilitiesService } from 'src/services/utilities.service';
 import { v4 as uuid } from 'uuid';
+import { DIMXComponent } from '@pepperi-addons/ngx-composite-lib/dimx-export';
 
 export type FormMode = 'Add' | 'Edit';
 export const EMPTY_OBJECT_NAME = 'NewCollection';
@@ -22,18 +23,16 @@ export class QueryManagerComponent implements OnInit {
     
     @Output() hostEvents: EventEmitter<any> = new EventEmitter<any>();
 
-  dataSource: IPepGenericListDataSource = this.getDataSource();
+    @ViewChild('dimx') dimx:DIMXComponent | undefined;
 
-  pager: IPepGenericListPager = {
-      type: 'scroll'
-  };
+  dataSource: IPepGenericListDataSource = this.getDataSource();
   
   menuItems:PepMenuItem[] = []
 
   recycleBin: boolean = false;
   recycleBinTitle = '';
 
-  deleteError = 'Cannot delete';
+  deleteError = 'Cannot delete Query';
 
   constructor(
     public addonService: AddonService,
@@ -42,7 +41,7 @@ export class QueryManagerComponent implements OnInit {
     public activateRoute: ActivatedRoute,
     private router: Router,
     public dialogService: PepDialogService,
-    private utilitiesService: UtilitiesService) { }
+    public utilitiesService: UtilitiesService) { }
 
 
   ngOnInit(): void {
@@ -168,12 +167,12 @@ actions: IPepGenericListActions = {
                         this.showDeleteDialog(objs.rows[0]);
                     }
                 })
-                // actions.push({
-                //     title: this.translate.instant('Export'),
-                //     handler: async (objs) => {
-                //         this.exportCollectionScheme(objs.rows[0]);
-                //     }
-                // })
+                actions.push({
+                    title: this.translate.instant('Export'),
+                    handler: async (objs) => {
+                        this.exportQueryScheme(objs.rows[0]);
+                    }
+                })
             }
         }
         return actions;
@@ -199,6 +198,15 @@ menuItemClick(event: any) {
             this.dataSource = this.getDataSource(); 
             this.menuItems = this.getMenuItems();
             break;
+        }
+        case 'Import':{
+            this.dimx?.uploadFile({
+                OverwriteOBject: true,
+                Delimiter: ",",
+                OwnerID: this.utilitiesService.addonUUID
+              });
+              this.dataSource = this.getDataSource();
+              break;
         }
     }
 }
@@ -242,6 +250,18 @@ showDeleteDialog(uuid: any) {
                 }
             }
     });      
+}
+
+exportQueryScheme(queryKey){
+
+    this.dimx?.DIMXExportRun({
+        DIMXExportFormat: "csv",
+        DIMXExportIncludeDeleted: false,
+        DIMXExportFileName: queryKey,
+        DIMXExportWhere: `Key LIKE '${queryKey}'`,
+        DIMXExportFields: 'Key,Name,Resource,Series',
+        DIMXExportDelimiter: ","
+    });
 }
 
 }

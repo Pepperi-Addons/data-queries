@@ -234,9 +234,7 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   setFilterRuleFieldsOptions(){
-    debugger
     if(this.resourcesFields[this.series.Resource]){
-      debugger
       this.filterRuleFieldsOptions = this.resourcesFields[this.series.Resource].map(f=> ({
         FieldID: f.FieldID,
         FieldType: this.getFilterBuilderFieldType(f.Type),

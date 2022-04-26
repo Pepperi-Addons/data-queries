@@ -4,8 +4,6 @@
             <div>
                 <div class="flex-gap">
                     <pep-textbox [disabled]="!isLoaded" class="flex" [(value)]="series.Name" [label]="'Name' | translate" [type]="'text'"></pep-textbox>
-                    <pep-select [disabled]="!isLoaded" class="flex" [mandatory]="true" [emptyOption]="false" [(value)]="series.Resource" [key]="'resourceSelect'" [label]="'Resource' | translate" [xAlignment]="'left'" [options]='resourceOptions' (valueChange)="onResourceChange($event)">
-                    </pep-select>
                 </div>
                 <h4>
                     {{'LabelFormat' | translate}}

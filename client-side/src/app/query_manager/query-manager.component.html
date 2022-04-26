@@ -2,8 +2,8 @@
     <ng-container pep-main-area>
         <pep-generic-list class="generic-list"
             [title] = "'Query_Manager_Title' | translate: {recycle_bin: recycleBinTitle}"
-            [showTopBar]="true" 
-            [dataSource]="dataSource" 
+            [showTopBar]="true"
+            [dataSource]="dataSource"
             [inline]="false"
             [actions]="actions"
             [addPadding]="false"
@@ -31,5 +31,8 @@
                 ></pep-button>
             </ng-container>
         </pep-generic-list>
-    </ng-container>
+
+        <!-- <pep-dimx #dimx [DIMXAddonUUID]="utilitiesService.addonUUID" [DIMXResource]="'DataQueries'"></pep-dimx> -->
+
+     </ng-container>
 </pep-page-layout>

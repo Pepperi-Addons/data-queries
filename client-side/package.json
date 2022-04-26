@@ -32,12 +32,14 @@
         "@mat-datetimepicker/moment": "^6.0.2",
         "@ngx-translate/core": "^13.0.0",
         "@ngx-translate/http-loader": "^6.0.0",
-        "@pepperi-addons/ngx-composite-lib": "^0.0.13",
-        "@pepperi-addons/ngx-lib": "^0.3.12-beta.4",
+        "@pepperi-addons/data-views": "^0.0.2",
+        "@pepperi-addons/ngx-composite-lib": "^0.0.16-beta.7",
+        "@pepperi-addons/ngx-lib": "^0.3.15-beta.5",
         "@pepperi-addons/papi-sdk": "^1.31.1",
         "@pepperi-addons/system-addon-utils": "^1.0.4",
         "@tweenjs/tween.js": "^17.1.1",
         "disable-scroll": "^0.5.1",
+        "file-saver": "^2.0.5",
         "hammerjs": "^2.0.8",
         "jwt-decode": "^3.1.2",
         "moment": "^2.27.0",
@@ -69,12 +71,11 @@
         "karma-coverage-istanbul-reporter": "~3.0.2",
         "karma-jasmine": "~4.0.0",
         "karma-jasmine-html-reporter": "^1.5.0",
+        "ngx-virtual-scroller": "^4.0.3",
         "protractor": "~7.0.0",
         "ts-node": "~8.3.0",
         "tslint": "~6.1.0",
-        "typescript": "~4.2.4",
-        "ngx-virtual-scroller":"^4.0.3"
-        
+        "typescript": "~4.2.4"
     },
     "browserslist": [
         "supports es6-module"
