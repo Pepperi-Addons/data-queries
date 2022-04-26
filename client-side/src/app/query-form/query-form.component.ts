@@ -4,8 +4,6 @@ import { TranslateService } from '@ngx-translate/core';
 import { IPepGenericListActions, IPepGenericListDataSource, PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { PepDialogActionButton, PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
 import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
-import { MatDialogRef } from '@angular/material/dialog';
-import { from } from 'rxjs';
 import { AddonService } from 'src/services/addon.service';
 import { UtilitiesService } from 'src/services/utilities.service';
 import { PepButton } from '@pepperi-addons/ngx-lib/button';
@@ -28,6 +26,7 @@ export class QueryFormComponent implements OnInit {
   mode: string;
   temp: string;
   queryUUID: string;
+  querySaved: boolean = false;
   resourceOptions: Array<PepButton> = [];
   queryLoaded: boolean = false;
   seriesDataSource: IPepGenericListDataSource = this.getSeriesDataSource();
@@ -65,15 +64,10 @@ export class QueryFormComponent implements OnInit {
 
   async saveClicked() {
     try {
-        await this.addonService.upsertDataQuery(this.query);
-        const dataMsg = new PepDialogData({
-            title: this.translate.instant('Query_UpdateSuccess_Title'),
-            actionsType: 'close',
-            content: this.translate.instant('Query_UpdateSuccess_Content')
-        });
-        this.dialogService.openDefaultDialog(dataMsg).afterClosed().subscribe(() => {
-            this.goBack();
-        });
+        if(this.query.Name && this.query.Resource){
+            await this.addonService.upsertDataQuery(this.query);
+            this.querySaved = true;
+        }
     }
     catch (error) {
         const errors = this.utilitiesService.getErrors(error.message);
@@ -100,17 +94,12 @@ export class QueryFormComponent implements OnInit {
   showSeriesEditorDialog(seriesKey) {
     const seriesCount = this.query.Series?.length ? this.query.Series?.length : 0
     const series = this.query.Series.filter(s => s.Key == seriesKey)[0]
-    const callbackFunc = (seriesToAddOrUpdate) => {
+    const callbackFunc = async (seriesToAddOrUpdate) => {
         this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
         if (seriesToAddOrUpdate) {
-            debugger
             seriesToAddOrUpdate.Resource = this.query.Resource;
-            this.query = this.updateQuerySeries(seriesToAddOrUpdate);
-            this.addonService.upsertDataQuery(this.query).then((res) => {
-                this.query = res;
-                //this.executeQuery = true;
-                //this.updateHostObject();
-            })
+            this.updateQuerySeries(seriesToAddOrUpdate);
+            this.query = await this.addonService.upsertDataQuery(this.query);
             this.seriesDataSource = this.getSeriesDataSource();
             this.previewDataSource = this.getPreviewDataSource();
         }
@@ -255,7 +244,6 @@ emptyQuery(){
         .subscribe(async (isDeletePressed) => {
             if (isDeletePressed) {
                 try {
-                    debugger
                     const idx = this.query.Series.findIndex(item => item.Key === serieKey);
                     if (idx > -1) {
                         this.query.Series.splice(idx, 1);
@@ -266,6 +254,7 @@ emptyQuery(){
                     //this.updateHostObject();
                 });
                 this.seriesDataSource = this.getSeriesDataSource();
+                this.previewDataSource = this.getPreviewDataSource();
                 }
                 catch (error) {
                     if (error.message.indexOf(this.deleteError) > 0)
@@ -286,12 +275,10 @@ emptyQuery(){
 getPreviewDataSource() {
     return {
         init: async(params:any) => {
-            debugger
             this.loaderService.show();
-            const data = await this.addonService.executeQuery(this.query.Key)
+            const data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key) : null;
             let results = await this.previewDataHandler(data);
             this.loaderService.hide();
-            debugger
             return Promise.resolve({
                 dataView: {
                     Context: {
@@ -329,6 +316,7 @@ getPreviewDataSource() {
 }
 
 async previewDataHandler(data){
+    if (!data) return [];
     let previewDataSet = []
       try {
         // flat the series & groups
@@ -337,8 +325,9 @@ async previewDataHandler(data){
 
         const distinctSeries = this.getDistinct(series);
         const distinctgroups = this.getDistinct(groups);
+
         data.DataSet.forEach(dataSet => {
-          previewDataSet.push(dataSet);
+            previewDataSet.push(dataSet);
         });
         previewDataSet = previewDataSet.slice();
         this.PreviewListFields = this.getPreviewListFields([...distinctgroups,...distinctSeries]);
