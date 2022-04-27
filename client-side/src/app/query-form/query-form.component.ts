@@ -54,6 +54,7 @@ export class QueryFormComponent implements OnInit {
         this.query.Key = this.queryUUID;
         if (this.mode == 'Edit') {
             this.query = (await this.addonService.getDataQueryByKey(this.queryUUID))[0]
+            this.querySaved = true;
         }
         this.queryLoaded = true;
         this.seriesDataSource = this.getSeriesDataSource();
