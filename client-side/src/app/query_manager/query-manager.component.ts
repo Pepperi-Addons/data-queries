@@ -195,7 +195,7 @@ menuItemClick(event: any) {
                     replaceUrl: true
                 })
             }, 0);
-            this.dataSource = this.getDataSource(); 
+            this.dataSource = this.getDataSource();
             this.menuItems = this.getMenuItems();
             break;
         }
@@ -204,9 +204,8 @@ menuItemClick(event: any) {
                 OverwriteOBject: true,
                 Delimiter: ",",
                 OwnerID: this.utilitiesService.addonUUID
-              });
-              this.dataSource = this.getDataSource();
-              break;
+            });
+            break;
         }
     }
 }
@@ -252,8 +251,12 @@ showDeleteDialog(uuid: any) {
     });      
 }
 
-exportQueryScheme(queryKey){
+onDIMXProcessDone($event){
+    debugger
+    this.dataSource = this.getDataSource();
+}
 
+exportQueryScheme(queryKey){
     this.dimx?.DIMXExportRun({
         DIMXExportFormat: "csv",
         DIMXExportIncludeDeleted: false,

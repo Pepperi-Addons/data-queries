@@ -21,7 +21,7 @@
                         <pep-select [disabled]="!isLoaded" class="flex" [emptyOption]="false" [(value)]="series.AggregatedFields[0].Aggregator" [key]="'aggregationsSelect'" [label]="'Aggregator' | translate" [xAlignment]="'left'" 
                         [options]='aggregationsOptions' (valueChange)="onAggregatorSelected($event)">
                         </pep-select>
-                        <pep-select [disabled]="!isLoaded" *ngIf="series.AggregatedFields[0].Aggregator=='Sum' || series.AggregatedFields[0].Aggregator=='Average' || series.AggregatedFields[0].Aggregator=='CountDistinct'"
+                        <pep-select [disabled]="!isLoaded" *ngIf="(series.AggregatedFields[0].Aggregator=='Sum' || series.AggregatedFields[0].Aggregator=='Average' || series.AggregatedFields[0].Aggregator=='CountDistinct') && isLoaded"
                          [mandatory]="true" class="flex" [emptyOption]="false" [(value)]="series.AggregatedFields[0].FieldID" [key]="'fieldAggregationsSelect'" [label]="'AggregatedField' | translate" [xAlignment]="'left'" 
                         [options]="series.AggregatedFields[0].Aggregator=='Sum' || series.AggregatedFields[0].Aggregator=='Average' ? aggregationsFieldsOptions['Number'] : aggregationsFieldsOptions['All']" (valueChange)="onChartSelected($event)">
                         </pep-select>
@@ -78,9 +78,8 @@
                     </pep-field-title>
                     <div class="flex-gap">
                         <pep-select class="flex" [disabled]=" !isLoaded || !formFlags.useCategories" [emptyOption]="false" [(value)]="series.GroupBy && series.GroupBy[0] && series.GroupBy[0].FieldID" 
-                        [key]="'GroupBySelect'" [label]="'GroupByField'  | translate" [xAlignment]="'left'" [options]='aggregationsFieldsOptions["All"]' (valueChange)="onGroupByFieldSelected($event)">
+                        [key]="'GroupBySelect'" [label]="'GroupByField'  | translate" [xAlignment]="'left'" [options]="(aggregationsFieldsOptions['All']) ? aggregationsFieldsOptions['All'] : []" (valueChange)="onGroupByFieldSelected($event)">
                         </pep-select>
-                        <!-- <pep-textbox class="flex" [disabled]="!useCategories" [value]="series.GroupBy && series.GroupBy[0] &&series.GroupBy[0].Interval"  [label]="'Interval'  | translate" [type]="'int'" (valueChange)="onGroupByIntervalChanged($event)"></pep-textbox> -->
                         <pep-select  *ngIf="IsDateGroupBy"  class="flex25" [label]="'Interval' | translate" [disabled]=" !isLoaded || !formFlags.useCategories" [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [(value)]="series.GroupBy && series.GroupBy[0] &&series.GroupBy[0].Interval" [options]='intervalOptions' >
                         </pep-select>
                         <pep-select *ngIf="IsDateGroupBy"  class="flex25" [label]="'Format' | translate" [disabled]=" !isLoaded || !formFlags.useCategories" [emptyOption]="false" [key]="'formatSelect'" [xAlignment]="'left'" [(value)]="series.GroupBy && series.GroupBy[0] &&series.GroupBy[0].Format" [options]='formatOptions'>
@@ -94,7 +93,7 @@
                     <pep-field-title [label]="'DynamicSeriesDescriptions' | translate" class="header">
                     </pep-field-title>
                     <div class="flex-gap">
-                        <pep-select class="flex" [disabled]=" !isLoaded || !formFlags.useDynamicSeries" [mandatory]="formFlags.useDynamicSeries" [emptyOption]="false" [key]="'groupBySelect'" [(value)]="series.BreakBy.FieldID" [label]="'BreakByField' | translate" [xAlignment]="'left'" [options]='aggregationsFieldsOptions["All"]' (valueChange)="onBreakByFieldSelected($event)" >
+                        <pep-select class="flex" [disabled]=" !isLoaded || !formFlags.useDynamicSeries" [mandatory]="formFlags.useDynamicSeries" [emptyOption]="false" [key]="'groupBySelect'" [(value)]="series.BreakBy.FieldID" [label]="'BreakByField' | translate" [xAlignment]="'left'" [options]="(aggregationsFieldsOptions['All']) ? aggregationsFieldsOptions['All'] : []" (valueChange)="onBreakByFieldSelected($event)" >
                         </pep-select>
                         <pep-select *ngIf="IsDateBreakBy" class="flex25" [disabled]="!isLoaded ||!formFlags.useDynamicSeries"   [(value)]="series.BreakBy.Interval"  [label]="'Interval' | translate"  [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [options]='intervalOptions' (valueChange)="onChartSelected($event)">
                         </pep-select>
