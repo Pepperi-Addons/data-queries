@@ -280,7 +280,9 @@ getPreviewDataSource() {
             const data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key) : null;
             let results = await this.previewDataHandler(data);
             let size = data.DataSet.length;
-            for(let s of data.DataQueries) size+=s.Series.length
+            for(let s of data.DataQueries)
+                size+=s.Series.length+s.Groups.length;
+
             this.loaderService.hide();
             return Promise.resolve({
                 dataView: {
