@@ -49,6 +49,7 @@ export class QueryManagerComponent implements OnInit {
     this.utilitiesService.addonUUID = this.activateRoute.snapshot.params.addon_uuid || '';
     this.menuItems = this.getMenuItems();
     this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
+    this.dataSource = this.getDataSource();
   }
 
   uuidGenerator(){

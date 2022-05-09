@@ -16,11 +16,11 @@ const routes: Routes = [
         path: `settings/:addon_uuid`,
         children: [
             {
-                path: 'query-manager',
+                path: 'query_manager',
                 component: QueryManagerComponent //the component files name will be query-manager.component.ts/css/html
             },
             {
-                path: 'query-manager/:query_uuid',
+                path: 'query_manager/:query_uuid',
                 component: QueryFormComponent //the component files name will be query-manager.component.ts/css/html
             }
         ]

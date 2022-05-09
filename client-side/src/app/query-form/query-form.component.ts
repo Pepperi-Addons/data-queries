@@ -279,6 +279,10 @@ getPreviewDataSource() {
             this.loaderService.show();
             const data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key) : null;
             let results = await this.previewDataHandler(data);
+            let size = data.DataSet.length;
+            for(let s of data.DataQueries)
+                size+=s.Series.length+s.Groups.length;
+
             this.loaderService.hide();
             return Promise.resolve({
                 dataView: {
@@ -290,13 +294,7 @@ getPreviewDataSource() {
                     Type: 'Grid',
                     Title: '',
                     Fields: this.PreviewListFields,
-                    Columns: [
-                        { Width: 0 },
-                        { Width: 0 },
-                        { Width: 0 },
-                        { Width: 0 },
-                        { Width: 0 },
-                    ],
+                    Columns: Array(size).fill({ Width: 0 }),
                     FrozenColumnsCount: 0,
                     MinimumColumnWidth: 0
                 },
@@ -351,7 +349,7 @@ async previewDataHandler(data){
     fields.forEach(field => {
         previewFields.push({
         FieldID: field,
-        Type: 'TextBox',
+        Type: 'NumberInteger',
         Title: field,
         Mandatory: false,
         ReadOnly: true
