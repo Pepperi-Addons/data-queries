@@ -315,21 +315,21 @@ getPreviewDataSource() {
 }
 
 async previewDataHandler(data) {
-    if (!data) return [];
-    data.DataSet.forEach(dataSet => {
-        for (const i in dataSet)
-            if (i == "") {
-                dataSet['None'] = dataSet[i]
-                delete dataSet[i]
-            }
-    })
-    data.DataQueries.forEach(dq => {
-        for (const i in dq.Series)
-            if (dq.Series[i] == "") dq.Series[i] = 'None'
-    })
-    let previewDataSet = []
-      try {
-        debugger
+    try {
+        if (!data) return [];
+        data.DataSet.forEach(dataSet => {
+            for (const i in dataSet)
+                if (i == "") {
+                    dataSet['None'] = dataSet[i]
+                    delete dataSet[i]
+                }
+        })
+        data.DataQueries.forEach(dq => {
+            for (const i in dq.Series)
+                if (dq.Series[i] == "") dq.Series[i] = 'None'
+        })
+        
+        let previewDataSet = []
         // flat the series & groups
         const series = data.DataQueries.map((data) => data.Series).reduce((x, value) => x.concat(value), []);
         const groups = data.DataQueries.map((data) => data.Groups).reduce((x, value) => x.concat(value), []);
@@ -342,12 +342,11 @@ async previewDataHandler(data) {
         });
         previewDataSet = previewDataSet.slice();
         this.PreviewListFields = this.getPreviewListFields([...distinctgroups,...distinctSeries]);
-      }
-      catch (err) {
+        return previewDataSet;
+    }
+    catch (err) {
         console.log(err);
       }
-
-    return previewDataSet;
   }
 
   getDistinct(arr) {
