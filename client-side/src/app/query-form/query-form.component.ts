@@ -314,10 +314,22 @@ getPreviewDataSource() {
     } as IPepGenericListDataSource
 }
 
-async previewDataHandler(data){
+async previewDataHandler(data) {
     if (!data) return [];
+    data.DataSet.forEach(dataSet => {
+        for (const i in dataSet)
+            if (i == "") {
+                dataSet['None'] = dataSet[i]
+                delete dataSet[i]
+            }
+    })
+    data.DataQueries.forEach(dq => {
+        for (const i in dq.Series)
+            if (dq.Series[i] == "") dq.Series[i] = 'None'
+    })
     let previewDataSet = []
       try {
+        debugger
         // flat the series & groups
         const series = data.DataQueries.map((data) => data.Series).reduce((x, value) => x.concat(value), []);
         const groups = data.DataQueries.map((data) => data.Groups).reduce((x, value) => x.concat(value), []);
