@@ -10,6 +10,7 @@
             [showSearch]="true"
             [uuidMapping]="'Key'"
             [noDataFoundMsg] = "'Query_Manager_NoDataFound' | translate"
+            (fieldClick)="onCustomizeFieldClick($event)"
             >
             <ng-container right-buttons>
                 <pep-menu
@@ -24,7 +25,7 @@
                 ></pep-menu>
                 <pep-button 
                     class="pep-spacing-element"
-                    [sizeType]="'md'" 
+                    [sizeType]="'md'"
                     [value]="'Add' | translate"
                     [styleType]="'strong'" 
                     (buttonClick)="navigateToQueryForm('Add', uuidGenerator())"

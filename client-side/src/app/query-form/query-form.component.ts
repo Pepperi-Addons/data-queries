@@ -360,7 +360,7 @@ async previewDataHandler(data) {
     fields.forEach(field => {
         previewFields.push({
         FieldID: field,
-        Type: 'NumberInteger',
+        Type: 'NumberReal',
         Title: field,
         Mandatory: false,
         ReadOnly: true

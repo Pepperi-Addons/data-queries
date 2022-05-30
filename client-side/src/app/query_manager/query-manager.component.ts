@@ -9,6 +9,7 @@ import { AddonService } from 'src/services/addon.service';
 import { UtilitiesService } from 'src/services/utilities.service';
 import { v4 as uuid } from 'uuid';
 import { DIMXComponent } from '@pepperi-addons/ngx-composite-lib/dimx-export';
+import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
 
 export type FormMode = 'Add' | 'Edit';
 export const EMPTY_OBJECT_NAME = 'NewCollection';
@@ -98,7 +99,7 @@ export class QueryManagerComponent implements OnInit {
                     Fields: [
                         {
                             FieldID: 'Name',
-                            Type: 'TextBox',
+                            Type: 'Link',
                             Title: this.translate.instant('Name'),
                             Mandatory: false,
                             ReadOnly: true
@@ -266,6 +267,10 @@ exportQueryScheme(queryKey){
         DIMXExportFields: 'Key,Name,Resource,Series',
         DIMXExportDelimiter: ","
     });
+}
+
+onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {
+    this.navigateToQueryForm('Edit', fieldClickEvent.id);
 }
 
 }
