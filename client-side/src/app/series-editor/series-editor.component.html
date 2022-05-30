@@ -188,7 +188,7 @@
                      (formFlags.useCategories && !series.GroupBy[0].FieldID) || 
                     (!series.AggregatedFields[0].FieldID && series.AggregatedFields[0].Aggregator!=='Script' && series.AggregatedFields[0].Aggregator!=='Count') ||
                     (formFlags.limitNumber && !series.Top.Max) || 
-                    (series.AggregatedFields[0].Aggregator==='Script' && !series.AggregatedParams[0].FieldID)">
+                    (series.AggregatedFields[0].Aggregator==='Script' && !series.AggregatedParams[0].FieldID && series.AggregatedParams[0].Aggregator!=='Count')">
                         {{(mode == 'Add' ? 'Add' : 'Update') | translate}}
                     </button>
                 </div>
