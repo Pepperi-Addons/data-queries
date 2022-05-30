@@ -86,6 +86,19 @@ export class QueryManagerComponent implements OnInit {
             if(params.searchString){
                 queries = await this.utilitiesService.getQueriesByName(params.searchString);
             }
+            queries = queries.sort(function(a, b) {
+                const nameA = a.Name.toUpperCase(); // ignore upper and lowercase
+                const nameB = b.Name.toUpperCase(); // ignore upper and lowercase
+                if (nameA < nameB) {
+                  return -1;
+                }
+                if (nameA > nameB) {
+                  return 1;
+                }
+
+                // names must be equal
+                return 0;
+              });
 
             return Promise.resolve({
                 dataView: {

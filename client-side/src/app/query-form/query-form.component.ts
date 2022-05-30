@@ -12,6 +12,7 @@ import { DataQuery } from '../../../../server-side/models/data-query';
 import { PepLoaderService } from '@pepperi-addons/ngx-lib';
 import { GridDataViewField } from '@pepperi-addons/papi-sdk';
 import { MatDialogRef } from '@angular/material/dialog';
+import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
 
 
 
@@ -177,7 +178,7 @@ export class QueryFormComponent implements OnInit {
                     Fields: [
                         {
                             FieldID: 'Name',
-                            Type: 'TextBox',
+                            Type: 'Link',
                             Title: this.translate.instant('Name'),
                             Mandatory: false,
                             ReadOnly: true
@@ -392,6 +393,10 @@ async previewDataHandler(data) {
     this.dialogRef.afterClosed().subscribe(res => {
         callbackFunc(res);
     });
-}
+  }
+
+    onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {
+        this.showSeriesEditorDialog(fieldClickEvent.id);
+    }
 
 }

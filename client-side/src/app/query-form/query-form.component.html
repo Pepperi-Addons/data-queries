@@ -45,6 +45,7 @@
                 [showSearch]="false"
                 [uuidMapping]="'Key'"
                 [noDataFoundMsg] = "'SeriesNoDataFound' | translate"
+                (fieldClick)="onCustomizeFieldClick($event)"
                 >
                 <ng-container right-buttons>
                     <pep-button
