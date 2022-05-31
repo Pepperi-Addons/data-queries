@@ -130,6 +130,9 @@ export class SeriesEditorComponent implements OnInit {
     if (incoming?.seriesName) {
       this.series.Name = incoming.seriesName;
     }
+    if(incoming?.resource) {
+      this.series.Resource = incoming.resource;
+    }
     this.pluginService.addonUUID = this.routeParams.snapshot.params['addon_uuid'];
   }
 

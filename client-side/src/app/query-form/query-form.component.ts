@@ -115,7 +115,8 @@ export class QueryFormComponent implements OnInit {
     const input = {
       currentSeries: series,
       parent: 'query',
-      seriesName: series?.Name ? series.Name : `Series ${seriesCount + 1}`
+      seriesName: series?.Name ? series.Name : `Series ${seriesCount + 1}`,
+      resource: this.query?.Resource
     };
     this.openDialog(this.translate.instant('EditQuery'), SeriesEditorComponent, actionButton, input, callbackFunc);
   }
