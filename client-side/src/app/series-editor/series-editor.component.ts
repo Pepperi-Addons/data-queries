@@ -2,10 +2,8 @@ import { TranslateService } from '@ngx-translate/core';
 import { Component, EventEmitter, Inject, Input, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IPepFieldValueChangeEvent, KeyValuePair, PepAddonService } from '@pepperi-addons/ngx-lib';
-import { IPepButtonClickEvent, PepButton } from '@pepperi-addons/ngx-lib/button';
-import { pepIconSystemBin } from '@pepperi-addons/ngx-lib/icon';
+import { PepButton } from '@pepperi-addons/ngx-lib/button';
 import { AddonService } from '../../services/addon.service';
-import { config } from '../addon.config';
 import { AccountTypes, Aggregators, DateOperation, Intervals, OrderType, ResourceTypes, ScriptAggregators, Serie, SERIES_LABEL_DEFAULT_VALUE, UserTypes } from '../../../../server-side/models/data-query';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { v4 as uuid } from 'uuid';
@@ -217,8 +215,8 @@ export class SeriesEditorComponent implements OnInit {
   private fillAggregatorField(){
     this.aggregationsFieldsOptions = {};
     if(this.series.Resource && this.resourcesFields[this.series.Resource]){
-          this.aggregationsFieldsOptions["Number"] =  this.resourcesFields[this.series.Resource].filter(f=>f.Type == "long" || f.Type == "integer" || f.Type == "float"|| f.Type == "double").map(function(f) {return { key: f.FieldID, value: f.FieldID }})
-          this.aggregationsFieldsOptions["Date"] =  this.resourcesFields[this.series.Resource].filter(f=>f.Type == "date").map(function(f) {return { key: f.FieldID, value: f.FieldID }})
+          this.aggregationsFieldsOptions["Number"] =  this.resourcesFields[this.series.Resource].filter(f=>f.Type == "Integer" || f.Type == "Double").map(function(f) {return { key: f.FieldID, value: f.FieldID }})
+          this.aggregationsFieldsOptions["Date"] =  this.resourcesFields[this.series.Resource].filter(f=>f.Type == "DateTime").map(function(f) {return { key: f.FieldID, value: f.FieldID }})
           this.aggregationsFieldsOptions["All"] = this.resourcesFields[this.series.Resource].map(function(f) {return { key: f.FieldID, value: f.FieldID }});
     }
   }
@@ -240,34 +238,11 @@ export class SeriesEditorComponent implements OnInit {
     if(this.resourcesFields[this.series.Resource]){
       this.filterRuleFieldsOptions = this.resourcesFields[this.series.Resource].map(f=> ({
         FieldID: f.FieldID,
-        FieldType: this.getFilterBuilderFieldType(f.Type),
+        FieldType: f.Type,
         Title: f.FieldID,
         OptionalValues: f.optionalValues? f.optionalValues.map(x => ({Key: x,Value: x}) as KeyValuePair<string>) :[]
       }));
     }
-  }
-
-  getFilterBuilderFieldType(type){
-    switch(type){
-      case "long":
-      case "integer":
-        return "Integer";
-      case "float":
-      case "double":
-        return "Double";
-      case "string":
-      case "keyword":
-        return "String";
-      case "date":
-        return "DateTime";
-      case "boolean":
-        return "Bool";
-
-    }
-    //'JsonBool'
-    //'Date'
-    //'MultipleStringValues'
-    //'Guid'
   }
   
 

@@ -340,9 +340,11 @@ async previewDataHandler(data) {
         const distinctgroups = this.getDistinct(groups);
 
         data.DataSet.forEach(dataSet => {
+            for(let i in dataSet) {
+                dataSet[i]+='';
+            }
             previewDataSet.push(dataSet);
         });
-        previewDataSet = previewDataSet.slice();
         this.PreviewListFields = this.getPreviewListFields([...distinctgroups,...distinctSeries]);
         return previewDataSet;
     }
