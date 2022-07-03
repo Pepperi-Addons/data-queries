@@ -8,7 +8,7 @@ import { PepMenuItem } from '@pepperi-addons/ngx-lib/menu';
 import { AddonService } from 'src/services/addon.service';
 import { UtilitiesService } from 'src/services/utilities.service';
 import { v4 as uuid } from 'uuid';
-import { DIMXComponent } from '@pepperi-addons/ngx-composite-lib/dimx-export';
+// import { DIMXComponent } from '@pepperi-addons/ngx-composite-lib/dimx-export';
 import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
 
 export type FormMode = 'Add' | 'Edit';
@@ -24,7 +24,7 @@ export class QueryManagerComponent implements OnInit {
     
     @Output() hostEvents: EventEmitter<any> = new EventEmitter<any>();
 
-    @ViewChild('dimx') dimx:DIMXComponent | undefined;
+    // @ViewChild('dimx') dimx:DIMXComponent | undefined;
 
   dataSource: IPepGenericListDataSource = this.getDataSource();
   
@@ -215,11 +215,11 @@ menuItemClick(event: any) {
             break;
         }
         case 'Import':{
-            this.dimx?.uploadFile({
-                OverwriteOBject: true,
-                Delimiter: ",",
-                OwnerID: this.utilitiesService.addonUUID
-            });
+            // this.dimx?.uploadFile({
+                // OverwriteOBject: true,
+                // Delimiter: ",",
+                // OwnerID: this.utilitiesService.addonUUID
+            // });
             break;
         }
     }
@@ -272,14 +272,14 @@ onDIMXProcessDone($event){
 }
 
 exportQueryScheme(queryKey){
-    this.dimx?.DIMXExportRun({
-        DIMXExportFormat: "csv",
-        DIMXExportIncludeDeleted: false,
-        DIMXExportFileName: queryKey,
-        DIMXExportWhere: `Key LIKE '${queryKey}'`,
-        DIMXExportFields: 'Key,Name,Resource,Series',
-        DIMXExportDelimiter: ","
-    });
+    // this.dimx?.DIMXExportRun({
+    //     DIMXExportFormat: "csv",
+    //     DIMXExportIncludeDeleted: false,
+    //     DIMXExportFileName: queryKey,
+    //     DIMXExportWhere: `Key LIKE '${queryKey}'`,
+    //     DIMXExportFields: 'Key,Name,Resource,Series',
+    //     DIMXExportDelimiter: ","
+    // });
 }
 
 onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {
