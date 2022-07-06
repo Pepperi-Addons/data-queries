@@ -375,10 +375,8 @@ export class SeriesEditorComponent implements OnInit {
   onFilterRuleChanged(event) {
     if (event) {
       this.filterRule = event;
-      //this.series.Filter = event
     } else {
       this.filterRule = null;
-      //this.series.Filter = null;
     }
   }
 

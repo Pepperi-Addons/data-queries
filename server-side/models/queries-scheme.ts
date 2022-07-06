@@ -170,6 +170,30 @@ export const QueriesScheme =
                 ]
             }
         },
+        "Variables": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "properties": {
+                    "Key": {
+                        "type": "string",
+                    },
+                    "Name": {
+                        "type": "string"
+                    },
+                    "Type": {
+                        "type": "string"
+                    },
+                    "DefaultValue": {
+                        "type": "string"
+                    },
+                    "PreviewValue": {
+                        "type": "string"
+                    }
+                },
+                "additionalProperties": false,
+            }
+        },
         "ModificationDateTime": {
             "type": "string"
         },

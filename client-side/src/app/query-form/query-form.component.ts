@@ -13,6 +13,7 @@ import { PepLoaderService } from '@pepperi-addons/ngx-lib';
 import { GridDataViewField } from '@pepperi-addons/papi-sdk';
 import { MatDialogRef } from '@angular/material/dialog';
 import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
+import { VariableEditorComponent } from '../variable-editor/variable-editor.component';
 
 
 
@@ -31,6 +32,7 @@ export class QueryFormComponent implements OnInit {
   resourceOptions: Array<PepButton> = [];
   queryLoaded: boolean = false;
   seriesDataSource: IPepGenericListDataSource = this.getSeriesDataSource();
+  variablesDataSource: IPepGenericListDataSource = this.getVariablesDataSource();
   deleteError = 'Cannot delete Series';
   previewDataSource: IPepGenericListDataSource;
   PreviewListFields: GridDataViewField[];
@@ -59,6 +61,7 @@ export class QueryFormComponent implements OnInit {
         }
         this.queryLoaded = true;
         this.seriesDataSource = this.getSeriesDataSource();
+        this.variablesDataSource = this.getVariablesDataSource();
         this.previewDataSource = this.getPreviewDataSource();
 
 
@@ -135,6 +138,20 @@ export class QueryFormComponent implements OnInit {
     return this.query;
   }
 
+  protected updateQueryVariables(varToAddOrUpdate: any) {
+    const idx = this.query?.Variables?.findIndex(item => item.Key === varToAddOrUpdate.Key);
+    if (idx > -1) {
+        this.query.Variables[idx] = varToAddOrUpdate;
+    }
+    else {
+        if (!this.query?.Variables) {
+            this.query.Variables = [];
+        }
+        this.query.Variables.push(varToAddOrUpdate);
+    }
+    return this.query;
+  }
+
   seriesActions: IPepGenericListActions = {
     get: async (data: PepSelectionData) => {
         const actions = [];
@@ -142,13 +159,13 @@ export class QueryFormComponent implements OnInit {
             actions.push({
                 title: this.translate.instant('Edit'),
                 handler: async (objs) => {
-                    this.showSeriesEditorDialog(objs.rows[0]); // expecting the series key but getting some random uuid
+                    this.showSeriesEditorDialog(objs.rows[0]);
                 }
             });
             actions.push({
                 title: this.translate.instant('Delete'),
                 handler: async (objs) => {
-                    this.showDeleteDialog(objs.rows[0]); // expecting the series key but getting some random uuid
+                    this.showDeleteDialog(objs.rows[0],'Series');
                 }
             })
         }
@@ -233,39 +250,39 @@ export class QueryFormComponent implements OnInit {
 emptyQuery(){
     return {
         Name: '',
-        Series: []
+        Series: [],
+        Variables: []
     }
 }
 
-  showDeleteDialog(serieKey: any) {
+  showDeleteDialog(itemKey: any, property: 'Series'|'Variables') {
     const dataMsg = new PepDialogData({
-        title: this.translate.instant('Serie_DeleteDialogTitle'),
+        title: this.translate.instant(`${property}_DeleteDialogTitle`),
         actionsType: 'cancel-delete',
-        content: this.translate.instant('Serie_DeleteDialogContent')
+        content: this.translate.instant(`${property}_DeleteDialogContent`)
     });
     this.dialogService.openDefaultDialog(dataMsg).afterClosed()
         .subscribe(async (isDeletePressed) => {
             if (isDeletePressed) {
                 try {
-                    const idx = this.query.Series.findIndex(item => item.Key === serieKey);
+                    const idx = this.query[property].findIndex(item => item.Key === itemKey);
                     if (idx > -1) {
-                        this.query.Series.splice(idx, 1);
+                        this.query[property].splice(idx, 1);
                     }
                     this.addonService.upsertDataQuery(this.query).then((res) => {
                     this.query = res;
-                    //this.executeQuery = true;
-                    //this.updateHostObject();
                 });
                 this.seriesDataSource = this.getSeriesDataSource();
+                this.variablesDataSource = this.getVariablesDataSource();
                 this.previewDataSource = this.getPreviewDataSource();
                 }
                 catch (error) {
                     if (error.message.indexOf(this.deleteError) > 0)
                     {
                         const dataMsg = new PepDialogData({
-                            title: this.translate.instant('Serie_DeleteDialogTitle'),
+                            title: this.translate.instant(`${property}_DeleteDialogTitle`),
                             actionsType: 'close',
-                            content: this.translate.instant('Serie_DeleteDialogError')
+                            content: this.translate.instant(`${property}_DeleteDialogError`)
                         });
                         this.dialogService.openDefaultDialog(dataMsg);
                     }
@@ -279,7 +296,7 @@ getPreviewDataSource() {
     return {
         init: async(params:any) => {
             this.loaderService.show();
-            const data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key) : null;
+            const data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key) : {DataSet: [], DataQueries: []};
             let results = await this.previewDataHandler(data);
             let size = data.DataSet.length;
             for(let s of data.DataQueries)
@@ -398,8 +415,143 @@ async previewDataHandler(data) {
     });
   }
 
-    onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {
+    onSeriesNameClick(fieldClickEvent: IPepFormFieldClickEvent) {
         this.showSeriesEditorDialog(fieldClickEvent.id);
+    }
+
+    onVariableNameClick(fieldClickEvent: IPepFormFieldClickEvent) {
+        this.showVariableEditorDialog(fieldClickEvent.id);
+    }
+
+    variableActions: IPepGenericListActions = {
+        get: async (data: PepSelectionData) => {
+            const actions = [];
+            if (data && data.rows.length == 1) {
+                actions.push({
+                    title: this.translate.instant('Edit'),
+                    handler: async (objs) => {
+                        this.showVariableEditorDialog(objs.rows[0]);
+                    }
+                });
+                actions.push({
+                    title: this.translate.instant('Delete'),
+                    handler: async (objs) => {
+                        this.showDeleteDialog(objs.rows[0],'Variables'); // need to handle variable delete
+                    }
+                })
+            }
+            return actions;
+        }
+    }
+
+    showVariableEditorDialog(variableKey) {
+        const varsCount = this.query.Variables?.length ? this.query.Variables?.length : 0
+        const currVariable = this.query.Variables.filter(v => v.Key == variableKey)[0]
+        const callbackFunc = async (variableToAddOrUpdate) => {
+            this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
+            if (variableToAddOrUpdate) {
+                this.updateQueryVariables(variableToAddOrUpdate);
+                this.query = await this.addonService.upsertDataQuery(this.query);
+                this.variablesDataSource = this.getVariablesDataSource();
+                this.previewDataSource = this.getPreviewDataSource();
+            }
+        }
+    
+        const actionButton: PepDialogActionButton = {
+            title: "OK",
+            className: "",
+            callback: null,
+        };
+        const input = {
+          currentVariable: currVariable,
+          parent: 'query',
+          varName: currVariable?.Name ? currVariable.Name : `var${varsCount + 1}`
+        };
+        this.openDialog(this.translate.instant('Edit Variable'), VariableEditorComponent, actionButton, input, callbackFunc);
+      }
+
+      getVariablesDataSource() {
+        return {
+            init: async(params:any) => {
+                const variables = this.query.Variables?.map(v => {
+                    return {
+                        Key: v.Key,
+                        Name: v.Name,
+                        Type: v.Type,
+                        DefaultValue: v.DefaultValue,
+                        PreviewValue: v.PreviewValue
+                    }
+                })
+                return Promise.resolve({
+                    dataView: {
+                        Context: {
+                            Name: '',
+                            Profile: { InternalID: 0 },
+                            ScreenSize: 'Landscape'
+                        },
+                        Type: 'Grid',
+                        Title: '',
+                        Fields: [
+                            {
+                                FieldID: 'Name',
+                                Type: 'Link',
+                                Title: this.translate.instant('Name'),
+                                Mandatory: false,
+                                ReadOnly: true
+                            },
+                            {
+                                FieldID: 'Type',
+                                Type: 'TextBox',
+                                Title: this.translate.instant('Type'),
+                                Mandatory: false,
+                                ReadOnly: true
+                            },
+                            {
+                                FieldID: 'DefaultValue',
+                                Type: 'TextBox',
+                                Title: this.translate.instant('Default Value'),
+                                Mandatory: false,
+                                ReadOnly: true
+                            },
+                            {
+                                FieldID: 'PreviewValue',
+                                Type: 'TextBox',
+                                Title: this.translate.instant('Preview Value'),
+                                Mandatory: false,
+                                ReadOnly: true
+                            }
+                        ],
+                        Columns: [
+                            {
+                                Width: 25
+                            },
+                            {
+                                Width: 25
+                            },
+                            {
+                                Width: 25
+                            },
+                            {
+                                Width: 25
+                            }
+                        ],
+                        FrozenColumnsCount: 0,
+                        MinimumColumnWidth: 0
+                    },
+                    totalCount: variables?.length,
+                    items: variables
+                });
+            },
+            inputs: () => {
+                return Promise.resolve({
+                    pager: {
+                        type: 'scroll'
+                    },
+                    selectionType: 'single',
+                    noDataFoundMsg: this.translate.instant('Variables_NoDataFound')
+                });
+            },
+        } as IPepGenericListDataSource
     }
 
 }

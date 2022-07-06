@@ -72,7 +72,7 @@ class ElasticService {
     // }
     try {
       //const lambdaResponse = await this.papiClient.post(`/elasticsearch/search/${query.Resource}`,body);
-      const lambdaResponse = await this.papiClient.post(`/addons/shared_index/index/papi_data_index/search/${this.client.AddonUUID}/${query.Resource}`,body);
+      const lambdaResponse = await this.papiClient.post(`/addons/shared_index/index/papi_data_index/search/10979a11-d7f4-41df-8993-f06bfd778304/${query.Resource}`,body);
       console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
       let response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query);
       return response;

@@ -10,6 +10,7 @@ import { AppComponent } from './app.component';
 import { QueryManagerModule } from './query_manager/query-manager.module'
 import { SeriesEditorModule } from './series-editor/series-editor.module'
 import { PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { VariableEditorModule } from './variable-editor/variable-editor.module'
 
 
 @NgModule({
@@ -22,6 +23,7 @@ import { PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic
         HttpClientModule,
         AppRoutingModule,
         SeriesEditorModule,
+        VariableEditorModule,
         QueryManagerModule,
         TranslateModule.forRoot({
             loader: {
