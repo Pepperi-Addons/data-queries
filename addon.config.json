@@ -27,8 +27,8 @@
     ],
     "Dependencies": {
       "adal": "1.0.229",
-      "papi_data_index": "0.5.23",
-      "pepperi_elastic_search": "0.0.165"
+      "papi_data_index": "0.5.27",
+      "pepperi_elastic_search": "0.0.191"
     },
     "CPISide": []
   }
