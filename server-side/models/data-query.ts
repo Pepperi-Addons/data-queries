@@ -7,6 +7,7 @@ export interface DataQuery extends AddonData {
     Description?: string;
     Resource: string;
     Series: Serie[];
+    Variables: InputVariable[];
 }
 
 export interface GroupBy {
@@ -33,6 +34,14 @@ export interface Serie {
         User: UserType,
         Account: AccountType
     }
+}
+
+export interface InputVariable {
+    Key: string,
+    Name: string,
+    Type: any,
+    DefaultValue: string,
+    PreviewValue: string
 }
 
 export interface BreakBy extends GroupBy {

@@ -9,16 +9,15 @@ import { PepSizeDetectorModule } from '@pepperi-addons/ngx-lib/size-detector';
 import { PepPageLayoutModule } from '@pepperi-addons/ngx-lib/page-layout';
 import { PepIconRegistry, pepIconSystemClose } from '@pepperi-addons/ngx-lib/icon';
 import { AddonService } from '../../services/addon.service';
-
-
 import { TranslateLoader, TranslateModule, TranslateService, TranslateStore } from '@ngx-translate/core';
 import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-list';
+import { PepGenericFormModule } from '@pepperi-addons/ngx-composite-lib/generic-form';
 import { PepMenuModule } from '@pepperi-addons/ngx-lib/menu';
 import { PepButtonModule } from '@pepperi-addons/ngx-lib/button';
 import { QueryFormComponent } from '../query-form/query-form.component';
 import { PepSelectModule } from '@pepperi-addons/ngx-lib/select';
 import { PepTextboxModule } from '@pepperi-addons/ngx-lib/textbox';
-// import { PepDIMXModule } from '@pepperi-addons/ngx-composite-lib/dimx-export';
+//import { PepDIMXModule } from '@pepperi-addons/ngx-composite-lib/dimx-export';
 
 
 const pepIcons = [
@@ -43,12 +42,13 @@ export const routes: Routes = [
         PepNgxLibModule,
         PepSizeDetectorModule,
         PepGenericListModule,
+        PepGenericFormModule,
         PepButtonModule,
         PepMenuModule,
         PepTopBarModule,
         PepPageLayoutModule,
         PepSelectModule,
-        // PepDIMXModule,
+        //PepDIMXModule,
         PepTextboxModule,
         TranslateModule.forChild({
             loader: {

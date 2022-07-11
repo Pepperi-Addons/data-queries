@@ -8,7 +8,7 @@ import { PepMenuItem } from '@pepperi-addons/ngx-lib/menu';
 import { AddonService } from 'src/services/addon.service';
 import { UtilitiesService } from 'src/services/utilities.service';
 import { v4 as uuid } from 'uuid';
-// import { DIMXComponent } from '@pepperi-addons/ngx-composite-lib/dimx-export';
+//import { DIMXComponent } from '@pepperi-addons/ngx-composite-lib/dimx-export';
 import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
 
 export type FormMode = 'Add' | 'Edit';
@@ -24,7 +24,7 @@ export class QueryManagerComponent implements OnInit {
     
     @Output() hostEvents: EventEmitter<any> = new EventEmitter<any>();
 
-    // @ViewChild('dimx') dimx:DIMXComponent | undefined;
+    //@ViewChild('dimx') dimx:DIMXComponent | undefined;
 
   dataSource: IPepGenericListDataSource = this.getDataSource();
   
@@ -216,9 +216,9 @@ menuItemClick(event: any) {
         }
         case 'Import':{
             // this.dimx?.uploadFile({
-                // OverwriteOBject: true,
-                // Delimiter: ",",
-                // OwnerID: this.utilitiesService.addonUUID
+            //     OverwriteOBject: true,
+            //     Delimiter: ",",
+            //     OwnerID: this.utilitiesService.addonUUID
             // });
             break;
         }
@@ -267,7 +267,6 @@ showDeleteDialog(uuid: any) {
 }
 
 onDIMXProcessDone($event){
-    debugger
     this.dataSource = this.getDataSource();
 }
 
