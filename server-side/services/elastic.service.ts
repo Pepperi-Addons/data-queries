@@ -57,7 +57,7 @@ class ElasticService {
     let aggregationsList: { [key: string]: Aggregation[] } = this.buildSeriesAggregationList(query.Series);;
 
     // build one query with all series (each aggregation have query and aggs)
-    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query);
+    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues);
 
     elasticRequestBody.aggs(queryAggregation);
 
@@ -84,7 +84,7 @@ class ElasticService {
 
   }
 
-  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery) {
+  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, variableValues: {[varName: string]: string}) {
     let queryAggregation: any = [];
 
     for(var seriesName of Object.keys(aggregationsList)) {
@@ -97,16 +97,47 @@ class ElasticService {
       let resourceFilter: Query = esb.termQuery('ElasticSearchType', series.Resource);
 
       if (series.Filter && Object.keys(series.Filter).length > 0) {
+        if(variableValues) this.replaceAllVariables(series.Filter, variableValues);
         const serializedQuery: Query = toKibanaQuery(series.Filter);
         resourceFilter = esb.boolQuery().must([resourceFilter, serializedQuery]);
       }
-
       resourceFilter = await this.addScopeFilters(series, resourceFilter);
       const filterAggregation = esb.filterAggregation(seriesName, resourceFilter).agg(seriesAggregation);
       queryAggregation.push(filterAggregation);
     };
 
     return queryAggregation;
+  }
+
+  private replaceAllVariables(jsonFilter, variableValues: {[varName: string]: string}) {
+    if (jsonFilter.Operation === 'AND' || jsonFilter.Operation === 'OR') {
+      const f1 = this.replaceAllVariables(jsonFilter.LeftNode, variableValues);
+      const f2 = this.replaceAllVariables(jsonFilter.RightNode, variableValues);
+      return;
+    } else {
+      const op = jsonFilter.Operation;
+      if(op == 'IsEqualVariable' || op == 'LessThanVarible' || op == 'GreaterThanVarible' || op == 'BetweenVariable') {
+        switch(op) {
+          case 'IsEqualVariable':
+            jsonFilter.Operation = 'IsEqual'
+            break
+          case 'LessThanVarible':
+            jsonFilter.Operation = '<'
+            break
+          case 'GreaterThanVarible':
+            jsonFilter.Operation = '>'
+            break
+          case 'BetweenVariable':
+            jsonFilter.Operation = 'Between'
+        }
+        for( const varName in variableValues) {
+          for(const i in jsonFilter.Values) {
+            if(jsonFilter.Values[i] == varName)
+              jsonFilter.Values[i] = variableValues[varName]
+          }
+        }
+      }
+    }
   }
 
   // if there is scope add user/accounts filters to resourceFilter

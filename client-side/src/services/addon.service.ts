@@ -40,9 +40,9 @@ export class AddonService {
         return await this.papiClient.post(endpoint, body);
     }
 
-    async executeQuery(queryID) {
+    async executeQuery(queryID, body = {}) {
         //return this.papiClient.post(`/data_queries/${queryID}/execute`, null);
-        return this.papiClient.addons.api.uuid(this.addonUUID).file('elastic').func('execute').post({key: queryID},{})
+        return this.papiClient.addons.api.uuid(this.addonUUID).file('elastic').func('execute').post({key: queryID},body)
     }
 
     async getDataQueryByKey(Key: string) {

@@ -4,9 +4,10 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { IPepFieldValueChangeEvent, KeyValuePair, PepAddonService } from '@pepperi-addons/ngx-lib';
 import { PepButton } from '@pepperi-addons/ngx-lib/button';
 import { AddonService } from '../../services/addon.service';
-import { AccountTypes, Aggregators, DateOperation, Intervals, OrderType, ResourceTypes, ScriptAggregators, Serie, SERIES_LABEL_DEFAULT_VALUE, UserTypes } from '../../../../server-side/models/data-query';
+import { AccountTypes, Aggregators, DateOperation, InputVariable, Intervals, OrderType, ResourceTypes, ScriptAggregators, Serie, SERIES_LABEL_DEFAULT_VALUE, UserTypes } from '../../../../server-side/models/data-query';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { v4 as uuid } from 'uuid';
+import { IPepQueryBuilderField } from '@pepperi-addons/ngx-lib/query-builder';
 
 @Component({
   selector: 'app-series-editor',
@@ -29,7 +30,8 @@ export class SeriesEditorComponent implements OnInit {
   accountFilterOptions: Array<PepButton> = [];
   periodOptions: Array<PepButton> = [];
   isLoaded = false;
-  filterRuleFieldsOptions: any=[];
+  filterRuleFieldsOptions: IPepQueryBuilderField = [] as unknown as IPepQueryBuilderField;
+  filterRuleVariables: IPepQueryBuilderField = [] as unknown as IPepQueryBuilderField;
   isformValid = true;
   filterRule = null;
   seriesFilterRule = null;
@@ -130,6 +132,13 @@ export class SeriesEditorComponent implements OnInit {
     }
     if(incoming?.resource) {
       this.series.Resource = incoming.resource;
+    }
+    if(incoming?.inputVariables) {
+      this.filterRuleVariables = incoming.inputVariables.map((v: InputVariable) => ({
+        FieldID: v.Name,
+        FieldType: this.toFilterType(v.Type),
+        Title: v.Name
+      }))
     }
     this.pluginService.addonUUID = this.routeParams.snapshot.params['addon_uuid'];
   }
@@ -386,6 +395,19 @@ export class SeriesEditorComponent implements OnInit {
     }
     else {
       this.series.Top.Ascending = false;
+    }
+  }
+
+  toFilterType(type) {
+    switch(type) {
+      case 'String':
+        return 'String'
+      case 'Number':
+        return 'Double'
+      case 'Date':
+        return 'DateTime'
+      case 'Boolean':
+        return 'Bool'
     }
   }
 }
