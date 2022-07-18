@@ -119,7 +119,8 @@ export class QueryFormComponent implements OnInit {
       currentSeries: series,
       parent: 'query',
       seriesName: series?.Name ? series.Name : `Series ${seriesCount + 1}`,
-      resource: this.query?.Resource
+      resource: this.query?.Resource,
+      inputVariables: this.query?.Variables
     };
     this.openDialog(this.translate.instant('EditQuery'), SeriesEditorComponent, actionButton, input, callbackFunc);
   }
@@ -244,18 +245,34 @@ export class QueryFormComponent implements OnInit {
             });
         },
     } as IPepGenericListDataSource
-}
-
-
-emptyQuery(){
-    return {
-        Name: '',
-        Series: [],
-        Variables: []
     }
-}
+
+
+    emptyQuery(){
+        return {
+            Name: '',
+            Series: [],
+            Variables: []
+        }
+    }
 
   showDeleteDialog(itemKey: any, property: 'Series'|'Variables') {
+    if(property=='Variables' && this.variableInUse(itemKey)) {
+        const actionButton: PepDialogActionButton = {
+            title: "OK",
+            className: "",
+            callback: null
+        };
+        const dialogData = new PepDialogData({
+            title: "Cannot delete variable",
+            content: "There is a series which uses this variable.",
+            actionButtons: [actionButton],
+            actionsType: "custom",
+            showClose: false
+        });
+        this.dialogService.openDefaultDialog(dialogData);
+        return;          
+    }
     const dataMsg = new PepDialogData({
         title: this.translate.instant(`${property}_DeleteDialogTitle`),
         actionsType: 'cancel-delete',
@@ -288,15 +305,39 @@ emptyQuery(){
                     }
                 }
             }
-    });      
-}
+        });
+    }
+
+    variableInUse(varKey: string) : boolean {
+        const varName = this.query.Variables.filter(v => v.Key === varKey)[0].Name
+        for( const s of this.query.Series) {
+            if(this.filterIsUsingGivenVar(s.Filter,varName)) return true
+        }
+        return false
+    }
+
+    filterIsUsingGivenVar(jsonFilter: any, varName: string) : boolean {
+        if (jsonFilter.Operation === 'AND' || jsonFilter.Operation === 'OR') {
+            const f1 = this.filterIsUsingGivenVar(jsonFilter.LeftNode, varName);
+            const f2 = this.filterIsUsingGivenVar(jsonFilter.RightNode, varName);
+            return f1 || f2;
+        } else {
+            const values: string[] = jsonFilter.Values;
+            return values.includes(varName)
+        }
+    }
 
 // need to excecute the query
 getPreviewDataSource() {
     return {
         init: async(params:any) => {
             this.loaderService.show();
-            const data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key) : {DataSet: [], DataQueries: []};
+            let varValues = {}
+            for(const v of this.query.Variables) {
+                varValues[v.Name] = v.PreviewValue
+            }
+            const body = {"VariableValues": varValues}
+            const data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key, body) : {DataSet: [], DataQueries: []};
             let results = await this.previewDataHandler(data);
             let size = data.DataSet.length;
             for(let s of data.DataQueries)
@@ -420,7 +461,7 @@ async previewDataHandler(data) {
     }
 
     onVariableNameClick(fieldClickEvent: IPepFormFieldClickEvent) {
-        this.showVariableEditorDialog(fieldClickEvent.id);
+        this.showVariableEditorDialog(fieldClickEvent.id, 'Edit');
     }
 
     variableActions: IPepGenericListActions = {
@@ -430,13 +471,13 @@ async previewDataHandler(data) {
                 actions.push({
                     title: this.translate.instant('Edit'),
                     handler: async (objs) => {
-                        this.showVariableEditorDialog(objs.rows[0]);
+                        this.showVariableEditorDialog(objs.rows[0],'Edit');
                     }
                 });
                 actions.push({
                     title: this.translate.instant('Delete'),
                     handler: async (objs) => {
-                        this.showDeleteDialog(objs.rows[0],'Variables'); // need to handle variable delete
+                        this.showDeleteDialog(objs.rows[0],'Variables');
                     }
                 })
             }
@@ -444,12 +485,28 @@ async previewDataHandler(data) {
         }
     }
 
-    showVariableEditorDialog(variableKey) {
+    showVariableEditorDialog(variableKey, mode = 'Add') {
         const varsCount = this.query.Variables?.length ? this.query.Variables?.length : 0
         const currVariable = this.query.Variables.filter(v => v.Key == variableKey)[0]
         const callbackFunc = async (variableToAddOrUpdate) => {
             this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
             if (variableToAddOrUpdate) {
+                if(mode == 'Add' && this.query.Variables.filter(v => v.Name == variableToAddOrUpdate.Name).length > 0) {
+                    const actionButton: PepDialogActionButton = {
+                        title: "OK",
+                        className: "",
+                        callback: null
+                    };
+                    const dialogData = new PepDialogData({
+                        title: "Cannot add variable",
+                        content: "Variable name is already taken.",
+                        actionButtons: [actionButton],
+                        actionsType: "custom",
+                        showClose: false
+                    });
+                    this.dialogService.openDefaultDialog(dialogData);
+                    return;
+                }
                 this.updateQueryVariables(variableToAddOrUpdate);
                 this.query = await this.addonService.upsertDataQuery(this.query);
                 this.variablesDataSource = this.getVariablesDataSource();

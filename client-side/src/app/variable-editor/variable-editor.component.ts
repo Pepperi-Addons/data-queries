@@ -109,7 +109,7 @@ export class VariableEditorComponent implements OnInit {
             Type: "ComboBox",
             Title: "Type",
             Mandatory: false,
-            ReadOnly: false,
+            ReadOnly: this.mode == 'Update',
             Layout: {
               Origin: {
                 X: 0,

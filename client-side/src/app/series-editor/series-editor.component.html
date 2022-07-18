@@ -140,7 +140,7 @@
                     <!--<pep-textarea [key]="'textarea1'" [label]="'FilterRules' | translate" [value]="JSON.stringify(series.Filter, null, 2)" [rowSpan]="2" [maxFieldCharacters]="1000" (valueChange)="onFilterRuleChanged($event)" [xAlignment]="'left'">
                    </pep-textarea>-->
                     <pep-query-builder
-                    [query]="seriesFilterRule" [fields]="filterRuleFieldsOptions" (queryChange)="onFilterRuleChanged($event)" (formValidationChange)="isformValid = $event">
+                    [query]="seriesFilterRule" [fields]="filterRuleFieldsOptions" [variableFields]="filterRuleVariables" (queryChange)="onFilterRuleChanged($event)" (formValidationChange)="isformValid = $event">
                     </pep-query-builder>
 
                 </div>

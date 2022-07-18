@@ -106,6 +106,10 @@ export const queriesTableScheme: AddonDataScheme = {
             Type: "Array",
             Items: {Type: "Object"}
         },
+        Variables: {
+            Type: "Array",
+            Items: {Type: "Object"}
+        }
     },
 }
 

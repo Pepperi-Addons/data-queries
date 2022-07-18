@@ -2,8 +2,8 @@ export const QueryExecutionScheme =
 {
     "type": ["object","null"],
     "properties": {
-        "Filter": {
-            "type": "object",
+        "VariableValues": {
+            "type": "object"
         }
     },
     "additionalProperties": false
