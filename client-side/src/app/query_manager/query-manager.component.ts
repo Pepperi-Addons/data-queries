@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ViewContainerRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListInitData, IPepGenericListPager, PepGenericListService } from "@pepperi-addons/ngx-composite-lib/generic-list";
@@ -8,7 +8,7 @@ import { PepMenuItem } from '@pepperi-addons/ngx-lib/menu';
 import { AddonService } from 'src/services/addon.service';
 import { UtilitiesService } from 'src/services/utilities.service';
 import { v4 as uuid } from 'uuid';
-//import { DIMXComponent } from '@pepperi-addons/ngx-composite-lib/dimx-export';
+import { DIMXHostObject, PepDIMXHelperService } from '@pepperi-addons/ngx-composite-lib'
 import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
 
 export type FormMode = 'Add' | 'Edit';
@@ -23,8 +23,6 @@ export class QueryManagerComponent implements OnInit {
     @Input() hostObject: any;
     
     @Output() hostEvents: EventEmitter<any> = new EventEmitter<any>();
-
-    //@ViewChild('dimx') dimx:DIMXComponent | undefined;
 
   dataSource: IPepGenericListDataSource = this.getDataSource();
   
@@ -42,7 +40,10 @@ export class QueryManagerComponent implements OnInit {
     public activateRoute: ActivatedRoute,
     private router: Router,
     public dialogService: PepDialogService,
-    public utilitiesService: UtilitiesService) { }
+    public utilitiesService: UtilitiesService,
+    private viewContainer: ViewContainerRef,
+    private dimxService: PepDIMXHelperService
+    ) { }
 
 
   ngOnInit(): void {
@@ -51,6 +52,13 @@ export class QueryManagerComponent implements OnInit {
     this.menuItems = this.getMenuItems();
     this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
     this.dataSource = this.getDataSource();
+    const dimxHostObject: DIMXHostObject = {
+        DIMXAddonUUID: this.utilitiesService.addonUUID,
+        DIMXResource: 'DataQueries'
+    }
+    this.dimxService.register(this.viewContainer, dimxHostObject, (dimxEvent) => {
+        this.dataSource = this.getDataSource();
+    })
   }
 
   uuidGenerator(){
@@ -215,11 +223,12 @@ menuItemClick(event: any) {
             break;
         }
         case 'Import':{
-            // this.dimx?.uploadFile({
-            //     OverwriteOBject: true,
-            //     Delimiter: ",",
-            //     OwnerID: this.utilitiesService.addonUUID
-            // });
+            this.dimxService.import({
+                OverwriteObject: false,
+                Delimiter: ",",
+                OwnerID: this.utilitiesService.addonUUID
+            });
+            this.dataSource = this.getDataSource();
             break;
         }
     }
@@ -266,19 +275,19 @@ showDeleteDialog(uuid: any) {
     });      
 }
 
-onDIMXProcessDone($event){
+onDIMXProcessDone(event){
     this.dataSource = this.getDataSource();
 }
 
 exportQueryScheme(queryKey){
-    // this.dimx?.DIMXExportRun({
-    //     DIMXExportFormat: "csv",
-    //     DIMXExportIncludeDeleted: false,
-    //     DIMXExportFileName: queryKey,
-    //     DIMXExportWhere: `Key LIKE '${queryKey}'`,
-    //     DIMXExportFields: 'Key,Name,Resource,Series',
-    //     DIMXExportDelimiter: ","
-    // });
+    this.dimxService?.export({
+        DIMXExportFormat: "csv",
+        DIMXExportIncludeDeleted: false,
+        DIMXExportFileName: queryKey,
+        DIMXExportWhere: `Key LIKE '${queryKey}'`,
+        DIMXExportFields: 'Key,Name,Resource,Series,Variables',
+        DIMXExportDelimiter: ","
+    });
 }
 
 onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {

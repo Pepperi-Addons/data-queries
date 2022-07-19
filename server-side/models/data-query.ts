@@ -104,11 +104,17 @@ export const queriesTableScheme: AddonDataScheme = {
         },
         Series: {
             Type: "Array",
-            Items: {Type: "Object"}
+            Items: {
+                Type: "Object",
+                Fields: {}
+            }
         },
         Variables: {
             Type: "Array",
-            Items: {Type: "Object"}
+            Items: {
+                Type: "Object",
+                Fields: {}
+            }
         }
     },
 }
