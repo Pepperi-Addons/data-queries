@@ -17,7 +17,7 @@ import { PepButtonModule } from '@pepperi-addons/ngx-lib/button';
 import { QueryFormComponent } from '../query-form/query-form.component';
 import { PepSelectModule } from '@pepperi-addons/ngx-lib/select';
 import { PepTextboxModule } from '@pepperi-addons/ngx-lib/textbox';
-//import { PepDIMXModule } from '@pepperi-addons/ngx-composite-lib/dimx-export';
+import { PepNgxCompositeLibModule } from '@pepperi-addons/ngx-composite-lib';
 
 
 const pepIcons = [
@@ -48,8 +48,8 @@ export const routes: Routes = [
         PepTopBarModule,
         PepPageLayoutModule,
         PepSelectModule,
-        //PepDIMXModule,
         PepTextboxModule,
+        PepNgxCompositeLibModule,
         TranslateModule.forChild({
             loader: {
                 provide: TranslateLoader,

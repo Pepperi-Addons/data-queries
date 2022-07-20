@@ -257,6 +257,7 @@ export class QueryFormComponent implements OnInit {
     }
 
   showDeleteDialog(itemKey: any, property: 'Series'|'Variables') {
+    // variable which is used by a defined series cannot be deleted
     if(property=='Variables' && this.variableInUse(itemKey)) {
         const actionButton: PepDialogActionButton = {
             title: "OK",

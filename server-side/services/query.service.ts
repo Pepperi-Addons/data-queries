@@ -3,7 +3,7 @@ import { Client, Request } from '@pepperi-addons/debug-server';
 import { v4 as uuid } from 'uuid';
 import config from '../../addon.config.json'
 import { DATA_QUREIES_TABLE_NAME, Interval, Intervals, Serie, SERIES_LABEL_DEFAULT_VALUE, UserTypes } from '../models/data-query';
-import { validate } from 'jsonschema';
+import { Schema, validate, Validator } from 'jsonschema';
 import { QueriesScheme } from '../models/queries-scheme';
 import jwtDecode from 'jwt-decode';
 
@@ -31,7 +31,7 @@ class QueryService {
         const adal = this.papiClient.addons.data.uuid(config.AddonUUID).table(DATA_QUREIES_TABLE_NAME);
         const body = request.body;
 
-        const validation = validate(body, QueriesScheme, { allowUnknownAttributes: false, });
+        const validation = validate(body, QueriesScheme, { allowUnknownAttributes: false });
 
         if (!validation.valid) {
             throw new Error(validation.toString());
@@ -94,7 +94,40 @@ class QueryService {
     //DIMX
     // for the AddonRelativeURL of the relation
     async importDataSource(body) {
-        console.log("importing data")
+        console.log(`@@@@importing query: ${JSON.stringify(body)}@@@@`);
+        body.DIMXObjects = await Promise.all(body.DIMXObjects.map(async (item) => {
+            const validator = new Validator();
+            const validSchema: Schema = {
+                properties: {
+                    Key: {
+                        type: "string",
+                        required: true
+                    },
+                    Name: {
+                        type: "string",
+                        required: true
+                    },
+                    Resource: {
+                        type: "string",
+                        required: true
+                    },
+                    Series: {
+                        type: "array"
+                    },
+                    Variables: {
+                        type: "array"
+                    }
+                }
+            }
+            const validationResult = validator.validate(item.Object, validSchema);
+            if (!validationResult.valid) {
+                const errors = validationResult.errors.map(error => error.stack.replace("instance.", ""));
+                item.Status = 'Error';
+                item.Details = `query validation failed.\n ${errors.join("\n")}`;
+            }
+            return item;
+        }));
+        console.log('returned object is:', JSON.stringify(body));
         return body;
     }
 
