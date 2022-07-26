@@ -29,7 +29,8 @@ export class QueryFormComponent implements OnInit {
   temp: string;
   queryUUID: string;
   querySaved: boolean = false;
-  resourceOptions: Array<PepButton> = [];
+  resourceRelations: Array<any> = [];
+  resourceOptions: Array<any> = [];
   queryLoaded: boolean = false;
   seriesDataSource: IPepGenericListDataSource = this.getSeriesDataSource();
   variablesDataSource: IPepGenericListDataSource = this.getVariablesDataSource();
@@ -51,7 +52,10 @@ export class QueryFormComponent implements OnInit {
    async ngOnInit() {
         this.queryUUID = this.activateRoute.snapshot.params.query_uuid;
         this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
-        this.resourceOptions = [{key:"all_activities",value:"all_activities"},{key:"transaction_lines",value:"transaction_lines"}]; // need to take from relation
+        this.resourceRelations = await this.addonService.getResourceTypesFromRelation();
+        this.resourceOptions = this.resourceRelations.map((resource) => {
+          return { key: resource.Name, value: resource.Name }
+        }); //[{key:"all_activities",value:"all_activities"},{key:"transaction_lines",value:"transaction_lines"}];
         this.mode = this.router['form_mode']
         this.query = this.emptyQuery() as DataQuery;
         this.query.Key = this.queryUUID;
@@ -120,6 +124,7 @@ export class QueryFormComponent implements OnInit {
       parent: 'query',
       seriesName: series?.Name ? series.Name : `Series ${seriesCount + 1}`,
       resource: this.query?.Resource,
+      resourceRelationData: this.resourceRelations.filter(r => r.Name == this.query?.Resource)[0],
       inputVariables: this.query?.Variables
     };
     this.openDialog(this.translate.instant('EditQuery'), SeriesEditorComponent, actionButton, input, callbackFunc);

@@ -64,4 +64,8 @@ export class AddonService {
     async getCharts() {
         return this.papiClient.get(`/charts`);
     }
+
+    async getResourceTypesFromRelation() {
+        return this.papiClient.addons.data.relations.find({where: 'RelationName=DataQueries'});
+    }
 }
