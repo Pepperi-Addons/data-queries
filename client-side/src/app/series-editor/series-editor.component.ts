@@ -1,10 +1,10 @@
 import { TranslateService } from '@ngx-translate/core';
-import { Component, EventEmitter, Inject, Input, OnInit, Output } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { IPepFieldValueChangeEvent, KeyValuePair, PepAddonService } from '@pepperi-addons/ngx-lib';
 import { PepButton } from '@pepperi-addons/ngx-lib/button';
 import { AddonService } from '../../services/addon.service';
-import { AccountTypes, Aggregators, DateOperation, InputVariable, Intervals, OrderType, ResourceTypes, ScriptAggregators, Serie, SERIES_LABEL_DEFAULT_VALUE, UserTypes } from '../../../../server-side/models/data-query';
+import { AccountTypes, Aggregators, DateOperation, InputVariable, Intervals, OrderType, ScriptAggregators, Serie, SERIES_LABEL_DEFAULT_VALUE, UserTypes } from '../../../../server-side/models/data-query';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { v4 as uuid } from 'uuid';
 import { IPepQueryBuilderField } from '@pepperi-addons/ngx-lib/query-builder';
@@ -17,7 +17,6 @@ import { IPepQueryBuilderField } from '@pepperi-addons/ngx-lib/query-builder';
 export class SeriesEditorComponent implements OnInit {
   chartInstance: any;
   currentSeries: Serie;
-  resourceOptions: Array<PepButton> = [];
   aggregationsOptions: Array<PepButton> = [];
   scriptAggregationsOptions: Array<PepButton> = [];
   aggregationsFieldsOptions: any = {};
@@ -36,6 +35,7 @@ export class SeriesEditorComponent implements OnInit {
   filterRule = null;
   seriesFilterRule = null;
   outputSeries = null;
+  resourceRelationData;
 
   formFlags={
     useDynamicSeries:false,
@@ -132,6 +132,7 @@ export class SeriesEditorComponent implements OnInit {
     }
     if(incoming?.resource) {
       this.series.Resource = incoming.resource;
+      this.resourceRelationData = incoming.resourceRelationData;
     }
     if(incoming?.inputVariables) {
       this.filterRuleVariables = incoming.inputVariables.map((v: InputVariable) => ({
@@ -170,10 +171,6 @@ export class SeriesEditorComponent implements OnInit {
 
     Intervals.forEach(intervalUnit => {
       this.intervalOptions.push({ key: intervalUnit, value: intervalUnit });
-    });
-
-    ResourceTypes.forEach(resourceType => {null
-      this.resourceOptions.push({ key: resourceType, value: resourceType });
     });
 
     UserTypes.forEach(userType => {
@@ -230,17 +227,16 @@ export class SeriesEditorComponent implements OnInit {
     }
   }
 
-  getResource(resource) {
-    return this.resourceOptions.filter(x => x.value == resource);
-  }
-
   getDataIndexFields() {
-    return this.addonService.getAddonApiCall('10979a11-d7f4-41df-8993-f06bfd778304', 'data_index_meta_data', 'all_activities_schema').toPromise().then((allActivitiesFields) => {
-      return this.addonService.getAddonApiCall('10979a11-d7f4-41df-8993-f06bfd778304', 'data_index_meta_data', 'transaction_lines_schema').toPromise().then((trnsactionLinesFields) => {
-        this.resourcesFields["all_activities"] = allActivitiesFields.Fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
-        this.resourcesFields["transaction_lines"] = trnsactionLinesFields.Fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
-      });
-    });
+    // return this.addonService.getAddonApiCall('10979a11-d7f4-41df-8993-f06bfd778304', 'data_index_meta_data', 'all_activities_schema').toPromise().then((allActivitiesFields) => {
+    //   return this.addonService.getAddonApiCall('10979a11-d7f4-41df-8993-f06bfd778304', 'data_index_meta_data', 'transaction_lines_schema').toPromise().then((trnsactionLinesFields) => {
+    //     this.resourcesFields["all_activities"] = allActivitiesFields.Fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
+    //     this.resourcesFields["transaction_lines"] = trnsactionLinesFields.Fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
+    //   });
+    // });
+    return this.pluginService.get(this.resourceRelationData["SchemaRelativeURL"]).then((schema) => {
+      this.resourcesFields[this.series.Resource] = schema.Fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
+    })
   }
 
   setFilterRuleFieldsOptions(){

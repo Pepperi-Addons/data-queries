@@ -66,8 +66,7 @@ export const QueriesScheme =
                         }
                     },
                     "Resource": {
-                        "type": "string",
-                        "enum": ["all_activities", "transaction_lines"]
+                        "type": "string"
                     },
                     "Label": {
                         "type": "string",

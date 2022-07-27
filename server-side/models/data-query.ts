@@ -22,7 +22,7 @@ export interface Serie {
     Name: string,
     Label: string,
     Top?: Top;
-    Resource: ResourceType,
+    Resource: string,
     DynamicFilterFields: string[],
     GroupBy?: GroupBy[],
     AggregatedFields: AggregatedField[];
@@ -67,9 +67,6 @@ export declare type UserType = typeof UserTypes[number];
 
 export const AccountTypes = ["AllAccounts", "AccountsAssignedToCurrentUser", "CurrentAccount"];
 export declare type AccountType = typeof AccountTypes[number];
-
-export const ResourceTypes = ["all_activities", "transaction_lines"];
-export declare type ResourceType = typeof ResourceTypes[number];
 
 export const DataTypes = ["Single", "Series", "MultiSeries"];
 export declare type DataType = typeof DataTypes[number];
