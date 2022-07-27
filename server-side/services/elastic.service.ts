@@ -56,8 +56,13 @@ class ElasticService {
     // handle aggregation by series
     let aggregationsList: { [key: string]: Aggregation[] } = this.buildSeriesAggregationList(query.Series);;
 
+    // need to get the relation data based on the resource name
+    const resourceRelationData = (await this.papiClient.addons.data.relations.find({
+      where: `RelationName=DataQueries AND Name=${query.Resource}`
+    }))[0];
+
     // build one query with all series (each aggregation have query and aggs)
-    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues);
+    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues, resourceRelationData);
 
     elasticRequestBody.aggs(queryAggregation);
 
@@ -72,7 +77,7 @@ class ElasticService {
     // }
     try {
       //const lambdaResponse = await this.papiClient.post(`/elasticsearch/search/${query.Resource}`,body);
-      const lambdaResponse = await this.papiClient.post(`/addons/shared_index/index/papi_data_index/search/10979a11-d7f4-41df-8993-f06bfd778304/${query.Resource}`,body);
+      const lambdaResponse = await this.papiClient.post(resourceRelationData.AddonRelativeURL ?? '',body);
       console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
       let response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query);
       return response;
@@ -84,7 +89,7 @@ class ElasticService {
 
   }
 
-  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, variableValues: {[varName: string]: string}) {
+  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, variableValues: {[varName: string]: string}, resourceRelationData) {
     let queryAggregation: any = [];
 
     for(var seriesName of Object.keys(aggregationsList)) {
@@ -101,11 +106,8 @@ class ElasticService {
         const serializedQuery: Query = toKibanaQuery(series.Filter);
         resourceFilter = esb.boolQuery().must([resourceFilter, serializedQuery]);
       }
-      // need to get the relation data based on the resource name
-      const resourceRelationData = await this.papiClient.addons.data.relations.find({
-          where: `RelationName=DataQueries AND Name=${series.Resource}`,
-      });
-      resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData[0]);
+      
+      resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData);
       const filterAggregation = esb.filterAggregation(seriesName, resourceFilter).agg(seriesAggregation);
       queryAggregation.push(filterAggregation);
     };
