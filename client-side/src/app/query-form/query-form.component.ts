@@ -55,7 +55,7 @@ export class QueryFormComponent implements OnInit {
         this.resourceRelations = await this.addonService.getResourceTypesFromRelation();
         this.resourceOptions = this.resourceRelations.map((resource) => {
           return { key: resource.Name, value: resource.Name }
-        }); //[{key:"all_activities",value:"all_activities"},{key:"transaction_lines",value:"transaction_lines"}];
+        });
         this.mode = this.router['form_mode']
         this.query = this.emptyQuery() as DataQuery;
         this.query.Key = this.queryUUID;
