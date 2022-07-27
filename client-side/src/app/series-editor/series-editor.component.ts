@@ -228,12 +228,6 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   getDataIndexFields() {
-    // return this.addonService.getAddonApiCall('10979a11-d7f4-41df-8993-f06bfd778304', 'data_index_meta_data', 'all_activities_schema').toPromise().then((allActivitiesFields) => {
-    //   return this.addonService.getAddonApiCall('10979a11-d7f4-41df-8993-f06bfd778304', 'data_index_meta_data', 'transaction_lines_schema').toPromise().then((trnsactionLinesFields) => {
-    //     this.resourcesFields["all_activities"] = allActivitiesFields.Fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
-    //     this.resourcesFields["transaction_lines"] = trnsactionLinesFields.Fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
-    //   });
-    // });
     return this.pluginService.get(this.resourceRelationData["SchemaRelativeURL"]).then((schema) => {
       this.resourcesFields[this.series.Resource] = schema.Fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
     })
@@ -405,5 +399,17 @@ export class SeriesEditorComponent implements OnInit {
       case 'Boolean':
         return 'Bool'
     }
+  }
+
+  resourceIsValidForAccountFilter(resourceRelationData) {
+    return (
+      resourceRelationData.IndexedAccountFieldID &&
+      resourceRelationData.AccountFieldID &&
+      resourceRelationData.UserFieldID
+    );
+  }
+
+  resourceIsValidForUserFilter(resourceRelationData) {
+    return resourceRelationData.IndexedUserFieldID;
   }
 }

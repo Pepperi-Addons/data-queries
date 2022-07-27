@@ -118,15 +118,13 @@
                     <h2>{{'Filter' | translate}}
                     </h2>
                     <hr>
-                <div>
-                <!-- what's the purpose of this ngIf  -->
-                <!-- <div *ngIf="series.Resource == 'all_activities' || series.Resource == 'transaction_lines'"> -->
-                    <div class="flex-gap">
+                <div >
+                    <div *ngIf="resourceIsValidForAccountFilter(resourceRelationData)" class="flex-gap">
                         <pep-select class="flex" [emptyOption]="false" [(value)]="series.Scope.Account" [label]="'AccountFilter' | translate" 
                         [key]="'accountFilterSelect'" [xAlignment]="'left'" [options]='accountFilterOptions'>
                         </pep-select>
                     </div>
-                    <div class="flex-gap">
+                    <div *ngIf="resourceIsValidForUserFilter(resourceRelationData)" class="flex-gap">
                         <pep-select class="flex" [emptyOption]="false" [(value)]="series.Scope.User" [label]="'UserFilter' | translate" [key]="'userFilterSelect'" 
                         [xAlignment]="'left'" [options]='userFilterOptions'>
                         </pep-select>
