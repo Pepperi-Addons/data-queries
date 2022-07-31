@@ -151,7 +151,7 @@ class ElasticService {
     if (series.Scope.User == "CurrentUser"){
       const currUserId = (<any>jwtDecode(this.client.OAuthAccessToken))["pepperi.id"];
       // IndexedUserFieldID
-      const fieldName = resourceRelationData.IndexedUserFieldID; //(series.Resource == 'all_activities') ? 'Agent.InternalID' : 'Transaction.Agent.InternalID';
+      const fieldName = resourceRelationData.IndexedUserFieldID;
       var userFilter: JSONFilter = {
         FieldType: 'String',
         ApiName: fieldName,
@@ -169,7 +169,7 @@ class ElasticService {
       const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}=${currUserId}&fields=Account.${accountFieldID}`);
 
       //IndexedAccountFieldID
-      const fieldName = resourceRelationData.IndexedAccountFieldID; //(series.Resource == 'all_activities') ? 'Account.InternalID' : 'Transaction.Account.InternalID';
+      const fieldName = resourceRelationData.IndexedAccountFieldID;
       var accountsFilter: JSONFilter = {
         FieldType: 'String',
         ApiName: fieldName,
