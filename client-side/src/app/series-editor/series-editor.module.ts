@@ -43,14 +43,7 @@ import {PepQueryBuilderModule} from '@pepperi-addons/ngx-lib/query-builder'
     MatIconModule,
     MatDialogModule,
     PepQueryBuilderModule,
-    TranslateModule.forChild({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: (http: HttpClient, fileService: PepFileService, addonService: PepAddonService) =>
-          PepAddonService.createDefaultMultiTranslateLoader(http, fileService, addonService, config.AddonUUID),
-        deps: [HttpClient, PepFileService, PepAddonService],
-      }, isolate: false
-    }),
+    TranslateModule.forChild(),
   ],
   exports: [SeriesEditorComponent],
   providers: [
