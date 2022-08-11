@@ -14,6 +14,7 @@ import { GridDataViewField } from '@pepperi-addons/papi-sdk';
 import { MatDialogRef } from '@angular/material/dialog';
 import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
 import { VariableEditorComponent } from '../variable-editor/variable-editor.component';
+import { config } from '../addon.config';
 
 
 
@@ -51,7 +52,7 @@ export class QueryFormComponent implements OnInit {
 
    async ngOnInit() {
         this.queryUUID = this.activateRoute.snapshot.params.query_uuid;
-        this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
+        this.addonService.addonUUID = config.AddonUUID;
         this.resourceRelations = await this.addonService.getResourceTypesFromRelation();
         this.resourceOptions = this.resourceRelations.map((resource) => {
           return { key: resource.Name, value: resource.Name }
@@ -104,7 +105,7 @@ export class QueryFormComponent implements OnInit {
     const seriesCount = this.query.Series?.length ? this.query.Series?.length : 0
     const series = this.query.Series.filter(s => s.Key == seriesKey)[0]
     const callbackFunc = async (seriesToAddOrUpdate) => {
-        this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
+        this.addonService.addonUUID = config.AddonUUID;
         if (seriesToAddOrUpdate) {
             seriesToAddOrUpdate.Resource = this.query.Resource;
             this.updateQuerySeries(seriesToAddOrUpdate);
@@ -495,7 +496,7 @@ async previewDataHandler(data) {
         const varsCount = this.query.Variables?.length ? this.query.Variables?.length : 0
         const currVariable = this.query.Variables.filter(v => v.Key == variableKey)[0]
         const callbackFunc = async (variableToAddOrUpdate) => {
-            this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
+            this.addonService.addonUUID = config.AddonUUID;
             if (variableToAddOrUpdate) {
                 if(mode == 'Add' && this.query.Variables.filter(v => v.Name == variableToAddOrUpdate.Name).length > 0) {
                     const actionButton: PepDialogActionButton = {

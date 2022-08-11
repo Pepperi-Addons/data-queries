@@ -8,6 +8,7 @@ import { AccountTypes, Aggregators, DateOperation, InputVariable, Intervals, Ord
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { v4 as uuid } from 'uuid';
 import { IPepQueryBuilderField } from '@pepperi-addons/ngx-lib/query-builder';
+import { config } from '../addon.config';
 
 @Component({
   selector: 'app-series-editor',
@@ -141,7 +142,7 @@ export class SeriesEditorComponent implements OnInit {
         Title: v.Name
       }))
     }
-    this.pluginService.addonUUID = this.routeParams.snapshot.params['addon_uuid'];
+    this.pluginService.addonUUID = config.AddonUUID;
   }
 
   ngOnInit(): void {
