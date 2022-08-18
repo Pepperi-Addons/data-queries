@@ -14,7 +14,7 @@ export const DimxRelations: Relation[] = [{
     Name: 'DataQueries',
     RelationName: 'DataExportResource',
     Type: 'AddonAPI',
-    Description: 'relation for exporting queries from guery manager',
+    Description: 'relation for exporting queries from query manager',
     AddonRelativeURL: '/api/export_data_source'
 }]
 

@@ -183,6 +183,7 @@ export class VariableEditorComponent implements OnInit {
    }
 
   onSave(e) {
+    //check the values to be max 40 characters
   }
 
 }

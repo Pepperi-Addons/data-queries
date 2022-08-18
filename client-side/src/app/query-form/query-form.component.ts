@@ -67,8 +67,6 @@ export class QueryFormComponent implements OnInit {
         this.seriesDataSource = this.getSeriesDataSource();
         this.variablesDataSource = this.getVariablesDataSource();
         this.previewDataSource = this.getPreviewDataSource();
-
-
    }
 
   async saveClicked() {
