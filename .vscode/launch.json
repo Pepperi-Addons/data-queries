@@ -13,9 +13,7 @@
             ],
             "cwd": "${workspaceFolder}/server-side",
             "program": "${workspaceFolder}/server-side/app.local.ts",
-            "outFiles": [
-                "${workspaceFolder}/server-side/build/*/*.js"
-            ],
+            "outFiles": [],
             "preLaunchTask": {
                 "label": "Build API",
                 "type": "typescript",
