@@ -15,6 +15,8 @@ import { PepAddonBlockLoaderService } from '@pepperi-addons/ngx-lib/remote-loade
 export type FormMode = 'Add' | 'Edit';
 export const EMPTY_OBJECT_NAME = 'NewCollection';
 
+import { config } from '../addon.config';
+
 @Component({
   selector: 'query-manager',
   templateUrl: './query-manager.component.html',
@@ -52,9 +54,9 @@ export class QueryManagerComponent implements OnInit {
 
   ngOnInit(): void {
     this.recycleBin = this.activateRoute.snapshot.queryParams.recycle_bin == 'true' || false;
-    this.utilitiesService.addonUUID = this.activateRoute.snapshot.params.addon_uuid || '';
+    this.utilitiesService.addonUUID = config.AddonUUID;
     this.menuItems = this.getMenuItems();
-    this.addonService.addonUUID = this.activateRoute.snapshot.params['addon_uuid'];
+    this.addonService.addonUUID = config.AddonUUID;
     this.dataSource = this.getDataSource();
     const dimxHostObject: DIMXHostObject = {
         DIMXAddonUUID: this.utilitiesService.addonUUID,

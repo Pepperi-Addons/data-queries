@@ -1,5 +1,5 @@
 
-<pep-page-layout [addPadding]="false" *ngIf="queryLoaded">
+<pep-page-layout [addPadding]="true" *ngIf="queryLoaded">
     <ng-container pep-top-area>
         <pep-top-bar [title]="mode == 'Add' ? ('Query_Add_Title' | translate) : ('Query_Edit_Title' | translate: {query_name: query.Name})">
             <div header-start-content>

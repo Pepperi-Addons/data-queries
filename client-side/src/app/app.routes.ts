@@ -1,8 +1,6 @@
 import { NgModule } from '@angular/core';
 import { Component } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { QueryManagerComponent } from './query_manager/query-manager.component';
-import { QueryFormComponent } from './query-form/query-form.component';
 
 // Important for single spa
 @Component({
@@ -13,26 +11,14 @@ export class EmptyRouteComponent {}
 
 const routes: Routes = [
     {
-        path: `settings/:addon_uuid`,
-        children: [
-            {
-                path: 'query_manager',
-                component: QueryManagerComponent //the component files name will be query-manager.component.ts/css/html
-            },
-            {
-                path: 'query_manager/:query_uuid',
-                component: QueryFormComponent //the component files name will be query-manager.component.ts/css/html
-            }
-        ]
+        path: '',
+        loadChildren: () => import('./settings/settings.module').then(m => m.SettingsModule),
     },
-    {
-        path: '**',
-        component: EmptyRouteComponent
-    }
+    { path: '**', component: EmptyRouteComponent }
 ];
 
 @NgModule({
-    imports: [RouterModule.forRoot(routes, { relativeLinkResolution: 'legacy' })],
+    imports: [RouterModule.forRoot(routes)],
     exports: [RouterModule]
 })
 export class AppRoutingModule { }
