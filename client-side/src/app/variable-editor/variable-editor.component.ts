@@ -183,7 +183,14 @@ export class VariableEditorComponent implements OnInit {
    }
 
   onSave(e) {
-    //check the values to be max 40 characters
+  }
+
+  variableValuesValid() {
+    // values of type number are allowed to be 10 characters or less to prevent errors
+    if(this.variable.Type == 'Number') {
+         if(this.variable.DefaultValue.length > 10 || this.variable.PreviewValue.length > 10) return false;
+    }
+    return true;
   }
 
 }

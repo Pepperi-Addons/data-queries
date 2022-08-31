@@ -311,7 +311,7 @@ openDataLogDialog(queryKey) {
     const dialogRef = this.addonBlockLoaderService.loadAddonBlockInDialog({
         container: this.viewContainer,
         name: 'Audit_Data_Log',
-        hostObject: {dataLogHostObject},
+        hostObject: dataLogHostObject,
         hostEventsCallback: (event) => { 
             this.hostEvents.emit(event);
             if (dialogRef) {

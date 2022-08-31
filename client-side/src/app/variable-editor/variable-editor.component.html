@@ -17,7 +17,7 @@
                 </button>
                 <button mat-button class="pep-spacing-element pep-button md strong" (click)="onSave($event)" [mat-dialog-close]="variable" 
                 
-                [disabled]="!variable.Type">
+                [disabled]="!variable.Type || !variableValuesValid()">
                     {{(mode == 'Add' ? 'Add' : 'Update') | translate}}
                 </button>
             </div>

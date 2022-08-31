@@ -26,7 +26,7 @@ import { config } from '../addon.config';
 export class QueryFormComponent implements OnInit {
   
   query: DataQuery;
-  mode: string;
+  mode: string = 'Add';
   temp: string;
   queryUUID: string;
   querySaved: boolean = false;
@@ -57,7 +57,7 @@ export class QueryFormComponent implements OnInit {
         this.resourceOptions = this.resourceRelations.map((resource) => {
           return { key: resource.Name, value: resource.Name }
         });
-        this.mode = this.router['form_mode']
+        this.mode = this.router['form_mode'] || 'Add';
         this.query = this.emptyQuery() as DataQuery;
         this.query.Key = this.queryUUID;
         if (this.mode == 'Edit') {
