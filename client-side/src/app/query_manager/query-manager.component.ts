@@ -10,6 +10,7 @@ import { UtilitiesService } from 'src/services/utilities.service';
 import { v4 as uuid } from 'uuid';
 import { DIMXHostObject, PepDIMXHelperService } from '@pepperi-addons/ngx-composite-lib'
 import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
+import { PepAddonBlockLoaderService } from '@pepperi-addons/ngx-lib/remote-loader';
 
 export type FormMode = 'Add' | 'Edit';
 export const EMPTY_OBJECT_NAME = 'NewCollection';
@@ -23,28 +24,31 @@ import { config } from '../addon.config';
 })
 export class QueryManagerComponent implements OnInit {
     @Input() hostObject: any;
-    
+
     @Output() hostEvents: EventEmitter<any> = new EventEmitter<any>();
 
-  dataSource: IPepGenericListDataSource = this.getDataSource();
+    @ViewChild('addonLoaderContainer', { read: ViewContainerRef }) addonLoaderContainer: ViewContainerRef;
+
+    dataSource: IPepGenericListDataSource = this.getDataSource();
   
-  menuItems:PepMenuItem[] = []
+    menuItems:PepMenuItem[] = []
 
-  recycleBin: boolean = false;
-  recycleBinTitle = '';
+    recycleBin: boolean = false;
+    recycleBinTitle = '';
 
-  deleteError = 'Cannot delete Query';
+    deleteError = 'Cannot delete Query';
 
-  constructor(
-    public addonService: AddonService,
-    public translate: TranslateService,
-    public genericListService: PepGenericListService,
-    public activateRoute: ActivatedRoute,
-    private router: Router,
-    public dialogService: PepDialogService,
-    public utilitiesService: UtilitiesService,
-    private viewContainer: ViewContainerRef,
-    private dimxService: PepDIMXHelperService
+    constructor(
+        public addonService: AddonService,
+        public translate: TranslateService,
+        public genericListService: PepGenericListService,
+        public activateRoute: ActivatedRoute,
+        private router: Router,
+        public dialogService: PepDialogService,
+        public utilitiesService: UtilitiesService,
+        private viewContainer: ViewContainerRef,
+        private dimxService: PepDIMXHelperService,
+        private addonBlockLoaderService: PepAddonBlockLoaderService
     ) { }
 
 
@@ -108,7 +112,7 @@ export class QueryManagerComponent implements OnInit {
 
                 // names must be equal
                 return 0;
-              });
+            });
 
             return Promise.resolve({
                 dataView: {
@@ -198,6 +202,12 @@ actions: IPepGenericListActions = {
                         this.exportQueryScheme(objs.rows[0]);
                     }
                 })
+                actions.push({
+                    title: this.translate.instant('Show history'),
+                    handler: async (objs) => {
+                        this.openDataLogDialog(objs.rows[0]);
+                    }
+                })
             }
         }
         return actions;
@@ -281,7 +291,7 @@ onDIMXProcessDone(event){
     this.dataSource = this.getDataSource();
 }
 
-exportQueryScheme(queryKey){
+exportQueryScheme(queryKey) {
     this.dimxService?.export({
         DIMXExportFormat: "csv",
         DIMXExportIncludeDeleted: false,
@@ -289,6 +299,25 @@ exportQueryScheme(queryKey){
         DIMXExportWhere: `Key LIKE '${queryKey}'`,
         DIMXExportFields: 'Key,Name,Resource,Series,Variables',
         DIMXExportDelimiter: ","
+    });
+}
+
+openDataLogDialog(queryKey) {
+    const dataLogHostObject = {
+        AddonUUID: this.utilitiesService.addonUUID,
+        ObjectKey: queryKey,
+        Resource: "DataQueries"
+    }
+    const dialogRef = this.addonBlockLoaderService.loadAddonBlockInDialog({
+        container: this.viewContainer,
+        name: 'Audit_Data_Log',
+        hostObject: dataLogHostObject,
+        hostEventsCallback: (event) => { 
+            this.hostEvents.emit(event);
+            if (dialogRef) {
+                dialogRef.close(null);
+            }
+        }
     });
 }
 

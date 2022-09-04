@@ -18,6 +18,7 @@ import { QueryFormComponent } from '../query-form/query-form.component';
 import { PepSelectModule } from '@pepperi-addons/ngx-lib/select';
 import { PepTextboxModule } from '@pepperi-addons/ngx-lib/textbox';
 import { PepNgxCompositeLibModule } from '@pepperi-addons/ngx-composite-lib';
+import { PepRemoteLoaderModule } from '@pepperi-addons/ngx-lib/remote-loader';
 
 
 const pepIcons = [
@@ -50,6 +51,7 @@ export const routes: Routes = [
         PepSelectModule,
         PepTextboxModule,
         PepNgxCompositeLibModule,
+        PepRemoteLoaderModule,
         TranslateModule.forChild({
             loader: {
                 provide: TranslateLoader,
