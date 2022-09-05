@@ -11,8 +11,6 @@ import { AddonService } from '../../services/addon.service';
 import { VariableEditorComponent } from './variable-editor.component';
 import { PepFieldTitleModule } from '@pepperi-addons/ngx-lib/field-title';
 import { TranslateLoader, TranslateModule, TranslateService, TranslateStore } from '@ngx-translate/core';
-import { HttpClient } from '@angular/common/http';
-import { config } from '../addon.config';
 import { PepIconModule } from '@pepperi-addons/ngx-lib/icon';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule } from '@angular/material/dialog';
@@ -35,10 +33,8 @@ import { PepGenericFormModule } from '@pepperi-addons/ngx-composite-lib/generic-
     PepTextboxModule,
     PepCheckboxModule,
     PepButtonModule,
-    CommonModule,
     PepTextareaModule,
     PepGroupButtonsModule,
-    CommonModule,
     PepDialogModule,
     PepGenericFormModule,
     PepFieldTitleModule,
@@ -52,12 +48,6 @@ import { PepGenericFormModule } from '@pepperi-addons/ngx-composite-lib/generic-
   providers: [
     TranslateStore,
     AddonService,
-    PepAddonService,
-    PepDialogService,
-    TranslateService,
-    HttpClient,
-    PepFileService,
-    PepCustomizationService,
     // Add here all used services.
   ]
 })
