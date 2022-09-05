@@ -15,7 +15,7 @@ import { HttpClient } from '@angular/common/http';
 import { config } from '../addon.config';
 import { PepIconModule } from '@pepperi-addons/ngx-lib/icon';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialogModule } from '@angular/material/dialog';
+import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA, MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PepCheckboxModule } from '@pepperi-addons/ngx-lib/checkbox';
 import {PepQueryBuilderModule} from '@pepperi-addons/ngx-lib/query-builder'
@@ -33,10 +33,8 @@ import {PepQueryBuilderModule} from '@pepperi-addons/ngx-lib/query-builder'
     PepTextboxModule,
     PepCheckboxModule,
     PepButtonModule,
-    CommonModule,
     PepTextareaModule,
     PepGroupButtonsModule,
-    CommonModule,
     PepDialogModule,
     PepFieldTitleModule,
     PepIconModule,
@@ -49,13 +47,9 @@ import {PepQueryBuilderModule} from '@pepperi-addons/ngx-lib/query-builder'
   providers: [
     TranslateStore,
     AddonService,
-    PepAddonService,
-    PepDialogService,
-    TranslateService,
-    HttpClient,
-    PepFileService,
-    PepCustomizationService,
     // Add here all used services.
+    { provide: MAT_DIALOG_DATA, useValue: {} },
+    { provide: MatDialogRef, useValue: {} }
   ]
 })
 export class SeriesEditorModule {

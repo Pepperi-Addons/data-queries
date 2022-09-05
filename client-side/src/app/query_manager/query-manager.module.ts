@@ -19,6 +19,8 @@ import { PepSelectModule } from '@pepperi-addons/ngx-lib/select';
 import { PepTextboxModule } from '@pepperi-addons/ngx-lib/textbox';
 import { PepNgxCompositeLibModule } from '@pepperi-addons/ngx-composite-lib';
 import { PepRemoteLoaderModule } from '@pepperi-addons/ngx-lib/remote-loader';
+import { PepDialogModule } from '@pepperi-addons/ngx-lib/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 
 
 const pepIcons = [
@@ -49,9 +51,11 @@ export const routes: Routes = [
         PepTopBarModule,
         PepPageLayoutModule,
         PepSelectModule,
+        PepDialogModule,
         PepTextboxModule,
         PepNgxCompositeLibModule,
         PepRemoteLoaderModule,
+        MatDialogModule,
         TranslateModule.forChild({
             loader: {
                 provide: TranslateLoader,
