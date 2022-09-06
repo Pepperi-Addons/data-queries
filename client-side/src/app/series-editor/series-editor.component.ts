@@ -230,7 +230,15 @@ export class SeriesEditorComponent implements OnInit {
 
   getDataIndexFields() {
     return this.pluginService.get(this.resourceRelationData["SchemaRelativeURL"]).then((schema) => {
-      this.resourcesFields[this.series.Resource] = schema.Fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
+      let fields = []
+      for(const fieldID in schema.Fields) {
+        fields.push({
+          FieldID: fieldID,
+          Type: schema.Fields[fieldID].Type,
+          OptionalValues: schema.Fields[fieldID].OptionalValues
+        })
+      }
+      this.resourcesFields[this.series.Resource] = fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
     })
   }
 
@@ -240,7 +248,7 @@ export class SeriesEditorComponent implements OnInit {
         FieldID: f.FieldID,
         FieldType: f.Type,
         Title: f.FieldID,
-        OptionalValues: f.optionalValues? f.optionalValues.map(x => ({Key: x,Value: x}) as KeyValuePair<string>) :[]
+        OptionalValues: f.OptionalValues? f.OptionalValues.map(x => ({Key: x,Value: x}) as KeyValuePair<string>) :[]
       }));
     }
   }
