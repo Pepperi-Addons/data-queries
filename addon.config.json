@@ -23,7 +23,8 @@
     ],
     "Dependencies": {
       "adal": "1.0.229",
-      "dimx": "0.0.181"
+      "dimx": "0.0.181",
+      "webapp": "17.14.75"
     },
     "CPISide": []
   }
