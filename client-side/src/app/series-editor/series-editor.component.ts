@@ -325,10 +325,6 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   onAggregatorSelected(aggregator){
-    switch (aggregator) {
-      case 'Script':
-        break;
-    }
   }
   
   onResourceChange(event) {
