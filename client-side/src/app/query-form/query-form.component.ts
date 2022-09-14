@@ -342,7 +342,18 @@ getPreviewDataSource() {
                 varValues[v.Name] = v.PreviewValue
             }
             const body = {"VariableValues": varValues}
-            const data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key, body) : {DataSet: [], DataQueries: []};
+            try {
+                var data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key, body) : {DataSet: [], DataQueries: []};
+            } catch(ex) {
+                this.loaderService.hide();
+                console.log("execute failed. error catched: " + ex)
+                const actionButton: PepDialogActionButton = {
+                    title: "OK",
+                    className: "",
+                    callback: null,
+                };
+                this.openDialog("Preview is Unavailable", "Query execution failed", actionButton, {})
+            }
             let results = await this.previewDataHandler(data);
             let size = data.DataSet.length;
             for(let s of data.DataQueries)
