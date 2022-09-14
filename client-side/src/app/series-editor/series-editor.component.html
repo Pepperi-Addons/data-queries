@@ -23,7 +23,7 @@
                         </pep-select>
                         <pep-select [disabled]="!isLoaded" *ngIf="(series.AggregatedFields[0].Aggregator=='Sum' || series.AggregatedFields[0].Aggregator=='Average' || series.AggregatedFields[0].Aggregator=='CountDistinct') && isLoaded"
                          [mandatory]="true" class="flex" [emptyOption]="false" [(value)]="series.AggregatedFields[0].FieldID" [key]="'fieldAggregationsSelect'" [label]="'AggregatedField' | translate" [xAlignment]="'left'" 
-                        [options]="series.AggregatedFields[0].Aggregator=='Sum' || series.AggregatedFields[0].Aggregator=='Average' ? aggregationsFieldsOptions['Number'] : aggregationsFieldsOptions['All']" (valueChange)="onChartSelected($event)">
+                        [options]="currentAggregatorFieldsOptions" (valueChange)="onChartSelected($event)">
                         </pep-select>
                     </div>
                     <div id="scripts" *ngIf="series.AggregatedFields[0].Aggregator === 'Script'">

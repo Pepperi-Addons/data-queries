@@ -37,6 +37,7 @@ export class SeriesEditorComponent implements OnInit {
   seriesFilterRule = null;
   outputSeries = null;
   resourceRelationData;
+  currentAggregatorFieldsOptions = null;
 
   formFlags={
     useDynamicSeries:false,
@@ -150,6 +151,7 @@ export class SeriesEditorComponent implements OnInit {
       this.fillAggregatedFieldsType();
       this.setFilterRuleFieldsOptions()
       this.setAuthorizationFiltersFields();
+      this.setFieldsByAggregator();
 
       if(this.series.Filter)
         this.filterRule = JSON.parse(JSON.stringify(this.series.Filter));
@@ -325,6 +327,8 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   onAggregatorSelected(aggregator){
+    this.series.AggregatedFields[0].FieldID = null
+    this.setFieldsByAggregator();
   }
   
   onResourceChange(event) {
@@ -416,5 +420,14 @@ export class SeriesEditorComponent implements OnInit {
 
   resourceIsValidForUserFilter(resourceRelationData) {
     return resourceRelationData.IndexedUserFieldID;
+  }
+
+  setFieldsByAggregator() {
+    if(this.series.AggregatedFields[0].Aggregator=='Sum' || this.series.AggregatedFields[0].Aggregator=='Average') {
+      this.currentAggregatorFieldsOptions = this.aggregationsFieldsOptions['Number']
+    }
+    else {
+      this.currentAggregatorFieldsOptions = this.aggregationsFieldsOptions['All']
+    }
   }
 }
