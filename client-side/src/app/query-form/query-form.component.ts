@@ -347,12 +347,12 @@ getPreviewDataSource() {
             } catch(ex) {
                 this.loaderService.hide();
                 console.log("execute failed. error catched: " + ex)
-                const actionButton: PepDialogActionButton = {
-                    title: "OK",
-                    className: "",
-                    callback: null,
-                };
-                this.openDialog("Preview is Unavailable", "Query execution failed", actionButton, {})
+                const dataMsg = new PepDialogData({
+                    title: this.translate.instant('Preview unavailable'),
+                    actionsType: 'close',
+                    content: this.translate.instant('Query execution failed.')
+                });
+                this.dialogService.openDefaultDialog(dataMsg);
             }
             let results = await this.previewDataHandler(data);
             let size = data.DataSet.length;
@@ -419,7 +419,7 @@ async previewDataHandler(data) {
             }
             previewDataSet.push(dataSet);
         });
-        this.PreviewListFields = this.getPreviewListFields([...distinctgroups,...distinctSeries]);
+        this.PreviewListFields = [...this.getPreviewListFields(distinctgroups),...this.getPreviewListFields(distinctSeries,'NumberReal')];
         return previewDataSet;
     }
     catch (err) {
@@ -433,12 +433,12 @@ async previewDataHandler(data) {
     });
   }
 
-  private getPreviewListFields(fields): GridDataViewField[] {
+  private getPreviewListFields(fields, type = 'TextBox'): GridDataViewField[] {
     let previewFields = [];
     fields.forEach(field => {
         previewFields.push({
         FieldID: field,
-        Type: 'NumberReal',
+        Type: type,
         Title: field,
         Mandatory: false,
         ReadOnly: true
