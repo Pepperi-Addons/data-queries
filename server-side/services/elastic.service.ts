@@ -58,7 +58,7 @@ class ElasticService {
 
     // need to get the relation data based on the resource name
     const resourceRelationData = (await this.papiClient.addons.data.relations.find({
-      where: `RelationName=DataQueries AND Name=${query.Resource}`
+      where: `RelationName='DataQueries' AND Name='${query.Resource}'`
     }))[0];
 
     // build one query with all series (each aggregation have query and aggs)
