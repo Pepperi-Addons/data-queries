@@ -72,7 +72,7 @@ export class QueryFormComponent implements OnInit {
 
   async saveClicked() {
     try {
-        if(this.query.Name && this.query.Resource){
+        if(this.query.Name && this.query.Name!="" && this.query.Resource){
             await this.addonService.upsertDataQuery(this.query);
             this.querySaved = true;
         }

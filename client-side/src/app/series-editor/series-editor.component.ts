@@ -327,7 +327,8 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   onAggregatorSelected(aggregator){
-    this.series.AggregatedFields[0].FieldID = null
+    if(this.series.AggregatedFields[0].FieldID)
+      this.series.AggregatedFields[0].FieldID = null
     this.setFieldsByAggregator();
   }
   
