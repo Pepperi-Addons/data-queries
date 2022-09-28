@@ -55,7 +55,7 @@
                         [sizeType]="'sm'"
                         [value]="'Add' | translate"
                         [styleType]="'strong'"
-                        [disabled]="!query.Resource"
+                        [disabled]="!query.Resource || query.Name==''"
                         (buttonClick)="showVariableEditorDialog(null)"
                     ></pep-button>
                 </ng-container>
@@ -82,7 +82,7 @@
                         [sizeType]="'sm'"
                         [value]="'Add' | translate"
                         [styleType]="'strong'"
-                        [disabled]="!query.Resource"
+                        [disabled]="!query.Resource || query.Name==''"
                         (buttonClick)="showSeriesEditorDialog(null)"
                     ></pep-button>
                 </ng-container>
