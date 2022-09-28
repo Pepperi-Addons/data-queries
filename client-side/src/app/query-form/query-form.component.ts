@@ -316,7 +316,7 @@ export class QueryFormComponent implements OnInit {
     variableInUse(varKey: string) : boolean {
         const varName = this.query.Variables.filter(v => v.Key === varKey)[0].Name
         for( const s of this.query.Series) {
-            if(this.filterIsUsingGivenVar(s.Filter,varName)) return true
+            if(s.Filter && this.filterIsUsingGivenVar(s.Filter,varName)) return true
         }
         return false
     }
