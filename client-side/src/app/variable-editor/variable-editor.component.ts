@@ -26,7 +26,7 @@ export class VariableEditorComponent implements OnInit {
   mode: string = 'Add';
   variable: InputVariable;
   isformValid = true;
-
+  valuesAreValid = true;
 
   constructor(
     public addonService: AddonService,
@@ -191,6 +191,10 @@ export class VariableEditorComponent implements OnInit {
          if(this.variable.DefaultValue.length > 10 || this.variable.PreviewValue.length > 10) return false;
     }
     return true;
+  }
+
+  valueChange(e) { 
+    this.valuesAreValid = this.variableValuesValid();
   }
 
 }

@@ -5,7 +5,8 @@
                 [showTopBar]="false"
                 [dataSource]="dataSource"
                 [dataView]="dataView"
-                [inline]="true">
+                [inline]="true"
+                (valueChange)="valueChange($event)">
     </pep-generic-form>
     </ng-container>
 
@@ -17,7 +18,7 @@
                 </button>
                 <button mat-button class="pep-spacing-element pep-button md strong" (click)="onSave($event)" [mat-dialog-close]="variable" 
                 
-                [disabled]="!variable.Type || !variableValuesValid()">
+                [disabled]="!variable.Type || !valuesAreValid || variable.Name==''">
                     {{(mode == 'Add' ? 'Add' : 'Update') | translate}}
                 </button>
             </div>
