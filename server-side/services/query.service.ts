@@ -30,6 +30,7 @@ class QueryService {
 
         const adal = this.papiClient.addons.data.uuid(config.AddonUUID).table(DATA_QUREIES_TABLE_NAME);
         const body = request.body;
+        delete body.ExpirationDateTime;
 
         const validation = validate(body, QueriesScheme, { allowUnknownAttributes: false });
 

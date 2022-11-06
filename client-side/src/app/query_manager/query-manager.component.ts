@@ -126,7 +126,7 @@ export class QueryManagerComponent implements OnInit {
                     Fields: [
                         {
                             FieldID: 'Name',
-                            Type: 'Link',
+                            Type: this.recycleBin ? 'TextBox' : 'Link',
                             Title: this.translate.instant('Name'),
                             Mandatory: false,
                             ReadOnly: true

@@ -46,7 +46,7 @@
                 [addPadding]="false"
                 [showSearch]="false"
                 [uuidMapping]="'Key'"
-                [noDataFoundMsg] = "'Variables_NoDataFound' | translate"
+                [noDataFoundMsg]="'Variables_NoDataFound' | translate"
                 (fieldClick)="onVariableNameClick($event)"
                 >
                 <ng-container right-buttons>
@@ -73,7 +73,7 @@
                 [addPadding]="false"
                 [showSearch]="false"
                 [uuidMapping]="'Key'"
-                [noDataFoundMsg] = "'Series_NoDataFound' | translate"
+                [noDataFoundMsg]="'Series_NoDataFound' | translate"
                 (fieldClick)="onSeriesNameClick($event)"
                 >
                 <ng-container right-buttons>
@@ -90,14 +90,14 @@
         </div>
         <div class="genericListContainer">
             <pep-generic-list class="generic-list"
-                [title] = "'Preview' | translate"
+                [title]="'Preview' | translate"
                 [showTopBar]="true"
                 [dataSource]="previewDataSource"
                 [inline]="true"
                 [addPadding]="false"
                 [showSearch]="false"
                 [selectionType] = "'none'"
-                [noDataFoundMsg] = "'PreviewNoDataFound' | translate"
+                [noDataFoundMsg]="previewNoDataMessage"
                 *ngIf="(querySaved)"
                 >
             </pep-generic-list>

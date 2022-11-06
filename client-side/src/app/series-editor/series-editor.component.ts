@@ -310,12 +310,11 @@ export class SeriesEditorComponent implements OnInit {
     if (!this.formFlags.limitNumber) {
       this.series.Top.Max = 0;
     }
-    if (this.series.GroupBy && this.series.GroupBy[0]?.FieldID && this.series.GroupBy[0]?.FieldID.indexOf("Date") == -1){
+    if (this.series.GroupBy && this.series.GroupBy[0]?.FieldID &&  !this.isAggragationFieldIsDate(this.series.GroupBy[0]?.FieldID)){
       this.series.GroupBy[0].Interval = 'None';
       this.series.GroupBy[0].Format = '';
-
     }
-    if (this.series.BreakBy && this.series.BreakBy?.FieldID.indexOf("Date") == -1){
+    if (this.series.BreakBy && !this.isAggragationFieldIsDate(this.series.BreakBy?.FieldID)){
       this.series.BreakBy.Interval = 'None';
       this.series.BreakBy.Format = '';
     }

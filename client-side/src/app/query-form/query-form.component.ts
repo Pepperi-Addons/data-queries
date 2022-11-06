@@ -38,7 +38,10 @@ export class QueryFormComponent implements OnInit {
   deleteError = 'Cannot delete Series';
   previewDataSource: IPepGenericListDataSource;
   PreviewListFields: GridDataViewField[];
+  previewNoDataMessage = this.translate.instant('PreviewNoDataFound');
   dialogRef: MatDialogRef<any>;
+  dataFromExecute;
+  resultsFromExecute;
 
   constructor(
     public addonService: AddonService,
@@ -67,6 +70,7 @@ export class QueryFormComponent implements OnInit {
         this.queryLoaded = true;
         this.seriesDataSource = this.getSeriesDataSource();
         this.variablesDataSource = this.getVariablesDataSource();
+        await this.executeSavedQuery();
         this.previewDataSource = this.getPreviewDataSource();
    }
 
@@ -109,6 +113,7 @@ export class QueryFormComponent implements OnInit {
             this.updateQuerySeries(seriesToAddOrUpdate);
             this.query = await this.addonService.upsertDataQuery(this.query);
             this.seriesDataSource = this.getSeriesDataSource();
+            await this.executeSavedQuery();
             this.previewDataSource = this.getPreviewDataSource();
         }
     }
@@ -296,6 +301,7 @@ export class QueryFormComponent implements OnInit {
                 });
                 this.seriesDataSource = this.getSeriesDataSource();
                 this.variablesDataSource = this.getVariablesDataSource();
+                await this.executeSavedQuery();
                 this.previewDataSource = this.getPreviewDataSource();
                 }
                 catch (error) {
@@ -332,34 +338,20 @@ export class QueryFormComponent implements OnInit {
         }
     }
 
-// need to excecute the query
+// need to excecute the query before getting preview
 getPreviewDataSource() {
     return {
         init: async(params:any) => {
-            this.loaderService.show();
-            let varValues = {}
-            for(const v of this.query.Variables) {
-                varValues[v.Name] = v.PreviewValue
-            }
-            const body = {"VariableValues": varValues}
-            try {
-                var data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key, body) : {DataSet: [], DataQueries: []};
-            } catch(ex) {
-                this.loaderService.hide();
-                console.log("execute failed. error catched: " + ex)
-                const dataMsg = new PepDialogData({
-                    title: this.translate.instant('Preview unavailable'),
-                    actionsType: 'close',
-                    content: this.translate.instant('Query execution failed.')
-                });
-                this.dialogService.openDefaultDialog(dataMsg);
-            }
-            let results = await this.previewDataHandler(data);
+            let data = this.dataFromExecute;
+            let results = this.resultsFromExecute;
             let size = data.DataSet.length;
             for(let s of data.DataQueries)
                 size+=s.Series.length+s.Groups.length;
-
-            this.loaderService.hide();
+            // for a case in which there is no actual data from the series execution
+            if(results.length>0 && Object.keys(results[0]).length === 0) {
+                results = [];
+                size = 0;
+            }
             return Promise.resolve({
                 dataView: {
                     Context: {
@@ -526,6 +518,7 @@ async previewDataHandler(data) {
                 this.updateQueryVariables(variableToAddOrUpdate);
                 this.query = await this.addonService.upsertDataQuery(this.query);
                 this.variablesDataSource = this.getVariablesDataSource();
+                await this.executeSavedQuery();
                 this.previewDataSource = this.getPreviewDataSource();
             }
         }
@@ -625,6 +618,37 @@ async previewDataHandler(data) {
                 });
             },
         } as IPepGenericListDataSource
+    }
+
+    async executeSavedQuery() {
+        this.loaderService.show();
+        let varValues = {}
+        for(const v of this.query.Variables) {
+            varValues[v.Name] = v.PreviewValue
+        }
+        const body = {"VariableValues": varValues}
+        try {
+            var data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key, body) : {DataSet: [], DataQueries: []};
+            this.dataFromExecute = data;
+            let results = await this.previewDataHandler(data);
+            this.resultsFromExecute = results;
+            // for a case in which there is no actual data from the series execution
+            if(results.length>0 && Object.keys(results[0]).length === 0) {
+                this.previewNoDataMessage = this.translate.instant('No Data');
+            } else {
+                this.previewNoDataMessage = this.translate.instant('PreviewNoDataFound');
+            }
+            this.loaderService.hide();
+        } catch(ex) {
+            this.loaderService.hide();
+            console.log("execute failed. error catched: " + ex)
+            const dataMsg = new PepDialogData({
+                title: this.translate.instant('Preview unavailable'),
+                actionsType: 'close',
+                content: this.translate.instant('Query execution failed.')
+            });
+            this.dialogService.openDefaultDialog(dataMsg);
+        }
     }
 
 }
