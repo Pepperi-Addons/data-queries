@@ -5,12 +5,13 @@
                 <div class="flex-gap">
                     <pep-textbox [disabled]="!isLoaded" class="flex" [(value)]="series.Name" [label]="'Name' | translate" [type]="'text'"></pep-textbox>
                 </div>
-                <h4>
-                    {{'LabelFormat' | translate}}
-                </h4>
-                <pep-field-title [label]="'LabelFormatDescription' | translate" class="header" [inputLength]="900">
+                <pep-field-title [label]="'LabelFormatDescription1' | translate" class="header" [inputLength]="900">
                 </pep-field-title>
-                <pep-textbox [disabled]="!isLoaded" class="half-width no-title" [(value)]="series.Label" [showTitle]="false" [type]="'text'"></pep-textbox>
+                <pep-field-title [label]="'LabelFormatDescription2' | translate" class="header" [inputLength]="900">
+                </pep-field-title>
+                <pep-field-title [label]="'LabelFormatDescription3' | translate" class="header" [inputLength]="900">
+                </pep-field-title>
+                <pep-textbox [disabled]="!isLoaded" [label]="'LabelFormat' | translate" class="flex" [(value)]="series.Label" [showTitle]="true" [type]="'text'"></pep-textbox>
                 <div id="metric">
                     <h2>{{'Metric' | translate}}
                     </h2>
@@ -89,13 +90,13 @@
                 </div>
                 <div id="dynamic-series" *ngIf="this.seriesEditorType !== 'scorecards'">
                     <pep-checkbox  [disabled]="!isLoaded" [value]="formFlags.useDynamicSeries" [label]="'DynamicSeries' | translate" [renderTitle]="false" (valueChange)="onEventCheckboxChanged('DynamicSeries',$event)"></pep-checkbox>
-
+                    <hr>
                     <pep-field-title [label]="'DynamicSeriesDescriptions' | translate" class="header">
                     </pep-field-title>
                     <div class="flex-gap">
                         <pep-select class="flex" [disabled]=" !isLoaded || !formFlags.useDynamicSeries" [mandatory]="formFlags.useDynamicSeries" [emptyOption]="false" [key]="'groupBySelect'" [(value)]="series.BreakBy.FieldID" [label]="'BreakByField' | translate" [xAlignment]="'left'" [options]="(aggregationsFieldsOptions['All']) ? aggregationsFieldsOptions['All'] : []" (valueChange)="onBreakByFieldSelected($event)" >
                         </pep-select>
-                        <pep-select *ngIf="IsDateBreakBy" class="flex25" [disabled]="!isLoaded ||!formFlags.useDynamicSeries"   [(value)]="series.BreakBy.Interval"  [label]="'Interval' | translate"  [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [options]='intervalOptions' (valueChange)="onChartSelected($event)">
+                        <pep-select *ngIf="IsDateBreakBy" class="flex25" [disabled]="!isLoaded ||!formFlags.useDynamicSeries" [(value)]="series.BreakBy.Interval" [label]="'Interval' | translate" [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [options]='intervalOptions' (valueChange)="onChartSelected($event)">
                         </pep-select>
                         <pep-select *ngIf="IsDateBreakBy" class="flex25" [label]="'Format' | translate" [(value)]="series.BreakBy.Format" [disabled]=" !isLoaded || !formFlags.useCategories" [emptyOption]="false" [key]="'formatSelect'" [xAlignment]="'left'" [(value)]="series.BreakBy && series.BreakBy.Format" [options]='formatOptions'>
                         </pep-select>
@@ -103,11 +104,13 @@
                 </div>
 
                 <div id="limit-number">
-                    <pep-checkbox [value]="formFlags.limitNumber" [label]="'LimitNumberOfResults' | translate" [renderTitle]="false" (valueChange)="onEventCheckboxChanged('LimitNumberResults',$event)"></pep-checkbox>
-
+                    <div class="flex-gap">
+                        <pep-checkbox class="body-sm" [disabled]="!isLoaded || !formFlags.useDynamicSeries" [value]="formFlags.limitNumber" [label]="'LimitNumberOfResults' | translate" [renderTitle]="false" (valueChange)="onEventCheckboxChanged('LimitNumberResults',$event)">
+                        </pep-checkbox>
+                    </div>
                     <div class="flex-gap">
                         <pep-textbox class="flex" [(value)]="series.Top.Max"  [disabled]=" !isLoaded ||!formFlags.limitNumber" [label]="'NumberOf' | translate" [type]="'text'" (valueChange)="onTopMaxChanged($event)"></pep-textbox>
-                        <pep-select class="flex" [value]="series.Top.Ascending === true? 'Ascending': 'Decending'" [disabled]="!isLoaded && !formFlags.limitNumber" [label]="'Order'" [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [options]='orderOptions' (valueChange)="onOrderChanged($event)">
+                        <pep-select class="flex" [value]="series.Top.Ascending === true? 'Ascending': 'Decending'" [disabled]="!isLoaded || !formFlags.limitNumber" [label]="'Order'" [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [options]='orderOptions' (valueChange)="onOrderChanged($event)">
                         </pep-select>
                     </div>
                 </div>
