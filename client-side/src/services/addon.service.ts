@@ -68,4 +68,13 @@ export class AddonService {
     async getResourceTypesFromRelation() {
         return this.papiClient.addons.data.relations.find({where: 'RelationName=DataQueries'});
     }
+
+    async getSchemaByNameAndUUID(schemaName, uuid) {
+        const originalUUID = this.addonUUID;
+        // assignment of this.addonUUID allows us to get the schemes of another addon
+        this.addonUUID = uuid; // uuid from relation data
+        const schemeObject = await this.papiClient.addons.data.schemes.name(schemaName).get();
+        this.addonUUID = originalUUID;
+        return schemeObject;
+    }
 }

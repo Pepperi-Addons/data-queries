@@ -231,14 +231,14 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   getDataIndexFields() {
-    return this.pluginService.get(this.resourceRelationData["SchemaRelativeURL"]).then((schema) => {
-      let fields = []
+    return this.pluginService.get(this.resourceRelationData["SchemaRelativeURL"]).then(async (schema) => {
+      if(!schema) {
+        // get the schema using addon uuid and schema name from the relation data
+        schema = await this.pluginService.getSchemaByNameAndUUID(this.resourceRelationData.Name, this.resourceRelationData.AddonUUID);
+      }
+      let fields = [];
       for(const fieldID in schema.Fields) {
-        fields.push({
-          FieldID: fieldID,
-          Type: schema.Fields[fieldID].Type,
-          OptionalValues: schema.Fields[fieldID].OptionalValues
-        })
+        this.pushFieldWithAllReferencedFields(fieldID, schema.Fields[fieldID], fields)
       }
       this.resourcesFields[this.series.Resource] = fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
     })
@@ -428,6 +428,27 @@ export class SeriesEditorComponent implements OnInit {
     }
     else {
       this.currentAggregatorFieldsOptions = this.aggregationsFieldsOptions['All']
+    }
+  }
+
+  pushFieldWithAllReferencedFields(fieldID, fieldData, fields) {
+    if(fieldData.Type == 'Resource' && fieldData.Indexed == true) {
+      fields.push({
+        FieldID: `${fieldID}.Key`,
+        Type: "String",
+        OptionalValues: fieldData.OptionalValues
+      });
+      if(fieldData.IndexedFields) {
+        for (let referencedFieldID in fieldData.IndexedFields) {
+          this.pushFieldWithAllReferencedFields(`${fieldID}.${referencedFieldID}`, fieldData.IndexedFields[referencedFieldID], fields);
+        }
+      }
+    } else {
+      fields.push({
+        FieldID: fieldID,
+        Type: fieldData.Type,
+        OptionalValues: fieldData.OptionalValues
+      });
     }
   }
 }
