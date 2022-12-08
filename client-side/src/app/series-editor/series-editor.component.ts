@@ -98,8 +98,8 @@ export class SeriesEditorComponent implements OnInit {
     'yyyy MMM dd': 'YearMonthDay',
     'w':'Week',
     'w yyyy': 'WeekYear',
-    'q':'Quarter',
-    'q yyyy':'QuarterYear'
+    "'Q'q": 'Quarter',
+    "'Q'q yyyy": 'QuarterYear'
   }
 
   resourcesFields:any={};
