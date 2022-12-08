@@ -230,18 +230,16 @@ export class SeriesEditorComponent implements OnInit {
     }
   }
 
-  getDataIndexFields() {
-    return this.pluginService.get(this.resourceRelationData["SchemaRelativeURL"]).then(async (schema) => {
-      if(!schema) {
-        // get the schema using addon uuid and schema name from the relation data
-        schema = await this.pluginService.getSchemaByNameAndUUID(this.resourceRelationData.Name, this.resourceRelationData.AddonUUID);
-      }
-      let fields = [];
-      for(const fieldID in schema.Fields) {
-        this.pushFieldWithAllReferencedFields(fieldID, schema.Fields[fieldID], fields)
-      }
-      this.resourcesFields[this.series.Resource] = fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
-    })
+  async getDataIndexFields() {
+    // if there's no SchemaRelativeURL, get the schema using addon uuid and schema name from the relation data
+    let schema = this.resourceRelationData["SchemaRelativeURL"] ? await this.pluginService.get(this.resourceRelationData["SchemaRelativeURL"]) : 
+                 await this.pluginService.getSchemaByNameAndUUID(this.resourceRelationData.Name, this.resourceRelationData.AddonUUID);
+    let fields = [];
+    for(const fieldID in schema.Fields) {
+      this.pushFieldWithAllReferencedFields(fieldID, schema.Fields[fieldID], fields)
+    }
+    this.resourcesFields[this.series.Resource] = fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
+    return fields;
   }
 
   setFilterRuleFieldsOptions(){
