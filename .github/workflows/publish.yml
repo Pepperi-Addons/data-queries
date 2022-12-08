@@ -3,7 +3,7 @@ name: PublishAddon
 on:
   push:
     branches:
-      - data-queries-1.0
+      - 'release/**'
 
 jobs:
   publish-addon:
