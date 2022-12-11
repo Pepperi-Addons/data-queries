@@ -198,8 +198,10 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   private setAuthorizationFiltersFields() {
-    this.userFilterOptions = [{ value: this.translate.instant("All_Users"), key: "AllUsers" }, { value: this.translate.instant("Current_User"), key: "CurrentUser" }],
-      this.accountFilterOptions = [{ value: this.translate.instant("All_Accounts"), key: "AllAccounts" }, { value: this.translate.instant("Assgined_Accounts"), key: "AccountsAssignedToCurrentUser" }];
+    this.userFilterOptions = [{ value: this.translate.instant("All_Users"), key: "AllUsers" }, { value: this.translate.instant("Current_User"), key: "CurrentUser" }, 
+    { value: this.translate.instant("Users_Under_My_Role"), key: "UsersUnderMyRole" }],
+    this.accountFilterOptions = [{ value: this.translate.instant("All_Accounts"), key: "AllAccounts" }, { value: this.translate.instant("Assigned_Accounts"), key: "AccountsAssignedToCurrentUser" }, 
+    { value: this.translate.instant("Accounts_Of_Users_Under_My_Role"), key: "AccountsOfUsersUnderMyRole" }];
   }
 
   private fillAggregatedFieldsType() {

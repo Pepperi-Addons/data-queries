@@ -57,5 +57,8 @@
     "All_Accounts":"All accounts",
     "All_Users": "All users",
     "Current_User":"Current user",
-    "ChartHeight": "Chart Height"
+    "ChartHeight": "Chart Height",
+    "Assigned_Accounts": "Assigned accounts",
+    "Accounts_Of_Users_Under_My_Role": "Accounts of users under my role",
+    "Users_Under_My_Role": "Users under my role"
 }

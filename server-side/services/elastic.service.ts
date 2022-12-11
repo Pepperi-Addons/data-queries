@@ -148,7 +148,7 @@ class ElasticService {
 
   // if there is scope add user/accounts filters to resourceFilter
   private async addScopeFilters(series, resourceFilter, resourceRelationData) {
-    if (series.Scope.User == "CurrentUser"){
+    if (series.Scope.User == "CurrentUser") {
       const currUserId = (<any>jwtDecode(this.client.OAuthAccessToken))["pepperi.id"];
       // IndexedUserFieldID
       const fieldName = resourceRelationData.IndexedUserFieldID;
@@ -160,8 +160,19 @@ class ElasticService {
       }
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(userFilter)]);
     }
+    if(series.Scope.User == "UsersUnderMyRole") {
+      const usersUnderMyRole = await this.papiClient.get('/users?where=IsUnderMyRole=true');
+      const fieldName = resourceRelationData.IndexedUserFieldID;
+      var usersFilter: JSONFilter = {
+        FieldType: 'String',
+        ApiName: fieldName,
+        Operation: 'IsEqual',
+        Values: usersUnderMyRole.map(user => user["InternalID"])
+      }
+      resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(usersFilter)]);
+    }
 
-    if(series.Scope.Account == "AccountsAssignedToCurrentUser"){
+    if(series.Scope.Account == "AccountsAssignedToCurrentUser") {
       const currUserId = (<any>jwtDecode(this.client.OAuthAccessToken))["pepperi.id"];
       // taking the fields from the relation
       const accountFieldID = resourceRelationData.AccountFieldID;
@@ -178,6 +189,26 @@ class ElasticService {
       }
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(accountsFilter)]);
     }
+
+    if(series.Scope.Account == "AccountsOfUsersUnderMyRole") {
+      const usersUnderMyRole: any = await this.papiClient.get('/users?where=IsUnderMyRole=true');
+      let accountsOfUsersUnderMyRole: any[] = [];
+      const accountFieldID = resourceRelationData.AccountFieldID;
+      const userFieldID = resourceRelationData.UserFieldID;
+      for(const user of usersUnderMyRole) {
+        const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}=${user.InternalID}&fields=Account.${accountFieldID}`);
+        accountsOfUsersUnderMyRole.push(...assignedAccounts)
+      }
+      const fieldName = resourceRelationData.IndexedAccountFieldID;
+      var accountsOfUsersFilter: JSONFilter = {
+        FieldType: 'String',
+        ApiName: fieldName,
+        Operation: 'IsEqual',
+        Values: accountsOfUsersUnderMyRole.map(account => account["Account.InternalID"])
+      }
+      resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(accountsOfUsersFilter)]);
+    }
+
     return resourceFilter;
   }
 
