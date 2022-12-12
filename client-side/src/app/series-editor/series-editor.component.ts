@@ -226,7 +226,7 @@ export class SeriesEditorComponent implements OnInit {
     if(this.series.Resource && this.resourcesFields[this.series.Resource]){
           this.aggregationsFieldsOptions["Number"] =  this.resourcesFields[this.series.Resource].filter(f=>f.Type == "Integer" || f.Type == "Double").map(function(f) {return { key: f.FieldID, value: f.FieldID }})
           this.aggregationsFieldsOptions["Date"] =  this.resourcesFields[this.series.Resource].filter(f=>f.Type == "DateTime").map(function(f) {return { key: f.FieldID, value: f.FieldID }})
-          this.aggregationsFieldsOptions["All"] = this.resourcesFields[this.series.Resource].map(function(f) {return { key: f.FieldID, value: f.FieldID }});
+          this.aggregationsFieldsOptions["All"] = this.resourcesFields[this.series.Resource].map(function(f) {return { key: (f.Type=="String" || f.Type=="MultipleStringValues")  ? f.FieldID+'.cs' : f.FieldID, value: f.FieldID }});
     }
   }
 
@@ -357,6 +357,7 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   onGroupByFieldSelected(event) {
+    if(event.slice(-3)==".cs") event = event.slice(0,-3);
     const parts = `.${event}`.split('.');
     var alias = parts[parts.length - 1];
     this.series.GroupBy[0].Alias = alias;
