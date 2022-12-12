@@ -357,6 +357,7 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   onGroupByFieldSelected(event) {
+    if(event.slice(-3)==".cs") event = event.slice(0,-3);
     const parts = `.${event}`.split('.');
     var alias = parts[parts.length - 1];
     this.series.GroupBy[0].Alias = alias;
