@@ -149,7 +149,9 @@ class ElasticService {
   // if there is scope add user/accounts filters to resourceFilter
   private async addScopeFilters(series, resourceFilter, resourceRelationData) {
     if (series.Scope.User == "CurrentUser") {
-      const currUserId = (<any>jwtDecode(this.client.OAuthAccessToken))["pepperi.id"];
+      const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
+      const userFieldID = resourceRelationData.UserFieldID;
+      const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
       // IndexedUserFieldID
       const fieldName = resourceRelationData.IndexedUserFieldID;
       var userFilter: JSONFilter = {
@@ -161,22 +163,24 @@ class ElasticService {
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(userFilter)]);
     }
     if(series.Scope.User == "UsersUnderMyRole") {
-      const usersUnderMyRole = await this.papiClient.get('/users?where=IsUnderMyRole=true');
+      const userFieldID = resourceRelationData.UserFieldID;
       const fieldName = resourceRelationData.IndexedUserFieldID;
+      const usersUnderMyRole = await this.papiClient.get(`/users?where=IsUnderMyRole=true&fields=${userFieldID}`);
       var usersFilter: JSONFilter = {
         FieldType: 'String',
         ApiName: fieldName,
         Operation: 'IsEqual',
-        Values: usersUnderMyRole.map(user => user["InternalID"])
+        Values: usersUnderMyRole.map(user => user[userFieldID])
       }
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(usersFilter)]);
     }
 
     if(series.Scope.Account == "AccountsAssignedToCurrentUser") {
-      const currUserId = (<any>jwtDecode(this.client.OAuthAccessToken))["pepperi.id"];
+      const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
       // taking the fields from the relation
       const accountFieldID = resourceRelationData.AccountFieldID;
       const userFieldID = resourceRelationData.UserFieldID;
+      const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
       const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}=${currUserId}&fields=Account.${accountFieldID}`);
 
       //IndexedAccountFieldID
@@ -185,31 +189,36 @@ class ElasticService {
         FieldType: 'String',
         ApiName: fieldName,
         Operation: 'IsEqual',
-        Values: assignedAccounts.map(account => account["Account.InternalID"])
+        Values: assignedAccounts.map(account => account[`Account.${accountFieldID}`])
       }
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(accountsFilter)]);
     }
 
     if(series.Scope.Account == "AccountsOfUsersUnderMyRole") {
       const usersUnderMyRole: any = await this.papiClient.get('/users?where=IsUnderMyRole=true');
-      let accountsOfUsersUnderMyRole: any[] = [];
       const accountFieldID = resourceRelationData.AccountFieldID;
       const userFieldID = resourceRelationData.UserFieldID;
-      for(const user of usersUnderMyRole) {
-        const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}=${user.InternalID}&fields=Account.${accountFieldID}`);
-        accountsOfUsersUnderMyRole.push(...assignedAccounts)
-      }
+      const usersIds = this.buildUsersIdsString(usersUnderMyRole, userFieldID);
+      const accountsOfUsersUnderMyRole = await this.papiClient.get(`/account_users?where=User.${userFieldID} in ${usersIds}&fields=Account.${accountFieldID}`);
       const fieldName = resourceRelationData.IndexedAccountFieldID;
       var accountsOfUsersFilter: JSONFilter = {
         FieldType: 'String',
         ApiName: fieldName,
         Operation: 'IsEqual',
-        Values: accountsOfUsersUnderMyRole.map(account => account["Account.InternalID"])
+        Values: accountsOfUsersUnderMyRole.map(account => account[`Account.${accountFieldID}`])
       }
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(accountsOfUsersFilter)]);
     }
 
     return resourceFilter;
+  }
+
+  private buildUsersIdsString(usersUnderMyRole, userFieldID) {
+    let IdsString = '(';
+    for(const user of usersUnderMyRole) {
+      IdsString += `'${user[userFieldID]}',`;
+    }
+    return IdsString.slice(0,-1)+')';
   }
 
   private buildSeriesAggregationList(series) {
