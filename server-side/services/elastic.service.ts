@@ -591,12 +591,13 @@ class ElasticService {
     // This aggregation is already selective in the sense that the number of buckets is manageable through the interval 
     // so it is necessary to do nested aggregation to get size buckets
     //const isDateHistogramAggregation = groupBy.IntervalUnit && groupBy.Interval;
-    let query: Aggregation;
+    let query;
     if (groupBy.Interval && groupBy.Interval != "None" && groupBy.Format) {
       //const calenderInterval = `${groupBy.Interval}${this.intervalUnitMap[groupBy.IntervalUnit!]}`;
       query = esb.dateHistogramAggregation(groupBy.FieldID, groupBy.FieldID).calendarInterval(groupBy.Interval.toLocaleLowerCase()).format(groupBy.Format);
     } else {
       query = esb.termsAggregation(groupBy.FieldID, `${groupBy.FieldID}`);
+      query._aggs.terms["size"] = '1000'; // default brings 10 buckets, we want to bring all buckets.
     }
     //Handle the sorting
     //query.order('_key', groupBy.Top?.Ascending ? 'asc' : 'desc');
