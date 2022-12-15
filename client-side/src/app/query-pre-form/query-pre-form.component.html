@@ -1,0 +1,28 @@
+<pep-dialog [title]="'Create New Query' | translate">
+    <ng-container pep-dialog-content>
+    <pep-generic-form class="generic-form"
+                [title] = "'edit' | translate"
+                [showTopBar]="false"
+                [dataSource]="dataSource"
+                [dataView]="dataView"
+                [inline]="false"
+                >
+    </pep-generic-form>
+    </ng-container>
+
+    <ng-container pep-dialog-actions>
+        <div class="pep-spacing-element-negative">
+            <div>
+                <button  mat-button class="pep-spacing-element pep-button md weak" [mat-dialog-close]>
+                    {{'ACTIONS.CANCEL' | translate}}
+                </button>
+                <button mat-button class="pep-spacing-element pep-button md strong" (click)="onSave($event)" [mat-dialog-close]="fields" 
+                
+                [disabled]="!fields.name || !fields.resource || fields.name==''">
+                    {{(mode == 'Add' ? 'Add' : 'Update') | translate}}
+                </button>
+            </div>
+        </div>
+    </ng-container>
+</pep-dialog>
+
