@@ -29,7 +29,7 @@
                     [sizeType]="'md'"
                     [value]="'Add' | translate"
                     [styleType]="'strong'" 
-                    (buttonClick)="navigateToQueryForm('Add', uuidGenerator())"
+                    (buttonClick)="openPreFormDialog()"
                     *ngIf="!recycleBin"
                 ></pep-button>
             </ng-container>

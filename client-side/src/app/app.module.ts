@@ -11,6 +11,7 @@ import { QueryManagerModule } from './query_manager/query-manager.module'
 import { SeriesEditorModule } from './series-editor/series-editor.module'
 import { PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { VariableEditorModule } from './variable-editor/variable-editor.module'
+import { QueryPreFormModule } from './query-pre-form/query-pre-form.module'
 
 import { config } from './addon.config';
 import { SettingsComponent, SettingsModule } from './settings';
@@ -25,6 +26,7 @@ import { SettingsComponent, SettingsModule } from './settings';
         AppRoutingModule,
         SeriesEditorModule,
         VariableEditorModule,
+        QueryPreFormModule,
         QueryManagerModule,
         SettingsModule,
         TranslateModule.forRoot({

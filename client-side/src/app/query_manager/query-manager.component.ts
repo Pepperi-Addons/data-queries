@@ -16,6 +16,7 @@ export type FormMode = 'Add' | 'Edit';
 export const EMPTY_OBJECT_NAME = 'NewCollection';
 
 import { config } from '../addon.config';
+import { QueryPreFormComponent } from '../query-pre-form/query-pre-form.component';
 
 @Component({
   selector: 'query-manager',
@@ -323,6 +324,22 @@ openDataLogDialog(queryKey) {
 
 onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {
     this.navigateToQueryForm('Edit', fieldClickEvent.id);
+}
+
+async openPreFormDialog() {
+    this.dialogService.openDialog(QueryPreFormComponent).afterClosed().subscribe(async res => {
+        if(res?.moveToQueryForm) {
+            const query = {
+                Key: this.uuidGenerator(),
+                Name: res.name,
+                Resource: res.resource,
+                Series: [],
+                Variables: []
+            }
+            await this.addonService.upsertDataQuery(query);
+            this.navigateToQueryForm('Edit', query.Key);
+        }
+    });
 }
 
 }
