@@ -22,7 +22,7 @@
       }
     ],
     "Dependencies": {
-      "adal": "1.0.229",
+      "adal": "1.4.35",
       "dimx": "0.7.24",
       "webapp": "17.14.75",
       "audit-data-log": "0.1.121"
