@@ -1,5 +1,5 @@
 {
-    "Query_Manager_Title": "Query Manager {{recycle_bin}}",
+    "Query_Manager_Title": "Data Queries {{recycle_bin}}",
     "Query_DeleteDialogTitle": "Delete Query",
     "Query_DeleteDialogContent": "Are you sure you want to delete this query?",
     "Query_DeleteDialogError": "Cannot delete query",
