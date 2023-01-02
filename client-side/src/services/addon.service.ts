@@ -48,7 +48,6 @@ export class AddonService {
     async getDataQueryByKey(Key: string) {
         //return this.papiClient.get(`/data_queries?where=Key='${Key}'`);
         return this.papiClient.addons.api.uuid(this.addonUUID).file('api').func('queries').get({where: `Key='${Key}'`})
-
     }
 
     async getAllQueries(){
