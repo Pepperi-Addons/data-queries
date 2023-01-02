@@ -204,6 +204,12 @@ actions: IPepGenericListActions = {
                     }
                 })
                 actions.push({
+                    title: this.translate.instant('Duplicate'),
+                    handler: async (objs) => {
+                        this.duplicateQuery(objs.rows[0]);
+                    }
+                })
+                actions.push({
                     title: this.translate.instant('Show history'),
                     handler: async (objs) => {
                         this.openDataLogDialog(objs.rows[0]);
@@ -340,6 +346,14 @@ async openPreFormDialog() {
             this.navigateToQueryForm('Edit', query.Key);
         }
     });
+}
+
+async duplicateQuery(key) {
+    let originalQuery = (await this.addonService.getDataQueryByKey(key))[0];
+    originalQuery.Key = this.uuidGenerator();
+    originalQuery.Name = `${originalQuery.Name}-copy`;
+    await this.addonService.upsertDataQuery(originalQuery);
+    this.dataSource = this.getDataSource();
 }
 
 }
