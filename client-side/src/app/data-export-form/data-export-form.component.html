@@ -1,0 +1,37 @@
+<pep-page-layout [addPadding]="false">
+    <ng-container pep-top-area>
+        <pep-top-bar title="View data">
+        </pep-top-bar>
+    </ng-container>
+    <ng-container pep-main-area>
+    <pep-generic-form class="generic-form"
+        [showTopBar]="false"
+        [dataSource]="dataSource"
+        [dataView]="dataView"
+        [inline]="true"
+        (valueChange)="valueChange($event)"
+        *ngIf="isLoaded">
+    </pep-generic-form>
+    <pep-generic-list class="generic-list"
+        [title]="'Result' | translate"
+        [showTopBar]="true"
+        [dataSource]="listData"
+        [inline]="true"
+        [addPadding]="false"
+        [showSearch]="false"
+        [selectionType] = "'none'"
+        [noDataFoundMsg]="' '">
+        <ng-container right-buttons>
+            <pep-button
+                class="pep-spacing-element"
+                [sizeType]="'sm'"
+                [value]="'Run' | translate"
+                [styleType]="'strong'"
+                [disabled]="formInvalid()"
+                (buttonClick)="onRunClicked()">
+            </pep-button>
+        </ng-container>
+    </pep-generic-list>
+    </ng-container>
+</pep-page-layout>
+
