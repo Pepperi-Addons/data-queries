@@ -61,9 +61,9 @@ export class DataExportFormComponent implements OnInit {
     this.selectedSeries = this.query.Series[0];
     this.fields = {
         seriesKey: this.selectedSeries.Key,
-        groupByField: '',
-        breakByField: '',
-        user: '',
+        groupByField: null,
+        breakByField: null,
+        user: null,
         fromDate: null,
         toDate: null,
         description: this.translate.instant('DATA_EXPORT_DESCRIPTION')
@@ -289,6 +289,8 @@ export class DataExportFormComponent implements OnInit {
       this.selectedSeries = this.query.Series.filter(s => s.Key==e.Value)[0];
       await this.setUserOptions();
       this.setCategoriesAndDynamicSerieOptions();
+      this.fields.groupByField = null;
+      this.fields.breakByField = null;
       this.fields.fromDate = null;
       this.fields.toDate = null;
       this.dataView = this.getDataView();
