@@ -20,7 +20,8 @@
         [addPadding]="false"
         [showSearch]="false"
         [selectionType] = "'none'"
-        [noDataFoundMsg]="' '">
+        [noDataFoundMsg]="' '"
+        *ngIf="isLoaded">
         <ng-container right-buttons>
             <pep-button
                 class="pep-spacing-element"

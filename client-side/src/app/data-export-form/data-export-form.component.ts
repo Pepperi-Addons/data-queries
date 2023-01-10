@@ -30,7 +30,7 @@ export class DataExportFormComponent implements OnInit {
   categoryOptions = [];
   dynamicSerieOptions = [];
   resourceFields;
-  // resourceFieldsOptions = [];
+  resourceData;
   groupByFieldType = "";
   breakByFieldType = "";
   queryKey;
@@ -53,8 +53,8 @@ export class DataExportFormComponent implements OnInit {
     this.addonService.addonUUID = config.AddonUUID;
     this.queryKey = this.activateRoute.snapshot.params.query_uuid;
     this.query = (await this.addonService.getDataQueryByKey(this.queryKey))[0];
-    const resourceData = (await this.addonService.getResourceDataByName(this.query.Resource))[0];
-    this.resourceFields = await this.addonService.getDataIndexFields(resourceData);
+    this.resourceData = (await this.addonService.getResourceDataByName(this.query.Resource))[0];
+    this.resourceFields = await this.addonService.getDataIndexFields(this.resourceData);
     this.seriesOptions = this.query.Series.map((s) => {
       return { Key: s.Key, Value: s.Name }
     });
@@ -280,15 +280,77 @@ export class DataExportFormComponent implements OnInit {
    }
 
    onRunClicked() {
-    debugger
+    const filterObject = this.buildFilterObject(); // this object will be sent to execute
+   }
+
+   buildFilterObject() {
+    let filterNodes = [];
+    if(this.fields.groupByField) {
+      filterNodes.push({
+        Values: [
+          this.fields.groupByField
+        ],
+        Operation: "IsEqual",
+        ApiName: this.addonService.removecsSuffix(this.selectedSeries.GroupBy[0].FieldID),
+        FieldType: this.groupByFieldType
+      })
+    }
+    if(this.fields.breakByField) {
+      filterNodes.push({
+        Values: [
+          this.fields.breakByField
+        ],
+        Operation: "IsEqual",
+        ApiName: this.addonService.removecsSuffix(this.selectedSeries.BreakBy.FieldID),
+        FieldType: this.breakByFieldType
+      })
+    }
+    if(this.fields.user) {
+      const userData = this.users.filter(u => u.UUID==this.fields.user);
+      const userFieldID = this.resourceData.UserFieldID;
+      const userId = userFieldID == "InternalID" ? userData.InternalID : userData.UUID;
+      filterNodes.push({
+        Values: [userId],
+        Operation: "IsEqual",
+        ApiName: this.resourceData.IndexedUserFieldID,
+        FieldType: 'String'
+      })
+    }
+    if(this.fields.fromDate && this.fields.toDate) {
+      filterNodes.push({
+        Values: [
+          this.fields.fromDate,
+          this.fields.toDate
+        ],
+        Operation: "Between",
+        ApiName: "ActionDateTime",
+        FieldType: "Date"
+      })
+    }
+
+    // now build the filter object
+    let filterObject = filterNodes[0];
+
+    for(let i=1; i < filterNodes.length; i++) {
+      filterObject = {
+        Operation: "AND",
+        LeftNode: filterObject,
+        RightNode: filterNodes[i]
+      }
+    }
+
+    return filterObject;
    }
 
   async valueChange(e) {
     this.loaderService.show();
-    if(e.ApiName == "seriesKey" && e.Value != '') {
-      this.selectedSeries = this.query.Series.filter(s => s.Key==e.Value)[0];
-      await this.setUserOptions();
-      this.setCategoriesAndDynamicSerieOptions();
+    if(e.ApiName == "seriesKey") {
+      if(e.Value != '') {
+        this.selectedSeries = this.query.Series.filter(s => s.Key==e.Value)[0];
+        await this.setUserOptions();
+        this.setCategoriesAndDynamicSerieOptions();
+      }
+      this.fields.user = null;
       this.fields.groupByField = null;
       this.fields.breakByField = null;
       this.fields.fromDate = null;
@@ -307,7 +369,6 @@ export class DataExportFormComponent implements OnInit {
         return { Key: user.UUID, Value: user.FirstName };
       });
     }
-    this.fields.user = null;
   }
 
   setCategoriesAndDynamicSerieOptions() {
@@ -338,9 +399,9 @@ export class DataExportFormComponent implements OnInit {
   }
 
   formInvalid() {
-    return ((this.fields.groupByField=='' && !this.isDisabled(this.selectedSeries.GroupBy[0].FieldID, this.groupByFieldType)) ||
-            (this.fields.breakByField=='' && !this.isDisabled(this.selectedSeries.BreakBy.FieldID, this.breakByFieldType)) || 
-            this.fields.seriesKey=='')
+    return ((!this.fields?.groupByField && !this.isDisabled(this.selectedSeries?.GroupBy[0].FieldID, this.groupByFieldType)) ||
+            (!this.fields?.breakByField && !this.isDisabled(this.selectedSeries?.BreakBy.FieldID, this.breakByFieldType)) || 
+            this.fields?.seriesKey=='' || this.fields?.fromDate=='' || this.fields?.toDate=='')
   }
 
   getListDataSource() {
