@@ -46,15 +46,24 @@ class ElasticService {
     const distributorUUID = (<any>jwtDecode(client.OAuthAccessToken))["pepperi.distributoruuid"];
     let endpoint = `${distributorUUID}/_search`;
     const method = 'POST';
-
-    let elasticRequestBody = new esb.RequestBodySearch().size(0);
+    let elasticRequestBody;
+    if(!request.body.PageSize && !request.body.Page) {
+      elasticRequestBody = new esb.RequestBodySearch().size(0);
+    } else {
+      // need to use request.body.Page and request.body.PageSize
+      let pageSize = request.body.PageSize ?? 100;
+      if(pageSize>1000) pageSize = 1000;
+      let page = request.body.Page ?? 1;
+      if(page>0) page = page-1;
+      elasticRequestBody = new esb.RequestBodySearch().size(pageSize).from(pageSize*(page));
+    }
 
     if (!query.Series || query.Series.length == 0) {
       return new DataQueryResponse();
     }
 
     // handle aggregation by series
-    let aggregationsList: { [key: string]: Aggregation[] } = this.buildSeriesAggregationList(query.Series);;
+    let aggregationsList: { [key: string]: Aggregation[] } = this.buildSeriesAggregationList(query.Series);
 
     // need to get the relation data based on the resource name
     const resourceRelationData = (await this.papiClient.addons.data.relations.find({
@@ -62,7 +71,7 @@ class ElasticService {
     }))[0];
 
     // build one query with all series (each aggregation have query and aggs)
-    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues, resourceRelationData);
+    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues, resourceRelationData, request.body?.Filter, request.body?.Series);
 
     elasticRequestBody.aggs(queryAggregation);
 
@@ -89,10 +98,16 @@ class ElasticService {
 
   }
 
-  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, variableValues: {[varName: string]: string}, resourceRelationData) {
+  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, variableValues: {[varName: string]: string}, resourceRelationData, filterObject: JSONFilter, seriesName: string) {
     let queryAggregation: any = [];
-
-    for(var seriesName of Object.keys(aggregationsList)) {
+    let seriesToIterate = Object.keys(aggregationsList);
+    if(seriesName) {
+      seriesToIterate = seriesToIterate.filter(s => s==seriesName);
+      if(seriesToIterate.length==0) {
+        throw new Error(`Series named '${seriesName}' does not exist on data query '${query.Key}'`);
+      }
+    }
+    for(const seriesName of seriesToIterate) {
 
       // build nested aggregations from array of aggregations for each series
       let seriesAggregation: esb.Aggregation = this.buildNestedAggregations(aggregationsList[seriesName]);
@@ -108,6 +123,9 @@ class ElasticService {
       }
       
       resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData);
+      if(filterObject) {
+        resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(filterObject)]);
+      }
       const filterAggregation = esb.filterAggregation(seriesName, resourceFilter).agg(seriesAggregation);
       queryAggregation.push(filterAggregation);
     };
