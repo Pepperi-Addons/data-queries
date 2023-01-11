@@ -279,8 +279,13 @@ export class DataExportFormComponent implements OnInit {
        };
    }
 
-   onRunClicked() {
+   async onRunClicked() {
     const filterObject = this.buildFilterObject(); // this object will be sent to execute
+    const body = {
+      Filter: filterObject,
+      Series: this.selectedSeries.Name
+    }
+    this.dataFromExecute = await this.addonService.executeQuery(this.queryKey, body);
    }
 
    buildFilterObject() {
