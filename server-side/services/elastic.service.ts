@@ -1,7 +1,7 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk'
 import { Client, Request } from '@pepperi-addons/debug-server';
 import config from '../../addon.config.json'
-import { AggregatedField, AggregatedParam, BreakBy, DataQuery, DataTypes, DATA_QUREIES_TABLE_NAME, GroupBy, Interval, Intervals, Serie } from '../models/data-query';
+import { AggregatedField, DataQuery, DATA_QUREIES_TABLE_NAME, GroupBy, Interval, Serie } from '../models/data-query';
 import { validate } from 'jsonschema';
 import esb, { Aggregation, Query } from 'elastic-builder';
 import { callElasticSearchLambda } from '@pepperi-addons/system-addon-utils';
@@ -47,15 +47,17 @@ class ElasticService {
     let endpoint = `${distributorUUID}/_search`;
     const method = 'POST';
     let elasticRequestBody;
+    let hitsRequested = false;
     if(!request.body.PageSize && !request.body.Page) {
       elasticRequestBody = new esb.RequestBodySearch().size(0);
     } else {
-      // need to use request.body.Page and request.body.PageSize
       let pageSize = request.body.PageSize ?? 100;
-      if(pageSize>1000) pageSize = 1000;
+      if(pageSize > 100) pageSize = 100;
       let page = request.body.Page ?? 1;
-      if(page>0) page = page-1;
+      page = Math.max(page-1,0);
       elasticRequestBody = new esb.RequestBodySearch().size(pageSize).from(pageSize*(page));
+      if(request.body.Fields) elasticRequestBody = elasticRequestBody.source(request.body.Fields);
+      hitsRequested = true;
     }
 
     if (!query.Series || query.Series.length == 0) {
@@ -88,7 +90,7 @@ class ElasticService {
       //const lambdaResponse = await this.papiClient.post(`/elasticsearch/search/${query.Resource}`,body);
       const lambdaResponse = await this.papiClient.post(resourceRelationData.AddonRelativeURL ?? '',body);
       console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
-      let response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query);
+      const response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query, request.body?.Series, hitsRequested);
       return response;
     }
     catch(ex){
@@ -321,7 +323,7 @@ class ElasticService {
     return esb.bucketSortAggregation('sort').sort([esb.sort(aggName, order)]).size(serie.Top.Max)
   }
 
-  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery) {
+  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string, hitsRequested: boolean) {
 
     // for debugging
     // lambdaResponse = {
@@ -484,12 +486,14 @@ class ElasticService {
     // }
 
     let response: DataQueryResponse = new DataQueryResponse();
+    const seriesToIterate = (seriesName) ? query.Series.filter(s => s.Name==seriesName) : query.Series;
 
-    query.Series.forEach(series => {
+    seriesToIterate.forEach(series => {
 
       let seriesData = new SeriesData(series.Name);
 
       const seriesAggregation = lambdaResponse.aggregations[series.Name];
+      let dataSet = <Map<string, any>>{};
 
       if (series.GroupBy && series.GroupBy[0].FieldID) {
 
@@ -504,7 +508,6 @@ class ElasticService {
           seriesAggregation[groupBy.FieldID].buckets.forEach(groupBybuckets => {
 
             const groupByValue = this.getKeyAggregationName(groupBybuckets).toString();
-            let dataSet = <Map<string, any>>{};
 
             // If there are multiple Query Series, they should all have the same groups and then their series will be joined
             // So. if there data set with the same key & value - update it
@@ -522,7 +525,6 @@ class ElasticService {
         });
       }
       else {
-        let dataSet = <Map<string, any>>{};
         // if there is no group by - merge the data set with the first 
         if (response.DataSet.length > 0) {
           dataSet = response.DataSet[0];
@@ -533,7 +535,7 @@ class ElasticService {
       }
       response.DataQueries.push(seriesData);
     });
-
+    if(hitsRequested) response.Objects = lambdaResponse.hits?.hits?.map(hit => hit['_source']);
     return response;
   }
 
