@@ -7,6 +7,7 @@ import { AddonService } from 'src/services/addon.service';
 import { PepLoaderService } from '@pepperi-addons/ngx-lib';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { config } from '../addon.config';
+import { GridDataViewField } from '@pepperi-addons/papi-sdk';
 
 
 @Component({
@@ -34,7 +35,7 @@ export class DataExportFormComponent implements OnInit {
   groupByFieldType = "";
   breakByFieldType = "";
   queryKey;
-  dataFromExecute = null;
+  objectsFromExecute = null;
   resultsListFields = [];
   listData;
   isLoaded = false;
@@ -285,7 +286,8 @@ export class DataExportFormComponent implements OnInit {
       Filter: filterObject,
       Series: this.selectedSeries.Name
     }
-    this.dataFromExecute = await this.addonService.executeQuery(this.queryKey, body);
+    this.objectsFromExecute = (await this.addonService.executeQuery(this.queryKey, body)).Objects;
+    this.listData  = this.getListDataSource();
    }
 
    buildFilterObject() {
@@ -412,8 +414,7 @@ export class DataExportFormComponent implements OnInit {
   getListDataSource() {
     return {
         init: async(params:any) => {
-            let data = this.dataFromExecute;
-            let results = [];
+            let objects = this.objectsFromExecute;
             return Promise.resolve({
                 dataView: {
                     Context: {
@@ -423,13 +424,13 @@ export class DataExportFormComponent implements OnInit {
                     },
                     Type: 'Grid',
                     Title: '',
-                    Fields: this.resultsListFields,
+                    Fields: this.getObjectFields(objects[0]),
                     Columns: Array(10).fill({ Width: 0 }),
                     FrozenColumnsCount: 0,
                     MinimumColumnWidth: 0
                 },
-                totalCount: results?.length,
-                items: results
+                totalCount: objects?.length,
+                items: objects
             });
         },
         inputs: () => {
@@ -442,6 +443,20 @@ export class DataExportFormComponent implements OnInit {
             }) 
         },
     } as IPepGenericListDataSource
+}
+
+private getObjectFields(singleObject, type = 'TextBox'): GridDataViewField[] {
+  let Objectfields = [];
+  Object.keys(singleObject).forEach(field => {
+    Objectfields.push({
+      FieldID: field,
+      Type: type,
+      Title: field,
+      Mandatory: false,
+      ReadOnly: true
+    })
+  });
+  return Objectfields;
 }
 
 }
