@@ -147,9 +147,10 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.getDataIndexFields().then(() => {
+    this.pluginService.getDataIndexFields(this.resourceRelationData).then((fields) => {
+      this.resourcesFields[this.series.Resource] = fields;
       this.fillAggregatedFieldsType();
-      this.setFilterRuleFieldsOptions()
+      this.setFilterRuleFieldsOptions();
       this.setAuthorizationFiltersFields();
       this.setFieldsByAggregator();
 
@@ -230,18 +231,6 @@ export class SeriesEditorComponent implements OnInit {
           this.aggregationsFieldsOptions["Date"] =  this.resourcesFields[this.series.Resource].filter(f=>f.Type == "DateTime").map(function(f) {return { key: f.FieldID, value: f.FieldID }})
           this.aggregationsFieldsOptions["All"] = this.resourcesFields[this.series.Resource].map(function(f) {return { key: (f.Type=="String" || f.Type=="MultipleStringValues")  ? f.FieldID+'.cs' : f.FieldID, value: f.FieldID }});
     }
-  }
-
-  async getDataIndexFields() {
-    // if there's no SchemaRelativeURL, get the schema using addon uuid and schema name from the relation data
-    let schema = this.resourceRelationData["SchemaRelativeURL"] ? await this.pluginService.get(this.resourceRelationData["SchemaRelativeURL"]) : 
-                 await this.pluginService.getSchemaByNameAndUUID(this.resourceRelationData.Name, this.resourceRelationData.AddonUUID);
-    let fields = [];
-    for(const fieldID in schema.Fields) {
-      this.pushFieldWithAllReferencedFields(fieldID, schema.Fields[fieldID], fields)
-    }
-    this.resourcesFields[this.series.Resource] = fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
-    return fields;
   }
 
   setFilterRuleFieldsOptions(){
@@ -432,24 +421,4 @@ export class SeriesEditorComponent implements OnInit {
     }
   }
 
-  pushFieldWithAllReferencedFields(fieldID, fieldData, fields) {
-    if(fieldData.Type == 'Resource' && fieldData.Indexed == true) {
-      fields.push({
-        FieldID: `${fieldID}.Key`,
-        Type: "String",
-        OptionalValues: fieldData.OptionalValues
-      });
-      if(fieldData.IndexedFields) {
-        for (let referencedFieldID in fieldData.IndexedFields) {
-          this.pushFieldWithAllReferencedFields(`${fieldID}.${referencedFieldID}`, fieldData.IndexedFields[referencedFieldID], fields);
-        }
-      }
-    } else {
-      fields.push({
-        FieldID: fieldID,
-        Type: fieldData.Type,
-        OptionalValues: fieldData.OptionalValues
-      });
-    }
-  }
 }

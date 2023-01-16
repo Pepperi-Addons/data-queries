@@ -191,7 +191,7 @@ export class QueryFormComponent implements OnInit {
                     Key: s.Key,
                     Name: s.Name,
                     Aggregator: s.AggregatedFields[0].Aggregator,
-                    FieldName: this.removecsSuffix(s.AggregatedFields[0].FieldID)
+                    FieldName: this.addonService.removecsSuffix(s.AggregatedFields[0].FieldID)
                 }
             })
             return Promise.resolve({
@@ -651,8 +651,5 @@ async previewDataHandler(data) {
         }
     }
 
-    removecsSuffix(str) {
-        return (str.slice(-3)==".cs") ? str.slice(0,-3) : str;
-    }
 
 }

@@ -4,6 +4,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { QueryManagerComponent } from '../query_manager/query-manager.component';
 import { QueryFormComponent } from '../query-form/query-form.component';
 import { SettingsComponent } from './settings.component';
+import { DataExportFormComponent } from '../data-export-form/data-export-form.component';
 
 // Important for single spa
 @Component({
@@ -19,6 +20,10 @@ const routes: Routes = [{
         {
             path: '',
             component: QueryManagerComponent //the component files name will be query-manager.component.ts/css/html
+        },
+        {
+            path: ':query_uuid/data_export',
+            component: DataExportFormComponent //the component files name will be query-manager.component.ts/css/html
         },
         {
             path: ':query_uuid',

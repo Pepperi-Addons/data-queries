@@ -68,6 +68,14 @@ export class AddonService {
         return this.papiClient.addons.data.relations.find({where: 'RelationName=DataQueries'});
     }
 
+    async getResourceDataByName(resource) {
+        return this.papiClient.addons.data.relations.find({where: `RelationName=DataQueries and Name=${resource}`});
+    }
+
+    removecsSuffix(str) {
+        return (str.slice(-3)==".cs") ? str.slice(0,-3) : str;
+    }
+
     async getSchemaByNameAndUUID(schemaName, uuid) {
         const originalUUID = this.addonUUID;
         // assignment of this.addonUUID allows us to get the schemes of another addon
@@ -75,5 +83,38 @@ export class AddonService {
         const schemeObject = await this.papiClient.addons.data.schemes.name(schemaName).get();
         this.addonUUID = originalUUID;
         return schemeObject;
+    }
+
+    async getDataIndexFields(resourceRelationData) {
+        // if there's no SchemaRelativeURL, get the schema using addon uuid and schema name from the relation data
+        let schema = resourceRelationData["SchemaRelativeURL"] ? await this.get(resourceRelationData["SchemaRelativeURL"]) : 
+                     await this.getSchemaByNameAndUUID(resourceRelationData.Name, resourceRelationData.AddonUUID);
+        let fields = [];
+        for(const fieldID in schema.Fields) {
+          this.pushFieldWithAllReferencedFields(fieldID, schema.Fields[fieldID], fields)
+        }
+        fields = fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
+        return fields;
+    }
+
+    pushFieldWithAllReferencedFields(fieldID, fieldData, fields) {
+        if(fieldData.Type == 'Resource' && fieldData.Indexed == true) {
+          fields.push({
+            FieldID: `${fieldID}.Key`,
+            Type: "String",
+            OptionalValues: fieldData.OptionalValues
+          });
+          if(fieldData.IndexedFields) {
+            for (let referencedFieldID in fieldData.IndexedFields) {
+              this.pushFieldWithAllReferencedFields(`${fieldID}.${referencedFieldID}`, fieldData.IndexedFields[referencedFieldID], fields);
+            }
+          }
+        } else {
+          fields.push({
+            FieldID: fieldID,
+            Type: fieldData.Type,
+            OptionalValues: fieldData.OptionalValues
+          });
+        }
     }
 }

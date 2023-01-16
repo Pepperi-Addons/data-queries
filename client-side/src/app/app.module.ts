@@ -12,6 +12,7 @@ import { SeriesEditorModule } from './series-editor/series-editor.module'
 import { PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { VariableEditorModule } from './variable-editor/variable-editor.module'
 import { QueryPreFormModule } from './query-pre-form/query-pre-form.module'
+import { DataExportFormModule } from './data-export-form/data-export-form.module'
 
 import { config } from './addon.config';
 import { SettingsComponent, SettingsModule } from './settings';
@@ -27,6 +28,7 @@ import { SettingsComponent, SettingsModule } from './settings';
         SeriesEditorModule,
         VariableEditorModule,
         QueryPreFormModule,
+        DataExportFormModule,
         QueryManagerModule,
         SettingsModule,
         TranslateModule.forRoot({
