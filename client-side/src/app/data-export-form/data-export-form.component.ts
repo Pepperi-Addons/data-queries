@@ -60,13 +60,16 @@ export class DataExportFormComponent implements OnInit {
       return { Key: s.Key, Value: s.Name }
     });
     this.selectedSeries = this.query.Series[0];
+    let todayDateTime = new Date();
+    let monthAgoDateTime = new Date();
+    monthAgoDateTime.setMonth(todayDateTime.getMonth()-1);
     this.fields = {
         seriesKey: this.selectedSeries.Key,
         groupByField: null,
         breakByField: null,
         user: null,
-        fromDate: null,
-        toDate: null,
+        fromDate: monthAgoDateTime.toJSON(),
+        toDate: todayDateTime.toJSON(),
         description: this.translate.instant('DATA_EXPORT_DESCRIPTION')
     }
     this.setUserOptions();
