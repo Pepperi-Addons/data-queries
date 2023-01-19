@@ -283,10 +283,15 @@ export class DataExportFormComponent implements OnInit {
    async onRunClicked() {
     this.loaderService.show();
     const filterObject = this.buildFilterObject(); // this object will be sent to execute
+    //we don't want to show those fields to the user, so we remove them from the requested fields
+    const fieldsToHide = ['InternalID','UUID','Account.InternalID','Agent.InternalID','Account.UUID',
+    'Transaction.InternalID','Transaction.Agent.InternalID','Transaction.Account.InternalID','Transaction.Agent.UUID'];
+    const fieldsNames = this.resourceFields.map(f => f.FieldID).filter(f => !fieldsToHide.includes(f));
     const body = {
       Filter: filterObject,
       Series: this.selectedSeries.Name,
-      Page: 1
+      Page: 1,
+      Fields: fieldsNames
     }
     this.objectsFromExecute = (await this.addonService.executeQuery(this.queryKey, body)).Objects;
     this.listData  = this.getListDataSource();
@@ -450,9 +455,7 @@ export class DataExportFormComponent implements OnInit {
 
 private getObjectFields(singleObject, type = 'TextBox'): GridDataViewField[] {
   let Objectfields = [];
-  const fieldsToHide = ['InternalID','UUID','Account.InternalID','Agent.InternalID','Account.UUID','Key','ElasticSearchType'];
-  const fieldsNames = Object.keys(singleObject).filter(f => !fieldsToHide.includes(f));
-  fieldsNames.forEach(field => {
+  Object.keys(singleObject).forEach(field => {
     Objectfields.push({
       FieldID: field,
       Type: type,
