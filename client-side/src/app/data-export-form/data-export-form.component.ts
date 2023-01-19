@@ -284,8 +284,8 @@ export class DataExportFormComponent implements OnInit {
     this.loaderService.show();
     const filterObject = this.buildFilterObject(); // this object will be sent to execute
     //we don't want to show those fields to the user, so we remove them from the requested fields
-    const fieldsToHide = ['InternalID','UUID','Account.InternalID','Agent.InternalID','Account.UUID',
-    'Transaction.InternalID','Transaction.Agent.InternalID','Transaction.Account.InternalID','Transaction.Agent.UUID'];
+    const fieldsToHide = ['InternalID','UUID','Account.InternalID','Agent.InternalID','Account.UUID','Transaction.InternalID',
+    'Transaction.Agent.InternalID','Transaction.Account.InternalID','Transaction.Agent.UUID', 'Transaction.Account.UUID'];
     const fieldsNames = this.resourceFields.map(f => f.FieldID).filter(f => !fieldsToHide.includes(f));
     const body = {
       Filter: filterObject,
