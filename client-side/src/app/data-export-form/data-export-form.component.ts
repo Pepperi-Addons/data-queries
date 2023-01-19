@@ -35,7 +35,7 @@ export class DataExportFormComponent implements OnInit {
   groupByFieldType = "";
   breakByFieldType = "";
   queryKey;
-  objectsFromExecute = null;
+  objectsFromExecute = [];
   resultsListFields = [];
   listData;
   isLoaded = false;
@@ -229,7 +229,7 @@ export class DataExportFormComponent implements OnInit {
           },
           {
             FieldID: "fromDate",
-            Type: "Date",
+            Type: "DateAndTime",
             Title: "From date (optional)",
             Hidden: true,
             Mandatory: false,
@@ -253,7 +253,7 @@ export class DataExportFormComponent implements OnInit {
           },
           {
             FieldID: "toDate",
-            Type: "Date",
+            Type: "DateAndTime",
             Title: "To date (optional)",
             Hidden: true,
             Mandatory: false,
@@ -281,13 +281,21 @@ export class DataExportFormComponent implements OnInit {
    }
 
    async onRunClicked() {
+    this.loaderService.show();
     const filterObject = this.buildFilterObject(); // this object will be sent to execute
+    //we don't want to show those fields to the user, so we remove them from the requested fields
+    const fieldsToHide = ['InternalID','UUID','Account.InternalID','Agent.InternalID','Account.UUID','Transaction.InternalID',
+    'Transaction.Agent.InternalID','Transaction.Account.InternalID','Transaction.Agent.UUID', 'Transaction.Account.UUID'];
+    const fieldsNames = this.resourceFields.map(f => f.FieldID).filter(f => !fieldsToHide.includes(f));
     const body = {
       Filter: filterObject,
-      Series: this.selectedSeries.Name
+      Series: this.selectedSeries.Name,
+      Page: 1,
+      Fields: fieldsNames
     }
     this.objectsFromExecute = (await this.addonService.executeQuery(this.queryKey, body)).Objects;
     this.listData  = this.getListDataSource();
+    this.loaderService.hide();
    }
 
    buildFilterObject() {
@@ -424,8 +432,8 @@ export class DataExportFormComponent implements OnInit {
                     },
                     Type: 'Grid',
                     Title: '',
-                    Fields: this.getObjectFields(objects[0]),
-                    Columns: Array(10).fill({ Width: 0 }),
+                    Fields: objects.length > 0 ? this.getObjectFields(objects[0]) : [],
+                    Columns: Array(20).fill({ Width: 0 }),
                     FrozenColumnsCount: 0,
                     MinimumColumnWidth: 0
                 },

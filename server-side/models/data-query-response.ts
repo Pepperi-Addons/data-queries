@@ -1,6 +1,7 @@
 export class DataQueryResponse {
     DataQueries: SeriesData[];
     DataSet: Map<string, any>[];
+    Objects?: any[];
 
     constructor() {
         this.DataQueries = [];

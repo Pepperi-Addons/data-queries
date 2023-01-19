@@ -2,13 +2,14 @@
     padding: unset !important;
     margin-top: unset !important;
 }
-
-.generic-form {
-    height: 22rem;
-    width: 99.5%;
-}
-
-.generic-list {
-    height: 24rem;
-    width: 99.5%;
+.parent1 {
+    .generic-form {
+        height: 20rem;
+        width: 99.5%;
+    }
+    
+    .generic-list {
+        height: 25rem;
+        width: 99.5%;
+    }
 }
