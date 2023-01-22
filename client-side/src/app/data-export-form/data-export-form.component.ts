@@ -39,6 +39,7 @@ export class DataExportFormComponent implements OnInit {
   resultsListFields = [];
   listData;
   isLoaded = false;
+  variablesTextboxes = [];
 
   constructor(
     public addonService: AddonService,
@@ -54,6 +55,7 @@ export class DataExportFormComponent implements OnInit {
     this.addonService.addonUUID = config.AddonUUID;
     this.queryKey = this.activateRoute.snapshot.params.query_uuid;
     this.query = (await this.addonService.getDataQueryByKey(this.queryKey))[0];
+    this.createVariablesTextboxes();
     this.resourceData = (await this.addonService.getResourceDataByName(this.query.Resource))[0];
     this.resourceFields = await this.addonService.getDataIndexFields(this.resourceData);
     this.seriesOptions = this.query.Series.map((s) => {
@@ -159,7 +161,6 @@ export class DataExportFormComponent implements OnInit {
             FieldID: "user",
             Type: "ComboBox",
             Title: "User",
-            Hidden: true,
             Mandatory: false,
             ReadOnly: !this.users,
             Layout: {
@@ -234,7 +235,6 @@ export class DataExportFormComponent implements OnInit {
             FieldID: "fromDate",
             Type: "DateAndTime",
             Title: "From date (optional)",
-            Hidden: true,
             Mandatory: false,
             ReadOnly: false,
             Layout: {
@@ -258,7 +258,6 @@ export class DataExportFormComponent implements OnInit {
             FieldID: "toDate",
             Type: "DateAndTime",
             Title: "To date (optional)",
-            Hidden: true,
             Mandatory: false,
             ReadOnly: false,
             Layout: {
@@ -278,7 +277,7 @@ export class DataExportFormComponent implements OnInit {
               },
             }
           }
-         ],
+         ].concat(this.variablesTextboxes),
          Rows: [],
        };
    }
@@ -290,11 +289,20 @@ export class DataExportFormComponent implements OnInit {
     const fieldsToHide = ['InternalID','UUID','Account.InternalID','Agent.InternalID','Account.UUID','Transaction.InternalID',
     'Transaction.Agent.InternalID','Transaction.Account.InternalID','Transaction.Agent.UUID', 'Transaction.Account.UUID'];
     const fieldsNames = this.resourceFields.map(f => f.FieldID).filter(f => !fieldsToHide.includes(f));
+    let variableValues = {};
+    if(this.variablesTextboxes.length > 0) {
+      for(let fieldName in this.fields) {
+        // if given variable values, save them without the 'inputVariable_' prefix
+        if(fieldName.includes('inputVariable_'))
+          variableValues[fieldName.slice(14)] = this.fields[fieldName];
+      }
+    }
     const body = {
       Filter: filterObject,
       Series: this.selectedSeries.Name,
       Page: 1,
-      Fields: fieldsNames
+      Fields: fieldsNames,
+      VariableValues: variableValues
     }
     this.objectsFromExecute = (await this.addonService.executeQuery(this.queryKey, body)).Objects;
     this.listData  = this.getListDataSource();
@@ -454,7 +462,7 @@ export class DataExportFormComponent implements OnInit {
             }) 
         },
     } as IPepGenericListDataSource
-}
+  }
 
 private getObjectFields(singleObject, type = 'TextBox'): GridDataViewField[] {
   let Objectfields = [];
@@ -469,5 +477,37 @@ private getObjectFields(singleObject, type = 'TextBox'): GridDataViewField[] {
   });
   return Objectfields;
 }
+
+  createVariablesTextboxes() {
+    let initialY = 4; // the last Y of the basic form is 3
+    let column = 0;
+    this.query.Variables.forEach(v => {
+      this.variablesTextboxes.push({
+        FieldID: `inputVariable_${v.Name}`,
+        Type: "TextBox",
+        Title: v.Name,
+        Mandatory: false,
+        ReadOnly: false,
+        Layout: {
+          Origin: {
+            X: column,
+            Y: initialY,
+          },
+          Size: {
+            Width: 1,
+            Height: 0,
+          },
+        },
+        Style: {
+          Alignment: {
+            Horizontal: "Stretch",
+            Vertical: "Stretch",
+          },
+        }
+      })
+      if(column==1) initialY+=1;
+      column = (column+1)%2;
+    })
+  }
 
 }
