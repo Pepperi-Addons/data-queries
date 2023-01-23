@@ -109,12 +109,29 @@ export class QueryFormComponent implements OnInit {
     const callbackFunc = async (seriesToAddOrUpdate) => {
         this.addonService.addonUUID = config.AddonUUID;
         if (seriesToAddOrUpdate) {
-            seriesToAddOrUpdate.Resource = this.query.Resource;
-            this.updateQuerySeries(seriesToAddOrUpdate);
-            this.query = await this.addonService.upsertDataQuery(this.query);
-            this.seriesDataSource = this.getSeriesDataSource();
-            await this.executeSavedQuery();
-            this.previewDataSource = this.getPreviewDataSource();
+            if(this.query.Series.filter(s => s.Key!=seriesToAddOrUpdate.Key).find(s => s.Name==seriesToAddOrUpdate.Name)) {
+                const actionButton: PepDialogActionButton = {
+                    title: "OK",
+                    className: "",
+                    callback: null
+                };
+                const dialogData = new PepDialogData({
+                    title: "Series with this name already exists",
+                    content: "Please choose a different name.",
+                    actionButtons: [actionButton],
+                    actionsType: "custom",
+                    showClose: false
+                });
+                this.dialogService.openDefaultDialog(dialogData);
+            }
+            else {
+                seriesToAddOrUpdate.Resource = this.query.Resource;
+                this.updateQuerySeries(seriesToAddOrUpdate);
+                this.query = await this.addonService.upsertDataQuery(this.query);
+                this.seriesDataSource = this.getSeriesDataSource();
+                await this.executeSavedQuery();
+                this.previewDataSource = this.getPreviewDataSource();
+            }
         }
     }
 
