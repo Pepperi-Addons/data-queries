@@ -293,7 +293,7 @@ export class DataExportFormComponent implements OnInit {
     if(this.variablesTextboxes.length > 0) {
       for(let fieldName in this.fields) {
         // if given variable values, save them without the 'inputVariable_' prefix
-        if(fieldName.includes('inputVariable_'))
+        if(fieldName.startsWith('inputVariable_'))
           variableValues[fieldName.slice(14)] = this.fields[fieldName];
       }
     }
