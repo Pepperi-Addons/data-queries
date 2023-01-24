@@ -109,15 +109,17 @@ export class QueryFormComponent implements OnInit {
     const callbackFunc = async (seriesToAddOrUpdate) => {
         this.addonService.addonUUID = config.AddonUUID;
         if (seriesToAddOrUpdate) {
-            if(this.query.Series.filter(s => s.Key!=seriesToAddOrUpdate.Key).find(s => s.Name==seriesToAddOrUpdate.Name)) {
+            const allSeriesExceptCurrent = this.query.Series.filter(s => s.Key!=seriesToAddOrUpdate.Key);
+            const anotherSeriesWithSameName = allSeriesExceptCurrent.find(s => s.Name==seriesToAddOrUpdate.Name);
+            if(anotherSeriesWithSameName) {
                 const actionButton: PepDialogActionButton = {
                     title: "OK",
                     className: "",
                     callback: null
                 };
                 const dialogData = new PepDialogData({
-                    title: "Series with this name already exists",
-                    content: "Please choose a different name.",
+                    title: this.translate.instant('SeriesExistsTitle'),
+                    content: this.translate.instant('SeriesExistsContent'),
                     actionButtons: [actionButton],
                     actionsType: "custom",
                     showClose: false
@@ -148,7 +150,7 @@ export class QueryFormComponent implements OnInit {
       resourceRelationData: this.resourceRelations.filter(r => r.Name == this.query?.Resource)[0],
       inputVariables: this.query?.Variables
     };
-    this.openDialog(this.translate.instant('EditQuery'), SeriesEditorComponent, actionButton, input, callbackFunc);
+    this.openDialog(this.translate.instant('EditSeries'), SeriesEditorComponent, actionButton, input, callbackFunc);
   }
 
   protected updateQuerySeries(seriesToAddOrUpdate: any) {
