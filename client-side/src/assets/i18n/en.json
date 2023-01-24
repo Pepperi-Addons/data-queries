@@ -24,7 +24,7 @@
     "LabelFormatDescription1":"Define the format of the data label.",
     "LabelFormatDescription2":"Unique value is required when having two series with the same dynamic series field.",
     "LabelFormatDescription3":"You can add text to a dynamic series value using the ${label} variable, for example: 'ser1: ${label}'",
-    "EditQuery": "Edit Query",
+    "EditSeries": "Edit Series",
     "DynamicSeries": "Dynamic Series",
     "DynamicSeriesDescriptions": "Generate a seperate graph per each field value",
     "NumberOf": "Number Of",
@@ -61,5 +61,7 @@
     "Assigned_Accounts": "Assigned accounts",
     "Accounts_Of_Users_Under_My_Role": "Accounts of users under my role",
     "Users_Under_My_Role": "Users under my role",
-    "DATA_EXPORT_DESCRIPTION": "Export the data of a specific series in a specific category in order to understand the aggregated results.<br/>Fill in the values for filtering the data."
+    "DATA_EXPORT_DESCRIPTION": "Export the data of a specific series in a specific category in order to understand the aggregated results.<br/>Fill in the values for filtering the data.",
+    "SeriesExistsTitle": "Series with this name already exists",
+    "SeriesExistsContent": "Please choose a different name."
 }

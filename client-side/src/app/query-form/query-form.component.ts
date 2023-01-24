@@ -109,12 +109,31 @@ export class QueryFormComponent implements OnInit {
     const callbackFunc = async (seriesToAddOrUpdate) => {
         this.addonService.addonUUID = config.AddonUUID;
         if (seriesToAddOrUpdate) {
-            seriesToAddOrUpdate.Resource = this.query.Resource;
-            this.updateQuerySeries(seriesToAddOrUpdate);
-            this.query = await this.addonService.upsertDataQuery(this.query);
-            this.seriesDataSource = this.getSeriesDataSource();
-            await this.executeSavedQuery();
-            this.previewDataSource = this.getPreviewDataSource();
+            const allSeriesExceptCurrent = this.query.Series.filter(s => s.Key!=seriesToAddOrUpdate.Key);
+            const anotherSeriesWithSameName = allSeriesExceptCurrent.find(s => s.Name==seriesToAddOrUpdate.Name);
+            if(anotherSeriesWithSameName) {
+                const actionButton: PepDialogActionButton = {
+                    title: "OK",
+                    className: "",
+                    callback: null
+                };
+                const dialogData = new PepDialogData({
+                    title: this.translate.instant('SeriesExistsTitle'),
+                    content: this.translate.instant('SeriesExistsContent'),
+                    actionButtons: [actionButton],
+                    actionsType: "custom",
+                    showClose: false
+                });
+                this.dialogService.openDefaultDialog(dialogData);
+            }
+            else {
+                seriesToAddOrUpdate.Resource = this.query.Resource;
+                this.updateQuerySeries(seriesToAddOrUpdate);
+                this.query = await this.addonService.upsertDataQuery(this.query);
+                this.seriesDataSource = this.getSeriesDataSource();
+                await this.executeSavedQuery();
+                this.previewDataSource = this.getPreviewDataSource();
+            }
         }
     }
 
@@ -131,7 +150,7 @@ export class QueryFormComponent implements OnInit {
       resourceRelationData: this.resourceRelations.filter(r => r.Name == this.query?.Resource)[0],
       inputVariables: this.query?.Variables
     };
-    this.openDialog(this.translate.instant('EditQuery'), SeriesEditorComponent, actionButton, input, callbackFunc);
+    this.openDialog(this.translate.instant('EditSeries'), SeriesEditorComponent, actionButton, input, callbackFunc);
   }
 
   protected updateQuerySeries(seriesToAddOrUpdate: any) {
