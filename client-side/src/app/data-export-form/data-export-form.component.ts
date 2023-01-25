@@ -379,8 +379,6 @@ export class DataExportFormComponent implements OnInit {
       this.fields.user = null;
       this.fields.groupByField = null;
       this.fields.breakByField = null;
-      this.fields.fromDate = null;
-      this.fields.toDate = null;
       this.dataView = this.getDataView();
     }
     this.loaderService.hide();

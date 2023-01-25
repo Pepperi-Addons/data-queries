@@ -19,6 +19,7 @@ import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA, MAT_DIALOG_DEFAULT_OPTI
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PepCheckboxModule } from '@pepperi-addons/ngx-lib/checkbox';
 import {PepQueryBuilderModule} from '@pepperi-addons/ngx-lib/query-builder'
+import { PepNgxLibModule } from '@pepperi-addons/ngx-lib';
 
 
 
@@ -40,6 +41,7 @@ import {PepQueryBuilderModule} from '@pepperi-addons/ngx-lib/query-builder'
     PepIconModule,
     MatIconModule,
     MatDialogModule,
+    PepNgxLibModule,
     PepQueryBuilderModule,
     TranslateModule.forChild(),
   ],
