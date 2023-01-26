@@ -57,8 +57,17 @@ class ElasticService {
       page = Math.max(page-1,0);
       elasticRequestBody = new esb.RequestBodySearch().size(pageSize).from(pageSize*(page));
       if(request.body.Fields) elasticRequestBody = elasticRequestBody.source(request.body.Fields);
-      // this filter will be applied on the hits after aggregation is calculated.
-      if(request.body.Filter) elasticRequestBody = elasticRequestBody.postFilter(toKibanaQuery(request.body.Filter));
+      if(request.body.Filter) {
+        let HitsFilter = toKibanaQuery(request.body.Filter);
+        if(request.body.Series) {
+          const requestedSeries = query.Series.find(s => s.Name === request.body.Series);
+          if(!requestedSeries)
+            throw new Error(`Series '${request.body.Series}' does not exist on data query ID: ${query.Key}`);
+          HitsFilter = esb.boolQuery().must([HitsFilter, toKibanaQuery(requestedSeries.Filter)]);
+        }
+        // this filter will be applied on the hits after aggregation is calculated.
+        elasticRequestBody = elasticRequestBody.postFilter(HitsFilter);
+      } 
       hitsRequested = true;
     }
 
