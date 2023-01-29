@@ -375,8 +375,6 @@ export class DataExportFormComponent implements OnInit {
       if(e.Value != '') {
         this.selectedSeries = this.query.Series.filter(s => s.Key==e.Value)[0];
         await this.setUserOptions();
-        this.dateFilterField = null;
-        // The date-filter field is based on the groupBy/breakBy fields.
         this.setCategoriesAndDynamicSerieOptions();
       }
       this.fields.user = null;
