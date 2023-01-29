@@ -40,6 +40,7 @@ export class DataExportFormComponent implements OnInit {
   listData;
   isLoaded = false;
   variablesTextboxes = [];
+  dateFilterField = null;
 
   constructor(
     public addonService: AddonService,
@@ -236,7 +237,7 @@ export class DataExportFormComponent implements OnInit {
             Type: "DateAndTime",
             Title: "From date (optional)",
             Mandatory: false,
-            ReadOnly: false,
+            ReadOnly: this.dateFilterField==null,
             Layout: {
               Origin: {
                 X: 0,
@@ -259,7 +260,7 @@ export class DataExportFormComponent implements OnInit {
             Type: "DateAndTime",
             Title: "To date (optional)",
             Mandatory: false,
-            ReadOnly: false,
+            ReadOnly: this.dateFilterField==null,
             Layout: {
               Origin: {
                 X: 1,
@@ -349,7 +350,7 @@ export class DataExportFormComponent implements OnInit {
           this.fields.toDate
         ],
         Operation: "Between",
-        ApiName: "ActionDateTime",
+        ApiName: this.dateFilterField,
         FieldType: "Date"
       })
     }
@@ -374,6 +375,8 @@ export class DataExportFormComponent implements OnInit {
       if(e.Value != '') {
         this.selectedSeries = this.query.Series.filter(s => s.Key==e.Value)[0];
         await this.setUserOptions();
+        this.dateFilterField = null;
+        // The date-filter field is based on the groupBy/breakBy fields.
         this.setCategoriesAndDynamicSerieOptions();
       }
       this.fields.user = null;
@@ -396,12 +399,19 @@ export class DataExportFormComponent implements OnInit {
   }
 
   setCategoriesAndDynamicSerieOptions() {
+    // The date-filter field is based on the groupBy/breakBy fields.
+    this.dateFilterField = null;
     this.categoryOptions = this.buildOptionalValuesOptions(this.selectedSeries.GroupBy[0].FieldID, true);
     this.dynamicSerieOptions = this.buildOptionalValuesOptions(this.selectedSeries.BreakBy.FieldID, false);
+    if(this.dateFilterField==null) {
+      this.fields.fromDate = null;
+      this.fields.toDate = null;
+    }
   }
 
   buildOptionalValuesOptions(fieldID, isGroupBy) {
     if(fieldID == "") return [];
+    if(this.isDateField(fieldID)) this.dateFilterField = fieldID;
     fieldID = this.addonService.removecsSuffix(fieldID);
     const fieldData = this.resourceFields.filter(f => f.FieldID == fieldID)[0];
     if(isGroupBy) {
@@ -419,7 +429,7 @@ export class DataExportFormComponent implements OnInit {
   }
 
   isDisabled(fieldID, type) {
-    return (fieldID=="" || type.includes("Date"));
+    return (fieldID=="" || type=="Date" || type=="DateTime");
   }
 
   formInvalid() {
@@ -464,11 +474,11 @@ export class DataExportFormComponent implements OnInit {
 
 private getObjectFields(singleObject, type = 'TextBox'): GridDataViewField[] {
   let Objectfields = [];
-  Object.keys(singleObject).forEach(field => {
+  Object.keys(singleObject).forEach(fieldName => {
     Objectfields.push({
-      FieldID: field,
-      Type: type,
-      Title: field,
+      FieldID: fieldName,
+      Type: this.isDateField(fieldName) ? 'DateAndTime' : type,
+      Title: fieldName,
       Mandatory: false,
       ReadOnly: true
     })
@@ -508,4 +518,8 @@ private getObjectFields(singleObject, type = 'TextBox'): GridDataViewField[] {
     })
   }
 
+  isDateField(fieldName) {
+    const fieldType = this.resourceFields.find(f => f.FieldID==fieldName)?.Type;
+    return fieldType=='Date' || fieldType=='DateTime';
+  }
 }

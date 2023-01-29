@@ -63,7 +63,8 @@ class ElasticService {
           const requestedSeries = query.Series.find(s => s.Name === request.body.Series);
           if(!requestedSeries)
             throw new Error(`Series '${request.body.Series}' does not exist on data query ID: ${query.Key}`);
-          HitsFilter = esb.boolQuery().must([HitsFilter, toKibanaQuery(requestedSeries.Filter)]);
+          if(requestedSeries.Filter)
+            HitsFilter = esb.boolQuery().must([HitsFilter, toKibanaQuery(requestedSeries.Filter)]);
         }
         // this filter will be applied on the hits after aggregation is calculated.
         elasticRequestBody = elasticRequestBody.postFilter(HitsFilter);
