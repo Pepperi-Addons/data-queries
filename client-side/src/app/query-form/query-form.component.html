@@ -1,5 +1,5 @@
 
-<pep-page-layout [addPadding]="true" *ngIf="queryLoaded">
+<pep-page-layout [addPadding]="true" *ngIf="querySaved">
     <ng-container pep-top-area>
         <pep-top-bar [title]="mode == 'Add' ? ('Query_Add_Title' | translate) : ('Query_Edit_Title' | translate: {query_name: query.Name})">
             <div header-start-content>
@@ -34,9 +34,45 @@
                 (valueChange)="saveClicked()"
             ></pep-select>
         </div>
+        <div class="flex">
+            <pep-select
+                [(value)]="query.Style"
+                [label]="'Style' | translate"
+                type="select"
+                [mandatory]="true"
+                [disabled]="false"
+                xAlignment="left"
+                [options]="styleOptions"
+                [showTitle]="true"
+                [emptyOption]="false"
+                (valueChange)="formatChanged()"
+            ></pep-select>
+            <pep-select
+                [(value)]="query.Currency"
+                [label]="'Currency' | translate"
+                type="select"
+                [mandatory]="true"
+                [disabled]="false"
+                xAlignment="left"
+                [options]="currencyOptions"
+                [showTitle]="true"
+                [emptyOption]="false"
+                (valueChange)="formatChanged()"
+                *ngIf="query.Style=='Currency'"
+            ></pep-select>
+            <pep-textbox
+                [(value)]="query.Format"
+                [label]="'Format' | translate"
+                type="text"
+                [mandatory]="false"
+                [disabled]="false"
+                (valueChange)="formatChanged()"
+                *ngIf="query.Style=='Custom format'"
+            ></pep-textbox>
+        </div>
         <div class="genericListContainer">
                 <pep-generic-list class="generic-list"
-                [title] = "'Input variables' | translate"
+                [title]="'Input variables' | translate"
                 [description]="'Variables_Description' | translate"
                 [showTopBar]="true"
                 [dataSource]="variablesDataSource"

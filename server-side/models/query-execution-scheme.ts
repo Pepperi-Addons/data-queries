@@ -23,6 +23,9 @@ export const QueryExecutionScheme =
                 "type": "string"
             }
         },
+        "NumberFormatter": {
+            "type": "string"
+        },
     },
     "additionalProperties": false
 }

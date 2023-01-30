@@ -32,7 +32,12 @@ export class QueryFormComponent implements OnInit {
   querySaved: boolean = false;
   resourceRelations: Array<any> = [];
   resourceOptions: Array<any> = [];
-  queryLoaded: boolean = false;
+  styleOptions: Array<any> = [
+    { key: 'Decimal', value: 'Decimal' },
+    { key: 'Currency', value: 'Currency' },
+    { key: 'Custom format', value: 'Custom format' }
+  ];
+  currencyOptions: Array<any> = [];
   seriesDataSource: IPepGenericListDataSource = this.getSeriesDataSource();
   variablesDataSource: IPepGenericListDataSource = this.getVariablesDataSource();
   deleteError = 'Cannot delete Series';
@@ -60,14 +65,9 @@ export class QueryFormComponent implements OnInit {
         this.resourceOptions = this.resourceRelations.map((resource) => {
           return { key: resource.Name, value: resource.Name }
         });
-        this.mode = this.router['form_mode'] || 'Add';
-        this.query = this.emptyQuery() as DataQuery;
-        this.query.Key = this.queryUUID;
-        if (this.mode == 'Edit') {
-            this.query = (await this.addonService.getDataQueryByKey(this.queryUUID))[0]
-            this.querySaved = true;
-        }
-        this.queryLoaded = true;
+        // this.currencyOptions = []; // need to get currencies from api
+        this.query = (await this.addonService.getDataQueryByKey(this.queryUUID))[0]
+        this.querySaved = true;
         this.seriesDataSource = this.getSeriesDataSource();
         this.variablesDataSource = this.getVariablesDataSource();
         await this.executeSavedQuery();
@@ -280,7 +280,8 @@ export class QueryFormComponent implements OnInit {
         return {
             Name: '',
             Series: [],
-            Variables: []
+            Variables: [],
+            Style: 'Decimal'
         }
     }
 
@@ -401,7 +402,7 @@ getPreviewDataSource() {
     } as IPepGenericListDataSource
 }
 
-async previewDataHandler(data) {
+async previewDataHandler(data, format) {
     try {
         if (!data) return [];
         data.DataSet.forEach(dataSet => {
@@ -426,11 +427,11 @@ async previewDataHandler(data) {
 
         data.DataSet.forEach(dataSet => {
             for(let i in dataSet) {
-                dataSet[i]+='';
+                dataSet[i] = dataSet[i].toLocaleString(undefined, format);
             }
             previewDataSet.push(dataSet);
         });
-        this.PreviewListFields = [...this.getPreviewListFields(distinctgroups),...this.getPreviewListFields(distinctSeries,'NumberReal')];
+        this.PreviewListFields = [...this.getPreviewListFields(distinctgroups),...this.getPreviewListFields(distinctSeries)];
         return previewDataSet;
     }
     catch (err) {
@@ -641,15 +642,27 @@ async previewDataHandler(data) {
 
     async executeSavedQuery() {
         this.loaderService.show();
-        let varValues = {}
+        let varValues = {};
         for(const v of this.query.Variables) {
-            varValues[v.Name] = v.PreviewValue
+            varValues[v.Name] = v.PreviewValue;
         }
-        const body = {"VariableValues": varValues}
+        let format = null;
+        switch(this.query.Style) {
+            case 'Custom format':
+                format = this.query.Format;
+                break;
+            case 'Decimal':
+                format = '{"style":"decimal"}';
+                break;
+            case 'Currency':
+                format = `{"style":"currency","currency":"${this.query.Currency}"}`;
+                break;
+        }
+        const body = {"VariableValues": varValues};
         try {
             var data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key, body) : {DataSet: [], DataQueries: []};
             this.dataFromExecute = data;
-            let results = await this.previewDataHandler(data);
+            let results = await this.previewDataHandler(data, JSON.parse(format));
             this.resultsFromExecute = results;
             // for a case in which there is no actual data from the series execution
             if(results.length>0 && Object.keys(results[0]).length === 0) {
@@ -668,6 +681,12 @@ async previewDataHandler(data) {
             });
             this.dialogService.openDefaultDialog(dataMsg);
         }
+    }
+
+    async formatChanged() {
+        this.saveClicked();
+        await this.executeSavedQuery();
+        this.previewDataSource = this.getPreviewDataSource();
     }
 
 

@@ -101,7 +101,7 @@ class ElasticService {
       //const lambdaResponse = await this.papiClient.post(`/elasticsearch/search/${query.Resource}`,body);
       const lambdaResponse = await this.papiClient.post(resourceRelationData.AddonRelativeURL ?? '',body);
       console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
-      const response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query, request.body?.Series, hitsRequested);
+      const response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query, request.body?.Series, hitsRequested, request.body.NumberFormatter);
       return response;
     }
     catch(ex){
@@ -334,7 +334,7 @@ class ElasticService {
     return esb.bucketSortAggregation('sort').sort([esb.sort(aggName, order)]).size(serie.Top.Max)
   }
 
-  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string, hitsRequested: boolean) {
+  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string, hitsRequested: boolean, numberFormatter) {
 
     // for debugging
     // lambdaResponse = {
@@ -547,6 +547,7 @@ class ElasticService {
       response.DataQueries.push(seriesData);
     });
     if(hitsRequested) response.Objects = lambdaResponse.hits?.hits?.map(hit => hit['_source']);
+    if(numberFormatter) response.NumberFormatter = numberFormatter;
     return response;
   }
 
