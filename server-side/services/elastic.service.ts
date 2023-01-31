@@ -102,7 +102,7 @@ class ElasticService {
       //const lambdaResponse = await this.papiClient.post(`/elasticsearch/search/${query.Resource}`,body);
       const lambdaResponse = await this.papiClient.post(resourceRelationData.AddonRelativeURL ?? '',body);
       console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
-      const response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query, request.body?.Series, hitsRequested, request.body.NumberFormatter);
+      const response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query, request.body?.Series, hitsRequested);
       return response;
     }
     catch(ex){
@@ -335,7 +335,7 @@ class ElasticService {
     return esb.bucketSortAggregation('sort').sort([esb.sort(aggName, order)]).size(serie.Top.Max)
   }
 
-  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string, hitsRequested: boolean, numberFormatter) {
+  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string, hitsRequested: boolean) {
 
     // for debugging
     // lambdaResponse = {
@@ -548,8 +548,24 @@ class ElasticService {
       response.DataQueries.push(seriesData);
     });
     if(hitsRequested) response.Objects = lambdaResponse.hits?.hits?.map(hit => hit['_source']);
-    if(numberFormatter) response.NumberFormatter = numberFormatter;
+    response.NumberFormatter = this.getFormat(query);
     return response;
+  }
+
+  private getFormat(query) {
+    let format = {};
+    switch(query.Style) {
+        case 'Custom format':
+            format = JSON.parse(query.Format);
+            break;
+        case 'Decimal':
+            format = {style: "decimal"};
+            break;
+        case 'Currency':
+            format = {style:"currency", currency: query.Currency};
+            break;
+    }
+    return format;
   }
 
   private handleBreakBy(series: Serie, groupBybuckets: any, response: DataQueryResponse, dataSet, seriesData: SeriesData) {

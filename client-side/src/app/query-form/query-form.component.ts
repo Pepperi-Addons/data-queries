@@ -402,7 +402,7 @@ getPreviewDataSource() {
     } as IPepGenericListDataSource
 }
 
-async previewDataHandler(data, format) {
+async previewDataHandler(data) {
     try {
         if (!data) return [];
         data.DataSet.forEach(dataSet => {
@@ -427,7 +427,7 @@ async previewDataHandler(data, format) {
 
         data.DataSet.forEach(dataSet => {
             for(let i in dataSet) {
-                dataSet[i] = dataSet[i].toLocaleString(undefined, format);
+                dataSet[i] = dataSet[i].toLocaleString(undefined, data.NumberFormatter);
             }
             previewDataSet.push(dataSet);
         });
@@ -646,23 +646,11 @@ async previewDataHandler(data, format) {
         for(const v of this.query.Variables) {
             varValues[v.Name] = v.PreviewValue;
         }
-        let format = null;
-        switch(this.query.Style) {
-            case 'Custom format':
-                format = this.query.Format;
-                break;
-            case 'Decimal':
-                format = '{"style":"decimal"}';
-                break;
-            case 'Currency':
-                format = `{"style":"currency","currency":"${this.query.Currency}"}`;
-                break;
-        }
         const body = {"VariableValues": varValues};
         try {
             var data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key, body) : {DataSet: [], DataQueries: []};
             this.dataFromExecute = data;
-            let results = await this.previewDataHandler(data, JSON.parse(format));
+            let results = await this.previewDataHandler(data);
             this.resultsFromExecute = results;
             // for a case in which there is no actual data from the series execution
             if(results.length>0 && Object.keys(results[0]).length === 0) {
