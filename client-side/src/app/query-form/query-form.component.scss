@@ -3,9 +3,11 @@
     flex-direction: row;
     width: 100%;
     gap:1rem;
-    margin: 2rem 0;
+    margin: 1rem 0;
+    padding-inline: 0.5rem;
+    flex-wrap: wrap;
     pep-textbox, pep-select {
-        width: 100%;
+        width: 49%;
         align-content: space-between;
     }
 }

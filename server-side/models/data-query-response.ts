@@ -2,6 +2,7 @@ export class DataQueryResponse {
     DataQueries: SeriesData[];
     DataSet: Map<string, any>[];
     Objects?: any[];
+    NumberFormatter?: any;
 
     constructor() {
         this.DataQueries = [];

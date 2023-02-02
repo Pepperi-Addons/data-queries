@@ -8,6 +8,9 @@ export interface DataQuery extends AddonData {
     Resource: string;
     Series: Serie[];
     Variables: InputVariable[];
+    Style: string;
+    Currency?: string;
+    Format?: string;
 }
 
 export interface GroupBy {
