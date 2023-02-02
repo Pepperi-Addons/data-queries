@@ -37,7 +37,6 @@ export class QueryFormComponent implements OnInit {
     { key: 'Currency', value: 'Currency' },
     { key: 'Custom format', value: 'Custom format' }
   ];
-  currencyOptions: Array<any> = [];
   seriesDataSource: IPepGenericListDataSource = this.getSeriesDataSource();
   variablesDataSource: IPepGenericListDataSource = this.getVariablesDataSource();
   deleteError = 'Cannot delete Series';
@@ -65,8 +64,8 @@ export class QueryFormComponent implements OnInit {
         this.resourceOptions = this.resourceRelations.map((resource) => {
           return { key: resource.Name, value: resource.Name }
         });
-        // this.currencyOptions = []; // need to get currencies from api
-        this.query = (await this.addonService.getDataQueryByKey(this.queryUUID))[0]
+        this.query = (await this.addonService.getDataQueryByKey(this.queryUUID))[0];
+        if(!this.query.Style) this.query.Style = 'Decimal';
         this.querySaved = true;
         this.seriesDataSource = this.getSeriesDataSource();
         this.variablesDataSource = this.getVariablesDataSource();
@@ -672,9 +671,11 @@ async previewDataHandler(data) {
     }
 
     async formatChanged() {
-        this.saveClicked();
-        await this.executeSavedQuery();
-        this.previewDataSource = this.getPreviewDataSource();
+        if(this.query.Currency.match(/[A-Z]{3}/)) {
+            await this.saveClicked();
+            await this.executeSavedQuery();
+            this.previewDataSource = this.getPreviewDataSource();
+        }
     }
 
 

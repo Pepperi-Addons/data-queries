@@ -45,19 +45,17 @@
                 [emptyOption]="false"
                 (valueChange)="formatChanged()"
             ></pep-select>
-            <pep-select
+            <pep-textbox
                 [(value)]="query.Currency"
                 [label]="'Currency' | translate"
-                type="select"
+                type="text"
                 [mandatory]="true"
                 [disabled]="false"
-                xAlignment="left"
-                [options]="currencyOptions"
-                [showTitle]="true"
-                [emptyOption]="false"
+                [regex]="'[A-Z]{3}'"
+                [regexError]="'Not a currency' | translate"
                 (valueChange)="formatChanged()"
                 *ngIf="query.Style=='Currency'"
-            ></pep-select>
+            ></pep-textbox>
             <pep-textbox
                 [(value)]="query.Format"
                 [label]="'Format' | translate"
