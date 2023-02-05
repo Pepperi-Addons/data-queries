@@ -346,7 +346,9 @@ async openPreFormDialog() {
                 Name: res.name,
                 Resource: res.resource,
                 Series: [],
-                Variables: []
+                Variables: [],
+                Style: 'Decimal',
+                Currency: (await this.addonService.get('/distributor')).Currency.Name
             }
             await this.addonService.upsertDataQuery(query);
             this.navigateToQueryForm('Edit', query.Key);

@@ -505,7 +505,6 @@ class ElasticService {
       let seriesData = new SeriesData(series.Name);
 
       const seriesAggregation = lambdaResponse.aggregations[series.Name];
-      let dataSet = <Map<string, any>>{};
 
       if (series.GroupBy && series.GroupBy[0].FieldID) {
 
@@ -520,6 +519,7 @@ class ElasticService {
           seriesAggregation[groupBy.FieldID].buckets.forEach(groupBybuckets => {
 
             const groupByValue = this.getKeyAggregationName(groupBybuckets).toString();
+            let dataSet = <Map<string, any>>{};
 
             // If there are multiple Query Series, they should all have the same groups and then their series will be joined
             // So. if there data set with the same key & value - update it
@@ -537,6 +537,7 @@ class ElasticService {
         });
       }
       else {
+        let dataSet = <Map<string, any>>{};
         // if there is no group by - merge the data set with the first 
         if (response.DataSet.length > 0) {
           dataSet = response.DataSet[0];
@@ -548,7 +549,24 @@ class ElasticService {
       response.DataQueries.push(seriesData);
     });
     if(hitsRequested) response.Objects = lambdaResponse.hits?.hits?.map(hit => hit['_source']);
+    response.NumberFormatter = this.getFormat(query);
     return response;
+  }
+
+  private getFormat(query) {
+    let format = {};
+    switch(query.Style) {
+        case 'Custom format':
+            format = JSON.parse(query.Format);
+            break;
+        case 'Decimal':
+            format = {style: "decimal"};
+            break;
+        case 'Currency':
+            format = {style:"currency", currency: query.Currency};
+            break;
+    }
+    return format;
   }
 
   private handleBreakBy(series: Serie, groupBybuckets: any, response: DataQueryResponse, dataSet, seriesData: SeriesData) {
