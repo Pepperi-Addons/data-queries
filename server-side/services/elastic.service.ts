@@ -556,7 +556,7 @@ class ElasticService {
   private getFormat(query) {
     let format = {};
     switch(query.Style) {
-        case 'Custom format':
+        case 'Custom':
             format = JSON.parse(query.Format);
             break;
         case 'Decimal':
