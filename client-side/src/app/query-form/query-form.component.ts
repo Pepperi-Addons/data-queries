@@ -673,8 +673,12 @@ async previewDataHandler(data) {
 
     async formatChanged() {
         if(this.query.Style=='Custom') {
+            if(this.query.Format=='') this.query.Format='{}';
             try {
-                JSON.parse(this.query.Format);
+                // test the format before execution
+                const parsed = JSON.parse(this.query.Format);
+                const testNumber = 123;
+                testNumber.toLocaleString(undefined, parsed);
             } 
             catch(ex) {
                 const dataMsg = new PepDialogData({
