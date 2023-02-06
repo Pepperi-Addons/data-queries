@@ -35,7 +35,7 @@ export class QueryFormComponent implements OnInit {
   styleOptions: Array<any> = [
     { key: 'Decimal', value: 'Decimal' },
     { key: 'Currency', value: 'Currency' },
-    { key: 'Custom format', value: 'Custom format' }
+    { key: 'Custom', value: 'Custom' }
   ];
   seriesDataSource: IPepGenericListDataSource = this.getSeriesDataSource();
   variablesDataSource: IPepGenericListDataSource = this.getVariablesDataSource();
@@ -66,6 +66,7 @@ export class QueryFormComponent implements OnInit {
         });
         this.query = (await this.addonService.getDataQueryByKey(this.queryUUID))[0];
         if(!this.query.Style) this.query.Style = 'Decimal';
+        if(!this.query.Format) this.query.Format = '{"style": "decimal"}';
         this.querySaved = true;
         this.seriesDataSource = this.getSeriesDataSource();
         this.variablesDataSource = this.getVariablesDataSource();
@@ -671,7 +672,22 @@ async previewDataHandler(data) {
     }
 
     async formatChanged() {
-        if(this.query.Currency.match(/[A-Z]{3}/)) {
+        if(this.query.Style=='Custom') {
+            try {
+                JSON.parse(this.query.Format);
+            } 
+            catch(ex) {
+                const dataMsg = new PepDialogData({
+                    title: this.translate.instant('Bad Format'),
+                    actionsType: 'close',
+                    content: ex
+                });
+                this.dialogService.openDefaultDialog(dataMsg);
+                return;
+            }
+        }
+        const currencyRegex = new RegExp(/^[A-Z]{3}$/g);
+        if(currencyRegex.test(this.query.Currency)) {
             await this.saveClicked();
             await this.executeSavedQuery();
             this.previewDataSource = this.getPreviewDataSource();
