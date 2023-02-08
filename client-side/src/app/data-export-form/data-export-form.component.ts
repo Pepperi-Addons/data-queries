@@ -1,5 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { IPepGenericListDataSource, PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
@@ -48,7 +48,8 @@ export class DataExportFormComponent implements OnInit {
     public genericListService: PepGenericListService,
     public activateRoute: ActivatedRoute,
     public dialogService: PepDialogService,
-    public loaderService: PepLoaderService
+    public loaderService: PepLoaderService,
+    private router: Router
   ) {}
 
    async ngOnInit() {
@@ -519,5 +520,12 @@ private getObjectFields(singleObject, type = 'TextBox'): GridDataViewField[] {
   isDateField(fieldName) {
     const fieldType = this.resourceFields.find(f => f.FieldID==fieldName)?.Type;
     return fieldType=='Date' || fieldType=='DateTime';
+  }
+
+  goBackToList() {
+    this.router.navigate(['../..'], {
+        relativeTo: this.activateRoute,
+        queryParamsHandling: 'preserve'
+    })
   }
 }

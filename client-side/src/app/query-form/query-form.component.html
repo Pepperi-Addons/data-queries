@@ -35,9 +35,9 @@
             ></pep-select>
             <pep-select
                 [(value)]="query.Style"
-                [label]="'Style' | translate"
+                [label]="'Value format' | translate"
                 type="select"
-                [mandatory]="true"
+                [mandatory]="false"
                 [disabled]="false"
                 xAlignment="left"
                 [options]="styleOptions"
@@ -63,7 +63,7 @@
                 [mandatory]="false"
                 [disabled]="false"
                 (valueChange)="formatChanged()"
-                *ngIf="query.Style=='Custom format'"
+                *ngIf="query.Style=='Custom'"
             ></pep-textbox>
         </div>
         <div class="genericListContainer">
