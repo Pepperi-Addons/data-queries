@@ -13,7 +13,7 @@ import { Relation } from '@pepperi-addons/papi-sdk'
 import MyService from './my.service';
 import { DATA_QUREIES_TABLE_NAME, queriesTableScheme } from './models';
 import { UtilitiesService } from './services/utilities.service';
-
+import semver from 'semver';
 
 export async function install(client: Client, request: Request): Promise<any> {
     // For page block template uncomment this.
@@ -53,7 +53,10 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
     try{
         const service = new UtilitiesService(client);
         await createPageBlockRelation(client);
-        await createPolicyAndProfile(service, client.AddonUUID);
+        if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.0.0') < 0) 
+        {
+            await createPolicyAndProfile(service, client.AddonUUID);
+        }
         return {success:true,resultObject:{}}
     }
     catch(err){
