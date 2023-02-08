@@ -6,6 +6,7 @@
     "Query_Add_Title": "Create Query",
     "Query_Edit_Title": "Edit - {{query_name}}",
     "Back_to_list": "Back to list",
+    "Back_to_form": "Back to form",
     "Query_UpdateFailed_Title": "Error saving Query",
     "Query_UpdateFailed_Content": "Failed saving Query. fix the following errors and try again: <br /> <ul>{{error}}</ul>",
     "Query_UpdateSuccess_Title": "Query saved",

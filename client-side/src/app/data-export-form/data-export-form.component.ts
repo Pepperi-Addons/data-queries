@@ -522,8 +522,8 @@ private getObjectFields(singleObject, type = 'TextBox'): GridDataViewField[] {
     return fieldType=='Date' || fieldType=='DateTime';
   }
 
-  goBackToList() {
-    this.router.navigate(['../..'], {
+  goBackToForm() {
+    this.router.navigate(['..'], {
         relativeTo: this.activateRoute,
         queryParamsHandling: 'preserve'
     })

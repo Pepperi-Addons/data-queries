@@ -1,7 +1,7 @@
 
 <pep-page-layout [addPadding]="true" *ngIf="querySaved">
     <ng-container pep-top-area>
-        <pep-top-bar [title]="mode == 'Add' ? ('Query_Add_Title' | translate) : ('Query_Edit_Title' | translate: {query_name: query.Name})">
+        <pep-top-bar [title]="('Query_Edit_Title' | translate: {query_name: query.Name})">
             <div header-start-content>
                 <!-- <pep-button class="pep-spacing-element" (buttonClick)="goBack()" [iconName]="'arrow_left_alt'"></pep-button> -->
             </div>
@@ -132,6 +132,18 @@
                 [noDataFoundMsg]="previewNoDataMessage"
                 *ngIf="(querySaved)"
                 >
+                <ng-container right-buttons>
+                    <pep-menu
+                        classNames="pep-spacing-element"
+                        iconName="system_menu"
+                        type="action"
+                        styleType="strong"
+                        sizeType="sm"
+                        [items]="menuItems"
+                        [disabled]="false"
+                        (menuItemClick)="menuItemClick($event)"
+                ></pep-menu>
+                </ng-container>
             </pep-generic-list>
         </div>
     </ng-container>

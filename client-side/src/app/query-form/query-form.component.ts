@@ -15,6 +15,7 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
 import { VariableEditorComponent } from '../variable-editor/variable-editor.component';
 import { config } from '../addon.config';
+import { PepSelectComponent, PepSelectModule } from '@pepperi-addons/ngx-lib/select';
 
 
 
@@ -46,6 +47,7 @@ export class QueryFormComponent implements OnInit {
   dialogRef: MatDialogRef<any>;
   dataFromExecute;
   resultsFromExecute;
+  menuItems;
 
   constructor(
     public addonService: AddonService,
@@ -57,8 +59,9 @@ export class QueryFormComponent implements OnInit {
     private utilitiesService: UtilitiesService,
     public loaderService: PepLoaderService) { }
 
-   async ngOnInit() {
+    async ngOnInit() {
         this.queryUUID = this.activateRoute.snapshot.params.query_uuid;
+        this.menuItems = this.getMenuItems();
         this.addonService.addonUUID = config.AddonUUID;
         this.resourceRelations = await this.addonService.getResourceTypesFromRelation();
         this.resourceOptions = this.resourceRelations.map((resource) => {
@@ -72,7 +75,7 @@ export class QueryFormComponent implements OnInit {
         this.variablesDataSource = this.getVariablesDataSource();
         await this.executeSavedQuery();
         this.previewDataSource = this.getPreviewDataSource();
-   }
+    }
 
   async saveClicked() {
     try {
@@ -696,6 +699,50 @@ async previewDataHandler(data) {
             await this.executeSavedQuery();
             this.previewDataSource = this.getPreviewDataSource();
         }
+    }
+
+    getMenuItems() {
+        return [{
+            key:'ChangeUser',
+            text: this.translate.instant('Change User'),
+        },
+        {
+            key: 'ViewData',
+            text: this.translate.instant('View Data'),
+        }]
+    }
+
+    menuItemClick(event: any) {
+        switch (event.source.key) {
+            case 'ChangeUser':
+                this.openUserSelectionDialog();
+                break;
+            case 'ViewData':
+                this.navigateToDataExport();
+                break;
+        }
+    }
+
+    openUserSelectionDialog() {
+        const actionButton: PepDialogActionButton = {
+            title: "OK",
+            className: "",
+            callback: null,
+        };
+        const input = {
+            options: [],
+            label: 'Select user',
+            disabled: true
+        };
+        // TODO: create wrapper component for PepSelectComponent to work with the dialog
+        this.openDialog(this.translate.instant('Select user'),PepSelectComponent,actionButton,input);
+    }
+
+    async navigateToDataExport() {
+        this.router.navigate(['data_export'], {
+            relativeTo: this.activateRoute,
+            queryParamsHandling: 'preserve'
+        })
     }
 
 
