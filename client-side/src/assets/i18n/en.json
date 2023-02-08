@@ -61,7 +61,7 @@
     "Assigned_Accounts": "Assigned accounts",
     "Accounts_Of_Users_Under_My_Role": "Accounts of users under my role",
     "Users_Under_My_Role": "Users under my role",
-    "DATA_EXPORT_DESCRIPTION": "Export the data of a specific series in a specific category in order to understand the aggregated results.<br/>Fill in the values for filtering the data.",
+    "DATA_EXPORT_DESCRIPTION": "View the data of a specific series in a specific category in order to understand the aggregated results.<br/>Fill in the values to filter the data.",
     "SeriesExistsTitle": "Series with this name already exists",
     "SeriesExistsContent": "Please choose a different name."
 }
