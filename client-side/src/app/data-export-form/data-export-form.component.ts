@@ -41,6 +41,9 @@ export class DataExportFormComponent implements OnInit {
   isLoaded = false;
   variablesTextboxes = [];
   dateFilterField = null;
+  userFilter = null;
+  selectedUser = null;
+  dataFromExecute;
 
   constructor(
     public addonService: AddonService,
@@ -49,14 +52,18 @@ export class DataExportFormComponent implements OnInit {
     public activateRoute: ActivatedRoute,
     public dialogService: PepDialogService,
     public loaderService: PepLoaderService,
-    private router: Router
-  ) {}
+    private router: Router,
+    @Inject(MAT_DIALOG_DATA) public incoming: any) {
+      this.selectedUser = incoming?.user;
+      this.userFilter = incoming?.userFilter;
+      this.dataFromExecute = incoming?.dataFromExecute;
+      this.query = incoming?.query;
+    }
 
    async ngOnInit() {
     this.loaderService.show();
     this.addonService.addonUUID = config.AddonUUID;
-    this.queryKey = this.activateRoute.snapshot.params.query_uuid;
-    this.query = (await this.addonService.getDataQueryByKey(this.queryKey))[0];
+    this.queryKey = this.query.Key;
     this.createVariablesTextboxes();
     this.resourceData = (await this.addonService.getResourceDataByName(this.query.Resource))[0];
     this.resourceFields = await this.addonService.getDataIndexFields(this.resourceData);
@@ -71,13 +78,13 @@ export class DataExportFormComponent implements OnInit {
         seriesKey: this.selectedSeries.Key,
         groupByField: null,
         breakByField: null,
-        user: null,
+        user: this.selectedUser,
         fromDate: monthAgoDateTime.toJSON(),
         toDate: todayDateTime.toJSON(),
         description: this.translate.instant('DATA_EXPORT_DESCRIPTION')
     }
     this.setUserOptions();
-    this.setCategoriesAndDynamicSerieOptions();
+    await this.setCategoriesAndDynamicSerieOptions();
     this.dataView = this.getDataView();
     this.dataSource = this.getDataSource();
     this.listData = this.getListDataSource();
@@ -161,10 +168,10 @@ export class DataExportFormComponent implements OnInit {
            },
            {
             FieldID: "user",
-            Type: "ComboBox",
+            Type: "TextBox",
             Title: "User",
             Mandatory: false,
-            ReadOnly: !this.users,
+            ReadOnly: true,
             Layout: {
               Origin: {
                 X: 1,
@@ -334,15 +341,7 @@ export class DataExportFormComponent implements OnInit {
       })
     }
     if(this.fields.user) {
-      const userData = this.users.filter(u => u.UUID==this.fields.user);
-      const userFieldID = this.resourceData.UserFieldID;
-      const userId = userFieldID == "InternalID" ? userData.InternalID : userData.UUID;
-      filterNodes.push({
-        Values: [userId],
-        Operation: "IsEqual",
-        ApiName: this.resourceData.IndexedUserFieldID,
-        FieldType: 'String'
-      })
+      filterNodes.push(this.userFilter);
     }
     if(this.fields.fromDate && this.fields.toDate) {
       filterNodes.push({
@@ -376,7 +375,7 @@ export class DataExportFormComponent implements OnInit {
       if(e.Value != '') {
         this.selectedSeries = this.query.Series.filter(s => s.Key==e.Value)[0];
         await this.setUserOptions();
-        this.setCategoriesAndDynamicSerieOptions();
+        await this.setCategoriesAndDynamicSerieOptions();
       }
       this.fields.user = null;
       this.fields.groupByField = null;
@@ -397,34 +396,35 @@ export class DataExportFormComponent implements OnInit {
     }
   }
 
-  setCategoriesAndDynamicSerieOptions() {
+  async setCategoriesAndDynamicSerieOptions() {
     // The date-filter field is based on the groupBy/breakBy fields.
     this.dateFilterField = null;
-    this.categoryOptions = this.buildOptionalValuesOptions(this.selectedSeries.GroupBy[0].FieldID, true);
-    this.dynamicSerieOptions = this.buildOptionalValuesOptions(this.selectedSeries.BreakBy.FieldID, false);
+    this.categoryOptions = await this.buildOptionalValuesOptions(this.selectedSeries.GroupBy[0].FieldID, true);
+    this.dynamicSerieOptions = await this.buildOptionalValuesOptions(this.selectedSeries.BreakBy.FieldID, false);
     if(this.dateFilterField==null) {
       this.fields.fromDate = null;
       this.fields.toDate = null;
     }
   }
 
-  buildOptionalValuesOptions(fieldID, isGroupBy) {
+  async buildOptionalValuesOptions(fieldID, isGroupBy) {
     if(fieldID == "") return [];
     if(this.isDateField(fieldID)) this.dateFilterField = fieldID;
     fieldID = this.addonService.removecsSuffix(fieldID);
     const fieldData = this.resourceFields.filter(f => f.FieldID == fieldID)[0];
+    const dataSetFromExecute = (await this.addonService.executeQuery(this.queryKey, {Series: this.selectedSeries.Name,Page: 1})).DataSet;
+    let optionalValues = [];
     if(isGroupBy) {
       this.groupByFieldType = fieldData.Type;
+      optionalValues = dataSetFromExecute.map(data => data[fieldID]);
     }
     else {
       this.breakByFieldType = fieldData.Type;
+      optionalValues = Object.keys(dataSetFromExecute[0]);
     }
-    const optionalValues = fieldData.OptionalValues;
-    if(optionalValues) {
-      return optionalValues.map((v) => {
-        return { Key: v, Value: v }
-      });
-    }
+    return optionalValues.map((v) => {
+      return { Key: v, Value: v }
+    });
   }
 
   isDisabled(fieldID, type) {

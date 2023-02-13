@@ -64,5 +64,10 @@
     "Users_Under_My_Role": "Users under my role",
     "DATA_EXPORT_DESCRIPTION": "View the data of a specific series in a specific category in order to understand the aggregated results.<br/>Fill in the values to filter the data.",
     "SeriesExistsTitle": "Series with this name already exists",
-    "SeriesExistsContent": "Please choose a different name."
+    "SeriesExistsContent": "Please choose a different name.",
+    "USER_FILTER_DESC1": "Choose a user to show the preview data for a specific user.",
+    "USER_FILTER_DESC2": "Choose None to use the current user.",
+    "USER_FILTER_DESC3":"Note that if a user is selected, then the configuration of",
+    "USER_FILTER_DESC4":"the account and user filter is ignored."
+
 }

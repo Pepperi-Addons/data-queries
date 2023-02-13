@@ -11,6 +11,7 @@ import { QueryManagerModule } from './query_manager/query-manager.module'
 import { SeriesEditorModule } from './series-editor/series-editor.module'
 import { PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
 import { VariableEditorModule } from './variable-editor/variable-editor.module'
+import { UserSelectModule } from './user-select/user-select.module'
 import { QueryPreFormModule } from './query-pre-form/query-pre-form.module'
 import { DataExportFormModule } from './data-export-form/data-export-form.module'
 
@@ -30,6 +31,7 @@ import { SettingsComponent, SettingsModule } from './settings';
         QueryPreFormModule,
         DataExportFormModule,
         QueryManagerModule,
+        UserSelectModule,
         SettingsModule,
         TranslateModule.forRoot({
             loader: {

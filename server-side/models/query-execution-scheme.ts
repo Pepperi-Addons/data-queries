@@ -23,6 +23,9 @@ export const QueryExecutionScheme =
                 "type": "string"
             }
         },
+        "IgnoreScopeFilters": {
+            "type": "boolean"
+        }
     },
     "additionalProperties": false
 }

@@ -85,7 +85,7 @@ class ElasticService {
     }))[0];
 
     // build one query with all series (each aggregation have query and aggs)
-    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues, resourceRelationData, request.body?.Filter, request.body?.Series);
+    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues, resourceRelationData, request.body?.Filter, request.body?.Series, request.body.IgnoreScopeFilters ?? false);
 
     elasticRequestBody.aggs(queryAggregation);
 
@@ -112,7 +112,7 @@ class ElasticService {
 
   }
 
-  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, variableValues: {[varName: string]: string}, resourceRelationData, filterObject: JSONFilter, seriesName: string) {
+  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, variableValues: {[varName: string]: string}, resourceRelationData, filterObject: JSONFilter, seriesName: string, ignoreScopeFilters: boolean) {
     let queryAggregation: any = [];
     let seriesToIterate = Object.keys(aggregationsList);
     if(seriesName) {
@@ -135,8 +135,9 @@ class ElasticService {
         const serializedQuery: Query = toKibanaQuery(series.Filter);
         resourceFilter = esb.boolQuery().must([resourceFilter, serializedQuery]);
       }
-      
-      resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData);
+      if(!ignoreScopeFilters) {
+        resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData);
+      }
       if(filterObject) {
         resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(filterObject)]);
       }
