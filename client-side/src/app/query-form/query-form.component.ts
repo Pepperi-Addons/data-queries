@@ -766,7 +766,7 @@ async previewDataHandler(data) {
 
     async openViewDataDialog() {
         const input = {
-            user: this.userForPreview,
+            user: this.userOptions?.find(u => u.key==this.userForPreview).value,
             userFilter: this.selectedUserFilter,
             query: this.query
         }

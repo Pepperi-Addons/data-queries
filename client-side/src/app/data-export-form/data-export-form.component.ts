@@ -142,6 +142,29 @@ export class DataExportFormComponent implements OnInit {
                 renderEnlargeButton: false
               }
             },
+            {
+              FieldID: "",
+              Type: "Separator",
+              Title: "Filter rules",
+              Mandatory: false,
+              ReadOnly: false,
+              Layout: {
+                Origin: {
+                  X: 0,
+                  Y: 1,
+                },
+                Size: {
+                  Width: 2,
+                  Height: 0,
+                },
+              },
+              Style: {
+                Alignment: {
+                  Horizontal: "Stretch",
+                  Vertical: "Stretch",
+                },
+              },
+            },
            {
              FieldID: "seriesKey",
              Type: "ComboBox",
@@ -151,7 +174,7 @@ export class DataExportFormComponent implements OnInit {
              Layout: {
                Origin: {
                  X: 0,
-                 Y: 1,
+                 Y: 2,
                },
                Size: {
                  Width: 1,
@@ -175,7 +198,7 @@ export class DataExportFormComponent implements OnInit {
             Layout: {
               Origin: {
                 X: 1,
-                Y: 1,
+                Y: 2,
               },
               Size: {
                 Width: 1,
@@ -200,7 +223,7 @@ export class DataExportFormComponent implements OnInit {
             Layout: {
               Origin: {
                 X: 0,
-                Y: 2,
+                Y: 3,
               },
               Size: {
                 Width: 1,
@@ -225,7 +248,7 @@ export class DataExportFormComponent implements OnInit {
             Layout: {
               Origin: {
                 X: 1,
-                Y: 2,
+                Y: 3,
               },
               Size: {
                 Width: 1,
@@ -249,7 +272,7 @@ export class DataExportFormComponent implements OnInit {
             Layout: {
               Origin: {
                 X: 0,
-                Y: 3,
+                Y: 4,
               },
               Size: {
                 Width: 1,
@@ -272,7 +295,7 @@ export class DataExportFormComponent implements OnInit {
             Layout: {
               Origin: {
                 X: 1,
-                Y: 3,
+                Y: 4,
               },
               Size: {
                 Width: 1,
