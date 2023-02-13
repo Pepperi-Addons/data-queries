@@ -89,7 +89,7 @@ class ElasticService {
 
     elasticRequestBody.aggs(queryAggregation);
 
-    const body = elasticRequestBody.toJSON();
+    const body = {"DSL": elasticRequestBody.toJSON()};
     console.log(`lambdaBody: ${JSON.stringify(body)}`);
 
     //const lambdaResponse = await callElasticSearchLambda(endpoint, method, JSON.stringify(body), null, true);

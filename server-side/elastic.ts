@@ -5,6 +5,7 @@ import ElasticService from "./services/elastic.service";
 export async function execute(client: Client, request: Request) {
     const service = new ElasticService(client);
     if (request.method == 'POST') {
+        await client.ValidatePermission('CALL_EXECUTE');
         return await service.executeUserDefinedQuery(client, request);
     }
     else{
