@@ -48,18 +48,18 @@ class ElasticService {
     const method = 'POST';
     let elasticRequestBody: RequestBodySearch;
     let hitsRequested = false;
-    if(!request.body.PageSize && !request.body.Page) {
+    if(!request.body?.PageSize && !request.body?.Page) {
       elasticRequestBody = new esb.RequestBodySearch().size(0);
     } else {
-      let pageSize = request.body.PageSize ?? 100;
+      let pageSize = request.body?.PageSize ?? 100;
       if(pageSize > 100) pageSize = 100;
-      let page = request.body.Page ?? 1;
+      let page = request.body?.Page ?? 1;
       page = Math.max(page-1,0);
       elasticRequestBody = new esb.RequestBodySearch().size(pageSize).from(pageSize*(page));
-      if(request.body.Fields) elasticRequestBody = elasticRequestBody.source(request.body.Fields);
-      if(request.body.Filter) {
-        let HitsFilter = toKibanaQuery(request.body.Filter);
-        if(request.body.Series) {
+      if(request.body?.Fields) elasticRequestBody = elasticRequestBody.source(request.body.Fields);
+      if(request.body?.Filter) {
+        let HitsFilter = toKibanaQuery(request.body?.Filter);
+        if(request.body?.Series) {
           const requestedSeries = query.Series.find(s => s.Name === request.body.Series);
           if(!requestedSeries)
             throw new Error(`Series '${request.body.Series}' does not exist on data query ID: ${query.Key}`);
@@ -85,7 +85,7 @@ class ElasticService {
     }))[0];
 
     // build one query with all series (each aggregation have query and aggs)
-    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues, resourceRelationData, request.body?.Filter, request.body?.Series, request.body.IgnoreScopeFilters ?? false);
+    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues, resourceRelationData, request.body?.Filter, request.body?.Series, request.body?.IgnoreScopeFilters ?? false);
 
     elasticRequestBody.aggs(queryAggregation);
 
