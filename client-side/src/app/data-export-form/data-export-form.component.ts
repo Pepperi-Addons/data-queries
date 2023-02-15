@@ -41,7 +41,7 @@ export class DataExportFormComponent implements OnInit {
   isLoaded = false;
   variablesTextboxes = [];
   dateFilterField = null;
-  userFilter = null;
+  userID = null;
   selectedUser = null;
   dataFromExecute;
 
@@ -54,8 +54,8 @@ export class DataExportFormComponent implements OnInit {
     public loaderService: PepLoaderService,
     private router: Router,
     @Inject(MAT_DIALOG_DATA) public incoming: any) {
-      this.selectedUser = incoming?.user;
-      this.userFilter = incoming?.userFilter;
+      this.selectedUser = incoming?.userName;
+      this.userID = incoming?.userID;
       this.dataFromExecute = incoming?.dataFromExecute;
       this.query = incoming?.query;
     }
@@ -334,9 +334,10 @@ export class DataExportFormComponent implements OnInit {
       Series: this.selectedSeries.Name,
       Page: 1,
       Fields: fieldsNames,
-      VariableValues: variableValues
+      VariableValues: variableValues,
+      UserID: this.userID
     }
-    this.objectsFromExecute = (await this.addonService.executeQuery(this.queryKey, body)).Objects;
+    this.objectsFromExecute = (await this.addonService.executeQueryForAdmin(this.queryKey, body)).Objects;
     this.listData  = this.getListDataSource();
     this.loaderService.hide();
    }
@@ -362,9 +363,6 @@ export class DataExportFormComponent implements OnInit {
         ApiName: this.addonService.removecsSuffix(this.selectedSeries.BreakBy.FieldID),
         FieldType: this.breakByFieldType
       })
-    }
-    if(this.fields.user) {
-      filterNodes.push(this.userFilter);
     }
     if(this.fields.fromDate && this.fields.toDate) {
       filterNodes.push({

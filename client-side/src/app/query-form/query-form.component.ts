@@ -51,7 +51,7 @@ export class QueryFormComponent implements OnInit {
   userForPreview: string;
   userOptions;
   users;
-  selectedUserFilter;
+  selectedUserID;
 
   constructor(
     public addonService: AddonService,
@@ -651,11 +651,10 @@ async previewDataHandler(data) {
         }
         let body = {"VariableValues": varValues};
         if(this.userForPreview) {
-            body["Filter"] = this.selectedUserFilter;
-            body["IgnoreScopeFilters"] = true;
-        } 
+            body["UserID"] = this.selectedUserID;
+        }
         try {
-            let data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key, body) : {DataSet: [], DataQueries: []};
+            let data = this.querySaved ? await this.addonService.executeQueryForAdmin(this.query?.Key, body) : {DataSet: [], DataQueries: []};
             this.dataFromExecute = data;
             let results = await this.previewDataHandler(data);
             this.resultsFromExecute = results;
@@ -746,14 +745,8 @@ async previewDataHandler(data) {
                 const userData = this.users.find(u => u.UUID==selectedUser);
                 const resourceData = this.resourceRelations.find(r => r.Name==this.query.Resource)
                 const userFieldID = resourceData.UserFieldID;
-                const userId = userFieldID == "InternalID" ? userData.InternalID : userData.UUID;
-                this.selectedUserFilter = {
-                    Values: [userId],
-                    Operation: "IsEqual",
-                    ApiName: resourceData.IndexedUserFieldID,
-                    FieldType: 'String'
-                }
-                console.log(this.selectedUserFilter);
+                this.selectedUserID = userFieldID == "InternalID" ? userData.InternalID : userData.UUID;
+                console.log(this.selectedUserID);
                 await this.executeSavedQuery();
             }
             else if (selectedUser=='') {
@@ -766,8 +759,8 @@ async previewDataHandler(data) {
 
     async openViewDataDialog() {
         const input = {
-            user: this.userOptions?.find(u => u.key==this.userForPreview).value,
-            userFilter: this.selectedUserFilter,
+            userName: this.userOptions?.find(u => u.key==this.userForPreview).value,
+            userID: this.selectedUserID,
             query: this.query
         }
         const callback = (data: any) => {};

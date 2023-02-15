@@ -85,7 +85,7 @@ class ElasticService {
     }))[0];
 
     // build one query with all series (each aggregation have query and aggs)
-    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues, resourceRelationData, request.body?.Filter, request.body?.Series, request.body?.IgnoreScopeFilters ?? false);
+    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, resourceRelationData, request.body);
 
     elasticRequestBody.aggs(queryAggregation);
 
@@ -112,7 +112,11 @@ class ElasticService {
 
   }
 
-  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, variableValues: {[varName: string]: string}, resourceRelationData, filterObject: JSONFilter, seriesName: string, ignoreScopeFilters: boolean) {
+  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, resourceRelationData, body) {
+    const variableValues: {[varName: string]: string} = body?.VariableValues;
+    const filterObject: JSONFilter = body?.Filter;
+    const seriesName: string = body?.Series;
+    const userID: string = body?.UserID;
     let queryAggregation: any = [];
     let seriesToIterate = Object.keys(aggregationsList);
     if(seriesName) {
@@ -135,9 +139,7 @@ class ElasticService {
         const serializedQuery: Query = toKibanaQuery(series.Filter);
         resourceFilter = esb.boolQuery().must([resourceFilter, serializedQuery]);
       }
-      if(!ignoreScopeFilters) {
-        resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData);
-      }
+      resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData, userID);
       if(filterObject) {
         resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(filterObject)]);
       }
@@ -180,22 +182,26 @@ class ElasticService {
   }
 
   // if there is scope add user/accounts filters to resourceFilter
-  private async addScopeFilters(series, resourceFilter, resourceRelationData) {
-    if (series.Scope.User == "CurrentUser") {
+  private async addScopeFilters(series, resourceFilter, resourceRelationData, requestedUserID) {
+    if (requestedUserID || series.Scope.User == "CurrentUser") {
+      let userID = requestedUserID;
+      if(!requestedUserID) {
       const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
       const userFieldID = resourceRelationData.UserFieldID;
       const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
+      userID = currUserId;
+      }
       // IndexedUserFieldID
       const fieldName = resourceRelationData.IndexedUserFieldID;
       var userFilter: JSONFilter = {
         FieldType: 'String',
         ApiName: fieldName,
         Operation: 'IsEqual',
-        Values: [currUserId]
+        Values: [userID]
       }
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(userFilter)]);
     }
-    if(series.Scope.User == "UsersUnderMyRole") {
+    if(!requestedUserID && series.Scope.User == "UsersUnderMyRole") {
       const userFieldID = resourceRelationData.UserFieldID;
       const fieldName = resourceRelationData.IndexedUserFieldID;
       const usersUnderMyRole = await this.papiClient.get(`/users?where=IsUnderMyRole=true&fields=${userFieldID}`);
@@ -208,7 +214,7 @@ class ElasticService {
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(usersFilter)]);
     }
 
-    if(series.Scope.Account == "AccountsAssignedToCurrentUser") {
+    if(!requestedUserID && series.Scope.Account == "AccountsAssignedToCurrentUser") {
       const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
       // taking the fields from the relation
       const accountFieldID = resourceRelationData.AccountFieldID;
@@ -227,7 +233,7 @@ class ElasticService {
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(accountsFilter)]);
     }
 
-    if(series.Scope.Account == "AccountsOfUsersUnderMyRole") {
+    if(!requestedUserID && series.Scope.Account == "AccountsOfUsersUnderMyRole") {
       const usersUnderMyRole: any = await this.papiClient.get('/users?where=IsUnderMyRole=true');
       const accountFieldID = resourceRelationData.AccountFieldID;
       const userFieldID = resourceRelationData.UserFieldID;
