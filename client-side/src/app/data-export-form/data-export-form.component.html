@@ -1,13 +1,6 @@
-<pep-page-layout [addPadding]="true">
-    <ng-container pep-top-area>
-        <pep-top-bar title="View data">
-            <div header-end-content>
-                <pep-button class="pep-spacing-element" [value]="'Back_to_list' | translate" (buttonClick)="goBackToList()"></pep-button> 
-            </div>
-        </pep-top-bar>
-    </ng-container>
-    <ng-container pep-main-area>
-    <div class="parent1">
+<pep-dialog [title]="'View data' | translate">
+    <ng-container pep-dialog-content>
+    <div class="viewDataContent">
         <pep-generic-form class="generic-form"
             [showTopBar]="false"
             [dataSource]="dataSource"
@@ -39,5 +32,12 @@
         </pep-generic-list>
     </div>
     </ng-container>
-</pep-page-layout>
+    <ng-container pep-dialog-actions>
+        <div class="pep-spacing-element-negative">
+            <button  mat-button class="pep-spacing-element pep-button lg" [mat-dialog-close]>
+                {{'Close' | translate}}
+            </button>
+        </div>
+    </ng-container>
+</pep-dialog>
 

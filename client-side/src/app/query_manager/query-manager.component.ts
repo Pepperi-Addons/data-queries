@@ -215,12 +215,6 @@ actions: IPepGenericListActions = {
                         this.openDataLogDialog(objs.rows[0]);
                     }
                 })
-                actions.push({
-                    title: this.translate.instant('View data'),
-                    handler: async (objs) => {
-                        this.navigateToDataExport(objs.rows[0]);
-                    }
-                })
             }
         }
         return actions;
@@ -364,11 +358,5 @@ async duplicateQuery(key) {
     this.dataSource = this.getDataSource();
 }
 
-async navigateToDataExport(queryKey) {
-    this.router.navigate([queryKey,'data_export'], {
-        relativeTo: this.activateRoute,
-        queryParamsHandling: 'preserve'
-    })
-}
 
 }

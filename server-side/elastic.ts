@@ -5,6 +5,18 @@ import ElasticService from "./services/elastic.service";
 export async function execute(client: Client, request: Request) {
     const service = new ElasticService(client);
     if (request.method == 'POST') {
+        // VariableValues is the only field allowed to be sent by all users.
+        request.body = {"VariableValues": request.body?.VariableValues};
+        return await service.executeUserDefinedQuery(client, request);
+    }
+    else{
+        throw new Error('Bad request');
+    }
+};
+
+export async function su_execute(client: Client, request: Request) {
+    const service = new ElasticService(client);
+    if (request.method == 'POST') {
         await client.ValidatePermission('CALL_EXECUTE');
         return await service.executeUserDefinedQuery(client, request);
     }

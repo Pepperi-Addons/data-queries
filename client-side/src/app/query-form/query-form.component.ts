@@ -15,7 +15,8 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
 import { VariableEditorComponent } from '../variable-editor/variable-editor.component';
 import { config } from '../addon.config';
-
+import { UserSelectComponent } from '../user-select/user-select.component';
+import { DataExportFormComponent } from '../data-export-form/data-export-form.component';
 
 
 @Component({
@@ -46,6 +47,11 @@ export class QueryFormComponent implements OnInit {
   dialogRef: MatDialogRef<any>;
   dataFromExecute;
   resultsFromExecute;
+  menuItems;
+  userForPreview: string;
+  userOptions;
+  users;
+  selectedUserID;
 
   constructor(
     public addonService: AddonService,
@@ -57,7 +63,7 @@ export class QueryFormComponent implements OnInit {
     private utilitiesService: UtilitiesService,
     public loaderService: PepLoaderService) { }
 
-   async ngOnInit() {
+    async ngOnInit() {
         this.queryUUID = this.activateRoute.snapshot.params.query_uuid;
         this.addonService.addonUUID = config.AddonUUID;
         this.resourceRelations = await this.addonService.getResourceTypesFromRelation();
@@ -71,8 +77,7 @@ export class QueryFormComponent implements OnInit {
         this.seriesDataSource = this.getSeriesDataSource();
         this.variablesDataSource = this.getVariablesDataSource();
         await this.executeSavedQuery();
-        this.previewDataSource = this.getPreviewDataSource();
-   }
+    }
 
   async saveClicked() {
     try {
@@ -132,7 +137,6 @@ export class QueryFormComponent implements OnInit {
                 this.query = await this.addonService.upsertDataQuery(this.query);
                 this.seriesDataSource = this.getSeriesDataSource();
                 await this.executeSavedQuery();
-                this.previewDataSource = this.getPreviewDataSource();
             }
         }
     }
@@ -322,7 +326,6 @@ export class QueryFormComponent implements OnInit {
                 this.seriesDataSource = this.getSeriesDataSource();
                 this.variablesDataSource = this.getVariablesDataSource();
                 await this.executeSavedQuery();
-                this.previewDataSource = this.getPreviewDataSource();
                 }
                 catch (error) {
                     if (error.message.indexOf(this.deleteError) > 0)
@@ -459,13 +462,13 @@ async previewDataHandler(data) {
     return previewFields;
   }
 
-  openDialog(title, content, buttons, input, callbackFunc = null): void {
+  openDialog(title, content, buttons, input, callbackFunc = null, fullScreen: boolean = false): void {
     const config = this.dialogService.getDialogConfig(
         {
             disableClose: true,
             panelClass: 'pepperi-standalone'
         },
-        'inline'
+        fullScreen ? 'full-screen' : 'inline'
     );
     const data = new PepDialogData({
         title: title,
@@ -539,7 +542,6 @@ async previewDataHandler(data) {
                 this.query = await this.addonService.upsertDataQuery(this.query);
                 this.variablesDataSource = this.getVariablesDataSource();
                 await this.executeSavedQuery();
-                this.previewDataSource = this.getPreviewDataSource();
             }
         }
     
@@ -642,13 +644,17 @@ async previewDataHandler(data) {
 
     async executeSavedQuery() {
         this.loaderService.show();
+        this.menuItems = this.getMenuItems();
         let varValues = {};
         for(const v of this.query.Variables) {
             varValues[v.Name] = v.PreviewValue;
         }
-        const body = {"VariableValues": varValues};
+        let body = {"VariableValues": varValues};
+        if(this.userForPreview) {
+            body["UserID"] = this.selectedUserID;
+        }
         try {
-            var data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key, body) : {DataSet: [], DataQueries: []};
+            let data = this.querySaved ? await this.addonService.executeQueryForAdmin(this.query?.Key, body) : {DataSet: [], DataQueries: []};
             this.dataFromExecute = data;
             let results = await this.previewDataHandler(data);
             this.resultsFromExecute = results;
@@ -658,6 +664,7 @@ async previewDataHandler(data) {
             } else {
                 this.previewNoDataMessage = this.translate.instant('PreviewNoDataFound');
             }
+            this.previewDataSource = this.getPreviewDataSource();
             this.loaderService.hide();
         } catch(ex) {
             this.loaderService.hide();
@@ -694,9 +701,89 @@ async previewDataHandler(data) {
         if(currencyRegex.test(this.query.Currency)) {
             await this.saveClicked();
             await this.executeSavedQuery();
-            this.previewDataSource = this.getPreviewDataSource();
         }
     }
 
+    getMenuItems() {
+        return [{
+            key:'ChangeUser',
+            text: this.translate.instant('Change User'),
+            hidden: !this.scopeFilterExistsOnQuery()
+        },
+        {
+            key: 'ViewData',
+            text: this.translate.instant('View Data'),
+        }]
+    }
+
+    menuItemClick(event: any) {
+        switch (event.source.key) {
+            case 'ChangeUser':
+                this.openUserSelectionDialog();
+                break;
+            case 'ViewData':
+                this.openViewDataDialog();
+                break;
+        }
+    }
+
+    async openUserSelectionDialog() {
+        const actionButton: PepDialogActionButton = {
+            title: "OK",
+            className: "",
+            callback: null,
+        };
+        await this.setUserOptions();
+        const input = {
+            userOptions: this.userOptions,
+            selectedUser: this.userForPreview
+        };
+        const callback = async (selectedUser: string) => {
+            if (selectedUser && selectedUser!='') {
+                console.log(selectedUser);
+                this.userForPreview = selectedUser;
+                const userData = this.users.find(u => u.UUID==selectedUser);
+                const resourceData = this.resourceRelations.find(r => r.Name==this.query.Resource)
+                const userFieldID = resourceData.UserFieldID;
+                this.selectedUserID = userFieldID == "InternalID" ? userData.InternalID : userData.UUID;
+                console.log(this.selectedUserID);
+                await this.executeSavedQuery();
+            }
+            else if (selectedUser=='') {
+                this.userForPreview = null;
+                await this.executeSavedQuery();
+            }
+        }
+        this.openDialog(this.translate.instant('Select user'),UserSelectComponent,actionButton,input,callback);
+    }
+
+    async openViewDataDialog() {
+        const input = {
+            userName: this.userOptions?.find(u => u.key==this.userForPreview).value,
+            userID: this.selectedUserID,
+            query: this.query
+        }
+        const callback = (data: any) => {};
+        this.openDialog(null,DataExportFormComponent,null,input,callback,true);
+    }
+
+    scopeFilterExistsOnQuery() {
+        let flag = false;
+        for(const s of this.query.Series) {
+            if(s.Scope.Account!="AllAccounts" || s.Scope.User!="AllUsers") {
+                flag = true;
+                break;
+            }
+        }
+        console.log(flag);
+        return flag;
+    }
+
+    async setUserOptions() {
+        this.users = await this.addonService.get('/users');
+        this.userOptions = this.users.map((user) => {
+        return { key: user.UUID, value: user.FirstName };
+        });
+    }
 
 }

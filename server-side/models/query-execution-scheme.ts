@@ -23,6 +23,9 @@ export const QueryExecutionScheme =
                 "type": "string"
             }
         },
+        "UserID": {
+            "type": "string"
+        }
     },
     "additionalProperties": false
 }
