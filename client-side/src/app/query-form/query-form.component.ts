@@ -745,7 +745,7 @@ async previewDataHandler(data) {
                 const userData = this.users.find(u => u.UUID==selectedUser);
                 const resourceData = this.resourceRelations.find(r => r.Name==this.query.Resource)
                 const userFieldID = resourceData.UserFieldID;
-                this.selectedUserID = userFieldID == "InternalID" ? userData.InternalID : userData.UUID;
+                this.selectedUserID = userFieldID == "InternalID" ? userData.InternalID.toString() : userData.UUID;
                 console.log(this.selectedUserID);
                 await this.executeSavedQuery();
             }
