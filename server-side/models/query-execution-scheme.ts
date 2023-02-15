@@ -23,8 +23,8 @@ export const QueryExecutionScheme =
                 "type": "string"
             }
         },
-        "IgnoreScopeFilters": {
-            "type": "boolean"
+        "UserID": {
+            "type": "string"
         }
     },
     "additionalProperties": false
