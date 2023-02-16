@@ -433,7 +433,7 @@ export class DataExportFormComponent implements OnInit {
     if(this.isDateField(fieldID)) this.dateFilterField = fieldID;
     fieldID = this.addonService.removecsSuffix(fieldID);
     const fieldData = this.resourceFields.filter(f => f.FieldID == fieldID)[0];
-    const dataSetFromExecute = (await this.addonService.executeQuery(this.queryKey, {Series: this.selectedSeries.Name,Page: 1})).DataSet;
+    const dataSetFromExecute = (await this.addonService.executeQueryForAdmin(this.queryKey, {Series: this.selectedSeries.Name,Page: 1})).DataSet;
     let optionalValues = [];
     if(isGroupBy) {
       this.groupByFieldType = fieldData.Type;
