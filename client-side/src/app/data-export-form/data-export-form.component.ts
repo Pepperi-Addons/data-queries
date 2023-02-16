@@ -17,7 +17,6 @@ import { GridDataViewField } from '@pepperi-addons/papi-sdk';
 })
 export class DataExportFormComponent implements OnInit {
   
-  dialogRef: MatDialogRef<any>;
   dataView = null;
   dataSource = null;
   mode: string = 'Add';
@@ -52,6 +51,7 @@ export class DataExportFormComponent implements OnInit {
     public activateRoute: ActivatedRoute,
     public dialogService: PepDialogService,
     public loaderService: PepLoaderService,
+    private dialogRef: MatDialogRef<DataExportFormComponent>,
     private router: Router,
     @Inject(MAT_DIALOG_DATA) public incoming: any) {
       this.selectedUser = incoming?.userName;
@@ -507,7 +507,7 @@ private getObjectFields(singleObject, type = 'TextBox'): GridDataViewField[] {
 }
 
   createVariablesTextboxes() {
-    let initialY = 4; // the last Y of the basic form is 3
+    let initialY = 5; // the last Y of the basic form is 4
     let column = 0;
     this.query.Variables.forEach(v => {
       this.variablesTextboxes.push({
@@ -548,5 +548,9 @@ private getObjectFields(singleObject, type = 'TextBox'): GridDataViewField[] {
         relativeTo: this.activateRoute,
         queryParamsHandling: 'preserve'
     })
+  }
+
+  closeDialog(data: any = null): void {
+     this.dialogRef.close({data});
   }
 }
