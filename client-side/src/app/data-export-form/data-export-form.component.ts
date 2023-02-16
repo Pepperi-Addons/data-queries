@@ -437,7 +437,8 @@ export class DataExportFormComponent implements OnInit {
     let optionalValues = [];
     if(isGroupBy) {
       this.groupByFieldType = fieldData.Type;
-      optionalValues = dataSetFromExecute.map(data => data[fieldID]);
+      const alias = this.selectedSeries.GroupBy[0].Alias;
+      optionalValues = dataSetFromExecute.map(data => data[alias]);
     }
     else {
       this.breakByFieldType = fieldData.Type;
