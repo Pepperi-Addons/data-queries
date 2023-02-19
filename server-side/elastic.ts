@@ -14,7 +14,7 @@ export async function execute(client: Client, request: Request) {
     }
 };
 
-export async function su_execute(client: Client, request: Request) {
+export async function execute_debug(client: Client, request: Request) {
     const service = new ElasticService(client);
     if (request.method == 'POST') {
         await client.ValidatePermission('CALL_EXECUTE');
