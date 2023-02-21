@@ -42,27 +42,22 @@ export class AddonService {
 
     async executeQuery(queryID, body = {}) {
         return this.papiClient.post(`/data_queries/${queryID}/execute`, body);
-        //return this.papiClient.addons.api.uuid(this.addonUUID).file('elastic').func('execute').post({key: queryID},body)
     }
 
     async executeQueryForAdmin(queryID, body = {}) {
         return this.papiClient.post(`/data_queries/${queryID}/execute/debug`, body);
-        //return this.papiClient.addons.api.uuid(this.addonUUID).file('elastic').func('execute_debug').post({key: queryID},body)
     }
 
     async getDataQueryByKey(Key: string) {
         return this.papiClient.get(`/data_queries?where=Key='${Key}'`);
-        // return this.papiClient.addons.api.uuid(this.addonUUID).file('api').func('queries').get({where: `Key='${Key}'`});
     }
 
     async getAllQueries(){
         return this.papiClient.get(`/data_queries`);
-        // return this.papiClient.addons.api.uuid(this.addonUUID).file('api').func('queries').get()
     }
 
     async upsertDataQuery(body) {
         return this.papiClient.post(`/data_queries`,body)
-        // return this.papiClient.addons.api.uuid(this.addonUUID).file('api').func('queries').post({},body);
     }
 
     async getCharts() {
