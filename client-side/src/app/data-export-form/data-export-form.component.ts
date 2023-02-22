@@ -431,9 +431,12 @@ export class DataExportFormComponent implements OnInit {
     }
     else {
       this.breakByFieldType = fieldData.Type;
-      optionalValues = Object.keys(dataSetFromExecute[0]);
+      dataSetFromExecute.forEach(row => {
+        optionalValues = optionalValues.concat(Object.keys(row));
+      });
       // if the serie has groupBy, the dataSet will contain its name as the first key, so we remove it.
-      if(this.selectedSeries.GroupBy[0].FieldID!="") optionalValues.shift();
+      if(this.selectedSeries.GroupBy[0].FieldID!="")
+      optionalValues = optionalValues.filter(v => v != this.selectedSeries.GroupBy[0].Alias);
     }
     return optionalValues.map((v) => {
       return { Key: v, Value: v }
