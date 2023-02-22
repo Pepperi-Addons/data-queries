@@ -420,20 +420,25 @@ export class DataExportFormComponent implements OnInit {
   async setCategoriesAndDynamicSerieOptions() {
     // The date-filter field is based on the groupBy/breakBy fields.
     this.dateFilterField = null;
-    this.categoryOptions = await this.buildOptionalValuesOptions(this.selectedSeries.GroupBy[0].FieldID, true);
-    this.dynamicSerieOptions = await this.buildOptionalValuesOptions(this.selectedSeries.BreakBy.FieldID, false);
+    const body = {
+      Series: this.selectedSeries.Name,
+      Page: 1,
+      UserID: this.userID
+    };
+    const dataSetFromExecute = (await this.addonService.executeQueryForAdmin(this.queryKey, body)).DataSet;
+    this.categoryOptions = await this.buildOptionalValuesOptions(this.selectedSeries.GroupBy[0].FieldID, true, dataSetFromExecute);
+    this.dynamicSerieOptions = await this.buildOptionalValuesOptions(this.selectedSeries.BreakBy.FieldID, false, dataSetFromExecute);
     if(this.dateFilterField==null) {
       this.fields.fromDate = null;
       this.fields.toDate = null;
     }
   }
 
-  async buildOptionalValuesOptions(fieldID, isGroupBy) {
+  async buildOptionalValuesOptions(fieldID, isGroupBy, dataSetFromExecute) {
     if(fieldID == "") return [];
     if(this.isDateField(fieldID)) this.dateFilterField = fieldID;
     fieldID = this.addonService.removecsSuffix(fieldID);
     const fieldData = this.resourceFields.filter(f => f.FieldID == fieldID)[0];
-    const dataSetFromExecute = (await this.addonService.executeQueryForAdmin(this.queryKey, {Series: this.selectedSeries.Name,Page: 1})).DataSet;
     let optionalValues = [];
     if(isGroupBy) {
       this.groupByFieldType = fieldData.Type;
@@ -443,6 +448,8 @@ export class DataExportFormComponent implements OnInit {
     else {
       this.breakByFieldType = fieldData.Type;
       optionalValues = Object.keys(dataSetFromExecute[0]);
+      // if the serie has groupBy, the dataSet will contain its name as the first key, so we remove it.
+      if(this.selectedSeries.GroupBy[0].FieldID!="") optionalValues.shift();
     }
     return optionalValues.map((v) => {
       return { Key: v, Value: v }
