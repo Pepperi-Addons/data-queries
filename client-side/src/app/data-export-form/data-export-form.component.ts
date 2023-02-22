@@ -25,8 +25,6 @@ export class DataExportFormComponent implements OnInit {
   query;
   selectedSeries;
   seriesOptions = [];
-  usersOptions = [];
-  users;
   categoryOptions = [];
   dynamicSerieOptions = [];
   resourceFields;
@@ -83,7 +81,6 @@ export class DataExportFormComponent implements OnInit {
         toDate: todayDateTime.toJSON(),
         description: this.translate.instant('DATA_EXPORT_DESCRIPTION')
     }
-    this.setUserOptions();
     await this.setCategoriesAndDynamicSerieOptions();
     this.dataView = this.getDataView();
     this.dataSource = this.getDataSource();
@@ -210,8 +207,7 @@ export class DataExportFormComponent implements OnInit {
                 Horizontal: "Stretch",
                 Vertical: "Stretch",
               },
-            },
-            OptionalValues: this.usersOptions
+            }
           },
            {
             FieldID: "groupByField",
@@ -395,7 +391,6 @@ export class DataExportFormComponent implements OnInit {
     if(e.ApiName == "seriesKey") {
       if(e.Value != '') {
         this.selectedSeries = this.query.Series.filter(s => s.Key==e.Value)[0];
-        await this.setUserOptions();
         await this.setCategoriesAndDynamicSerieOptions();
       }
       this.fields.user = null;
@@ -404,17 +399,6 @@ export class DataExportFormComponent implements OnInit {
       this.dataView = this.getDataView();
     }
     this.loaderService.hide();
-  }
-
-  async setUserOptions() {
-    if(this.selectedSeries.Scope.Account=="AllAccounts" && this.selectedSeries.Scope.User=="AllUsers") {
-      this.users = null;
-    } else if(!this.users) {
-      this.users = await this.addonService.get('/users');
-      this.usersOptions = this.users.map((user) => {
-        return { Key: user.UUID, Value: user.FirstName };
-      });
-    }
   }
 
   async setCategoriesAndDynamicSerieOptions() {
