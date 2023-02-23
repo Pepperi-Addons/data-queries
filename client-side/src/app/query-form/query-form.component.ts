@@ -780,7 +780,7 @@ async previewDataHandler(data) {
     }
 
     async setUserOptions() {
-        this.users = await this.addonService.get('/users');
+        this.users = await this.addonService.get('/users?fields=UUID,FirstName,LastName,InternalID');
         this.userOptions = this.users.map((user) => {
         return { key: user.UUID, value: `${user.FirstName} ${user.LastName}` };
         });
