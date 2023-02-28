@@ -340,7 +340,7 @@ export class DataExportFormComponent implements OnInit {
 
    buildFilterObject() {
     let filterNodes = [];
-    if(this.fields.groupByField) {
+    if(this.fields.groupByField != null) {
       filterNodes.push({
         Values: [
           this.fields.groupByField
@@ -350,7 +350,7 @@ export class DataExportFormComponent implements OnInit {
         FieldType: this.groupByFieldType
       })
     }
-    if(this.fields.breakByField) {
+    if(this.fields.breakByField != null) {
       filterNodes.push({
         Values: [
           this.fields.breakByField
@@ -451,9 +451,7 @@ export class DataExportFormComponent implements OnInit {
   }
 
   formInvalid() {
-    return ((!this.fields?.groupByField && !this.isDisabled(this.selectedSeries?.GroupBy[0].FieldID, this.groupByFieldType)) ||
-            (!this.fields?.breakByField && !this.isDisabled(this.selectedSeries?.BreakBy.FieldID, this.breakByFieldType)) || 
-            this.fields?.seriesKey=='' || this.fields?.fromDate=='' || this.fields?.toDate=='')
+    return (this.fields?.seriesKey=='' || this.fields?.fromDate=='' || this.fields?.toDate=='');
   }
 
   getListDataSource() {
