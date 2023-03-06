@@ -33,6 +33,7 @@ class ElasticService {
     Year: 'yyyy',
     None: ''
   }
+  hitsFilter: Query = esb.matchAllQuery();
 
   async executeUserDefinedQuery(client: Client, request: Request) {
 
@@ -43,9 +44,6 @@ class ElasticService {
     }
 
     const query: DataQuery = await this.getUserDefinedQuery(request);
-    const distributorUUID = (<any>jwtDecode(client.OAuthAccessToken))["pepperi.distributoruuid"];
-    let endpoint = `${distributorUUID}/_search`;
-    const method = 'POST';
     let elasticRequestBody: RequestBodySearch;
     let hitsRequested = false;
     if(!request.body?.PageSize && !request.body?.Page) {
@@ -57,18 +55,18 @@ class ElasticService {
       page = Math.max(page-1,0);
       elasticRequestBody = new esb.RequestBodySearch().size(pageSize).from(pageSize*(page));
       if(request.body?.Fields) elasticRequestBody = elasticRequestBody.source(request.body.Fields);
-      if(request.body?.Filter) {
-        let HitsFilter = toKibanaQuery(request.body?.Filter);
-        if(request.body?.Series) {
-          const requestedSeries = query.Series.find(s => s.Name === request.body.Series);
-          if(!requestedSeries)
-            throw new Error(`Series '${request.body.Series}' does not exist on data query ID: ${query.Key}`);
-          if(requestedSeries.Filter)
-            HitsFilter = esb.boolQuery().must([HitsFilter, toKibanaQuery(requestedSeries.Filter)]);
+      if(request.body?.Series) {
+        const requestedSeries = query.Series.find(s => s.Name === request.body.Series);
+        if(!requestedSeries) {
+          throw new Error(`Series '${request.body.Series}' does not exist on data query ID: ${query.Key}`);
         }
-        // this filter will be applied on the hits after aggregation is calculated.
-        elasticRequestBody = elasticRequestBody.postFilter(HitsFilter);
-      } 
+        if(requestedSeries?.Filter) {
+          this.hitsFilter = esb.boolQuery().must([this.hitsFilter, toKibanaQuery(requestedSeries.Filter)]);
+        }
+      }
+      if(request.body?.Filter) {
+        this.hitsFilter = esb.boolQuery().must([this.hitsFilter, toKibanaQuery(request.body?.Filter)]);
+      }
       hitsRequested = true;
     }
 
@@ -77,7 +75,8 @@ class ElasticService {
     }
 
     // handle aggregation by series
-    let aggregationsList: { [key: string]: Aggregation[] } = this.buildSeriesAggregationList(query.Series);
+    const series = request.body?.Series ? query.Series.filter(s => s.Name == request.body?.Series) : query.Series;
+    let aggregationsList: { [key: string]: Aggregation[] } = this.buildSeriesAggregationList(series);
 
     // need to get the relation data based on the resource name
     const resourceRelationData = (await this.papiClient.addons.data.relations.find({
@@ -85,10 +84,10 @@ class ElasticService {
     }))[0];
 
     // build one query with all series (each aggregation have query and aggs)
-    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, resourceRelationData, request.body);
-
+    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, resourceRelationData, request.body, hitsRequested);
+    // this filter will be applied on the hits after aggregation is calculated
+    elasticRequestBody.postFilter(this.hitsFilter);
     elasticRequestBody.aggs(queryAggregation);
-
     const body = {"DSL": elasticRequestBody.toJSON()};
     console.log(`lambdaBody: ${JSON.stringify(body)}`);
 
@@ -112,19 +111,12 @@ class ElasticService {
 
   }
 
-  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, resourceRelationData, body) {
+  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[] }, query: DataQuery, resourceRelationData, body, hitsRequested) {
     const variableValues: {[varName: string]: string} = body?.VariableValues;
     const filterObject: JSONFilter = body?.Filter;
-    const seriesName: string = body?.Series;
     const userID: string = body?.UserID;
     let queryAggregation: any = [];
     let seriesToIterate = Object.keys(aggregationsList);
-    if(seriesName) {
-      seriesToIterate = seriesToIterate.filter(s => s==seriesName);
-      if(seriesToIterate.length==0) {
-        throw new Error(`Series named '${seriesName}' does not exist on data query '${query.Key}'`);
-      }
-    }
     for(const seriesName of seriesToIterate) {
 
       // build nested aggregations from array of aggregations for each series
@@ -140,6 +132,9 @@ class ElasticService {
         resourceFilter = esb.boolQuery().must([resourceFilter, serializedQuery]);
       }
       resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData, userID);
+      if(hitsRequested) {
+        this.hitsFilter = esb.boolQuery().must([this.hitsFilter, resourceFilter]);
+      }
       if(filterObject) {
         resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(filterObject)]);
       }
