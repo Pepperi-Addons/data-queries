@@ -138,6 +138,11 @@ class ElasticService {
       if(filterObject) {
         resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(filterObject)]);
       }
+
+      // filter out hidden records
+      const hiddenFilter = esb.boolQuery().should([esb.matchQuery('Hidden', 'false'), esb.boolQuery().mustNot(esb.existsQuery('Hidden'))]);
+      resourceFilter = esb.boolQuery().must([resourceFilter, hiddenFilter]);
+
       const filterAggregation = esb.filterAggregation(seriesName, resourceFilter).agg(seriesAggregation);
       queryAggregation.push(filterAggregation);
     };
