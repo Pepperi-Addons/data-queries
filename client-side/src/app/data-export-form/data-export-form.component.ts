@@ -340,6 +340,8 @@ export class DataExportFormComponent implements OnInit {
 
    buildFilterObject() {
     let filterNodes = [];
+    // add the category filter only if the user selected a value.
+    // if the value is an empty string, make sure it is a valid option and not the default 'none'.
     if(this.fields.groupByField || (this.fields.groupByField=='' && this.categoryOptions?.find(op => op.Key==''))) {
       filterNodes.push({
         Values: [
@@ -350,6 +352,8 @@ export class DataExportFormComponent implements OnInit {
         FieldType: this.groupByFieldType
       })
     }
+    // add the dynamic-series filter only if the user selected a value.
+    // if the value is an empty string, make sure it is a valid option and not the default 'none'.
     if(this.fields.breakByField || (this.fields.breakByField=='' && this.dynamicSerieOptions?.find(op => op.Key==''))) {
       filterNodes.push({
         Values: [
