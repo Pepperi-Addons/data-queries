@@ -46,6 +46,8 @@ class ElasticService {
     const query: DataQuery = await this.getUserDefinedQuery(request);
     let elasticRequestBody: RequestBodySearch;
     let hitsRequested = false;
+    // for filtering out hidden records
+    const hiddenFilter = esb.boolQuery().should([esb.matchQuery('Hidden', 'false'), esb.boolQuery().mustNot(esb.existsQuery('Hidden'))]);
     if(!request.body?.PageSize && !request.body?.Page) {
       elasticRequestBody = new esb.RequestBodySearch().size(0);
     } else {
@@ -67,6 +69,8 @@ class ElasticService {
       if(request.body?.Filter) {
         this.hitsFilter = esb.boolQuery().must([this.hitsFilter, toKibanaQuery(request.body?.Filter)]);
       }
+      // filter out hidden hits
+      this.hitsFilter = esb.boolQuery().must([this.hitsFilter, hiddenFilter]);
       hitsRequested = true;
     }
 
@@ -84,7 +88,7 @@ class ElasticService {
     }))[0];
 
     // build one query with all series (each aggregation have query and aggs)
-    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, resourceRelationData, request.body, hitsRequested);
+    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, resourceRelationData, request.body, hitsRequested, hiddenFilter);
     // this filter will be applied on the hits after aggregation is calculated
     elasticRequestBody.postFilter(this.hitsFilter);
     elasticRequestBody.aggs(queryAggregation);
@@ -111,7 +115,7 @@ class ElasticService {
 
   }
 
-  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[] }, query: DataQuery, resourceRelationData, body, hitsRequested) {
+  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[] }, query: DataQuery, resourceRelationData, body, hitsRequested, hiddenFilter) {
     const variableValues: {[varName: string]: string} = body?.VariableValues;
     const filterObject: JSONFilter = body?.Filter;
     const userID: string = body?.UserID;
@@ -140,7 +144,6 @@ class ElasticService {
       }
 
       // filter out hidden records
-      const hiddenFilter = esb.boolQuery().should([esb.matchQuery('Hidden', 'false'), esb.boolQuery().mustNot(esb.existsQuery('Hidden'))]);
       resourceFilter = esb.boolQuery().must([resourceFilter, hiddenFilter]);
 
       const filterAggregation = esb.filterAggregation(seriesName, resourceFilter).agg(seriesAggregation);
