@@ -385,7 +385,7 @@ getPreviewDataSource() {
                     Type: 'Grid',
                     Title: '',
                     Fields: this.PreviewListFields,
-                    Columns: Array(size).fill({ Width: 0 }),
+                    Columns: Array(size).fill({ Width: 30 }),
                     FrozenColumnsCount: 0,
                     MinimumColumnWidth: 0
                 },

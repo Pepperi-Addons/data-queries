@@ -310,13 +310,9 @@ export class SeriesEditorComponent implements OnInit {
       this.series.Filter = JSON.parse(JSON.stringify(this.filterRule));
   }
 
-  onTypeChange(e) {
-
-  }
-
-  onAggregatorSelected(aggregator){
+  onAggregatorSelected(){
     if(this.series.AggregatedFields[0].FieldID)
-      this.series.AggregatedFields[0].FieldID = null
+      this.series.AggregatedFields[0].FieldID = '';
     this.setFieldsByAggregator();
   }
   
