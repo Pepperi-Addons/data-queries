@@ -20,7 +20,7 @@
                     </pep-field-title>
                     <div class="flex-gap">
                         <pep-select [disabled]="!isLoaded" class="flex" [emptyOption]="false" [(value)]="series.AggregatedFields[0].Aggregator" [key]="'aggregationsSelect'" [label]="'Aggregator' | translate" [xAlignment]="'left'" 
-                        [options]='aggregationsOptions' (valueChange)="onAggregatorSelected($event)">
+                        [options]='aggregationsOptions' (valueChange)="onAggregatorSelected()">
                         </pep-select>
                         <pep-select [disabled]="!isLoaded" *ngIf="(series.AggregatedFields[0].Aggregator=='Sum' || series.AggregatedFields[0].Aggregator=='Average' || series.AggregatedFields[0].Aggregator=='CountDistinct') && isLoaded"
                          [mandatory]="true" class="flex" [emptyOption]="false" [(value)]="series.AggregatedFields[0].FieldID" [key]="'fieldAggregationsSelect'" [label]="'AggregatedField' | translate" [xAlignment]="'left'" 
