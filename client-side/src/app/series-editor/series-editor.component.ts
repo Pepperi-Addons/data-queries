@@ -98,8 +98,8 @@ export class SeriesEditorComponent implements OnInit {
     'yyyy MMM dd': 'YearMonthDay',
     'w':'Week',
     'w yyyy': 'WeekYear',
-    'q':'Quarter',
-    'q yyyy':'QuarterYear'
+    "'Q'q": 'Quarter',
+    "'Q'q yyyy": 'QuarterYear'
   }
 
   resourcesFields:any={};
@@ -198,8 +198,10 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   private setAuthorizationFiltersFields() {
-    this.userFilterOptions = [{ value: this.translate.instant("All_Users"), key: "AllUsers" }, { value: this.translate.instant("Current_User"), key: "CurrentUser" }],
-      this.accountFilterOptions = [{ value: this.translate.instant("All_Accounts"), key: "AllAccounts" }, { value: this.translate.instant("Assgined_Accounts"), key: "AccountsAssignedToCurrentUser" }];
+    this.userFilterOptions = [{ value: this.translate.instant("All_Users"), key: "AllUsers" }, { value: this.translate.instant("Current_User"), key: "CurrentUser" }, 
+    { value: this.translate.instant("Users_Under_My_Role"), key: "UsersUnderMyRole" }],
+    this.accountFilterOptions = [{ value: this.translate.instant("All_Accounts"), key: "AllAccounts" }, { value: this.translate.instant("Assigned_Accounts"), key: "AccountsAssignedToCurrentUser" }, 
+    { value: this.translate.instant("Accounts_Of_Users_Under_My_Role"), key: "AccountsOfUsersUnderMyRole" }];
   }
 
   private fillAggregatedFieldsType() {
@@ -226,22 +228,20 @@ export class SeriesEditorComponent implements OnInit {
     if(this.series.Resource && this.resourcesFields[this.series.Resource]){
           this.aggregationsFieldsOptions["Number"] =  this.resourcesFields[this.series.Resource].filter(f=>f.Type == "Integer" || f.Type == "Double").map(function(f) {return { key: f.FieldID, value: f.FieldID }})
           this.aggregationsFieldsOptions["Date"] =  this.resourcesFields[this.series.Resource].filter(f=>f.Type == "DateTime").map(function(f) {return { key: f.FieldID, value: f.FieldID }})
-          this.aggregationsFieldsOptions["All"] = this.resourcesFields[this.series.Resource].map(function(f) {return { key: f.FieldID, value: f.FieldID }});
+          this.aggregationsFieldsOptions["All"] = this.resourcesFields[this.series.Resource].map(function(f) {return { key: (f.Type=="String" || f.Type=="MultipleStringValues")  ? f.FieldID+'.cs' : f.FieldID, value: f.FieldID }});
     }
   }
 
-  getDataIndexFields() {
-    return this.pluginService.get(this.resourceRelationData["SchemaRelativeURL"]).then((schema) => {
-      let fields = []
-      for(const fieldID in schema.Fields) {
-        fields.push({
-          FieldID: fieldID,
-          Type: schema.Fields[fieldID].Type,
-          OptionalValues: schema.Fields[fieldID].OptionalValues
-        })
-      }
-      this.resourcesFields[this.series.Resource] = fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
-    })
+  async getDataIndexFields() {
+    // if there's no SchemaRelativeURL, get the schema using addon uuid and schema name from the relation data
+    let schema = this.resourceRelationData["SchemaRelativeURL"] ? await this.pluginService.get(this.resourceRelationData["SchemaRelativeURL"]) : 
+                 await this.pluginService.getSchemaByNameAndUUID(this.resourceRelationData.Name, this.resourceRelationData.AddonUUID);
+    let fields = [];
+    for(const fieldID in schema.Fields) {
+      this.pushFieldWithAllReferencedFields(fieldID, schema.Fields[fieldID], fields)
+    }
+    this.resourcesFields[this.series.Resource] = fields.sort((obj1, obj2) => (obj1.FieldID > obj2.FieldID ? 1 : -1));
+    return fields;
   }
 
   setFilterRuleFieldsOptions(){
@@ -359,6 +359,7 @@ export class SeriesEditorComponent implements OnInit {
   }
 
   onGroupByFieldSelected(event) {
+    if(event.slice(-3)==".cs") event = event.slice(0,-3);
     const parts = `.${event}`.split('.');
     var alias = parts[parts.length - 1];
     this.series.GroupBy[0].Alias = alias;
@@ -428,6 +429,27 @@ export class SeriesEditorComponent implements OnInit {
     }
     else {
       this.currentAggregatorFieldsOptions = this.aggregationsFieldsOptions['All']
+    }
+  }
+
+  pushFieldWithAllReferencedFields(fieldID, fieldData, fields) {
+    if(fieldData.Type == 'Resource' && fieldData.Indexed == true) {
+      fields.push({
+        FieldID: `${fieldID}.Key`,
+        Type: "String",
+        OptionalValues: fieldData.OptionalValues
+      });
+      if(fieldData.IndexedFields) {
+        for (let referencedFieldID in fieldData.IndexedFields) {
+          this.pushFieldWithAllReferencedFields(`${fieldID}.${referencedFieldID}`, fieldData.IndexedFields[referencedFieldID], fields);
+        }
+      }
+    } else {
+      fields.push({
+        FieldID: fieldID,
+        Type: fieldData.Type,
+        OptionalValues: fieldData.OptionalValues
+      });
     }
   }
 }

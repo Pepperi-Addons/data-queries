@@ -142,11 +142,11 @@ export const QueriesScheme =
                         "properties": {
                             "Account": {
                                 "type": "string",
-                                "enum": ["CurrentAccount", "AllAccounts", "AccountsAssignedToCurrentUser"]
+                                "enum": ["CurrentAccount", "AllAccounts", "AccountsAssignedToCurrentUser", "AccountsOfUsersUnderMyRole"]
                             },
                             "User": {
                                 "type": "string",
-                                "enum": ["CurrentUser", "AllUsers", "UsersWithTheSameFieldValue", "UnderCurrentUserRoleHierarchy"]
+                                "enum": ["CurrentUser", "AllUsers", "UsersUnderMyRole"]
                             }
                         },
                         "additionalProperties": false,

@@ -16,6 +16,7 @@ export type FormMode = 'Add' | 'Edit';
 export const EMPTY_OBJECT_NAME = 'NewCollection';
 
 import { config } from '../addon.config';
+import { QueryPreFormComponent } from '../query-pre-form/query-pre-form.component';
 
 @Component({
   selector: 'query-manager',
@@ -203,6 +204,12 @@ actions: IPepGenericListActions = {
                     }
                 })
                 actions.push({
+                    title: this.translate.instant('Duplicate'),
+                    handler: async (objs) => {
+                        this.duplicateQuery(objs.rows[0]);
+                    }
+                })
+                actions.push({
                     title: this.translate.instant('Show history'),
                     handler: async (objs) => {
                         this.openDataLogDialog(objs.rows[0]);
@@ -323,6 +330,30 @@ openDataLogDialog(queryKey) {
 
 onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {
     this.navigateToQueryForm('Edit', fieldClickEvent.id);
+}
+
+async openPreFormDialog() {
+    this.dialogService.openDialog(QueryPreFormComponent).afterClosed().subscribe(async res => {
+        if(res?.moveToQueryForm) {
+            const query = {
+                Key: this.uuidGenerator(),
+                Name: res.name,
+                Resource: res.resource,
+                Series: [],
+                Variables: []
+            }
+            await this.addonService.upsertDataQuery(query);
+            this.navigateToQueryForm('Edit', query.Key);
+        }
+    });
+}
+
+async duplicateQuery(key) {
+    let originalQuery = (await this.addonService.getDataQueryByKey(key))[0];
+    originalQuery.Key = this.uuidGenerator();
+    originalQuery.Name = `${originalQuery.Name}-copy`;
+    await this.addonService.upsertDataQuery(originalQuery);
+    this.dataSource = this.getDataSource();
 }
 
 }
