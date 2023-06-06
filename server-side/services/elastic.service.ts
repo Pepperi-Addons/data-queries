@@ -611,7 +611,7 @@ class ElasticService {
 
       const keyString = this.buildAggragationFieldString(aggregatedField);
       let val;
-      if (seriesAggregation[keyString]?.value) {
+      if (seriesAggregation[keyString]?.value != null) {
         val = seriesAggregation[keyString].value;
 
       } else {
