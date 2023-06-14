@@ -221,7 +221,7 @@ class ElasticService {
       const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
       // taking the fields from the relation
       const accountFieldID = resourceRelationData.AccountFieldID;
-      const userFieldID = resourceRelationData.UserFieldID;
+      const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
       const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
       const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}=${currUserId}&fields=Account.${accountFieldID}`);
 
@@ -239,7 +239,7 @@ class ElasticService {
     if(!requestedUserID && series.Scope.Account == "AccountsOfUsersUnderMyRole") {
       const usersUnderMyRole: any = await this.papiClient.get('/users?where=IsUnderMyRole=true');
       const accountFieldID = resourceRelationData.AccountFieldID;
-      const userFieldID = resourceRelationData.UserFieldID;
+      const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
       const usersIds = this.buildUsersIdsString(usersUnderMyRole, userFieldID);
       const accountsOfUsersUnderMyRole = await this.papiClient.get(`/account_users?where=User.${userFieldID} in ${usersIds}&fields=Account.${accountFieldID}`);
       const fieldName = resourceRelationData.IndexedAccountFieldID;
