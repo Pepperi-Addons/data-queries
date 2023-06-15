@@ -223,7 +223,7 @@ class ElasticService {
       const accountFieldID = resourceRelationData.AccountFieldID;
       const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
       const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
-      const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}=${currUserId}&fields=Account.${accountFieldID}`);
+      const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}='${currUserId}'&fields=Account.${accountFieldID}`);
 
       //IndexedAccountFieldID
       const fieldName = resourceRelationData.IndexedAccountFieldID;
