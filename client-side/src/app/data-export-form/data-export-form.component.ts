@@ -455,7 +455,7 @@ export class DataExportFormComponent implements OnInit {
   }
 
   formInvalid() {
-    return (this.fields?.seriesKey=='' || this.fields?.fromDate=='' || this.fields?.toDate=='');
+    return (this.fields?.seriesKey=='');
   }
 
   getListDataSource() {
