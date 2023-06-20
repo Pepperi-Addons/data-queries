@@ -186,14 +186,17 @@ class ElasticService {
 
   // if there is scope add user/accounts filters to resourceFilter
   private async addScopeFilters(series, resourceFilter, resourceRelationData, requestedUserID) {
-    if (requestedUserID || series.Scope.User == "CurrentUser") {
-      let userID = requestedUserID;
-      if(!requestedUserID) {
-      const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
-      const userFieldID = resourceRelationData.UserFieldID;
-      const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
-      userID = currUserId;
-      }
+	let userID;
+	if(requestedUserID) {
+		userID = requestedUserID;
+	} else {
+		const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
+		const userFieldID = resourceRelationData.UserFieldID;
+		const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
+		userID = currUserId;
+	}
+	
+    if (series.Scope.User == "CurrentUser") {
       // IndexedUserFieldID
       const fieldName = resourceRelationData.IndexedUserFieldID;
       var userFilter: JSONFilter = {
@@ -204,7 +207,8 @@ class ElasticService {
       }
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(userFilter)]);
     }
-    if(!requestedUserID && series.Scope.User == "UsersUnderMyRole") {
+
+    if(series.Scope.User == "UsersUnderMyRole") {
       const userFieldID = resourceRelationData.UserFieldID;
       const fieldName = resourceRelationData.IndexedUserFieldID;
       const usersUnderMyRole = await this.papiClient.get(`/users?where=IsUnderMyRole=true&fields=${userFieldID}`);
@@ -217,13 +221,11 @@ class ElasticService {
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(usersFilter)]);
     }
 
-    if(!requestedUserID && series.Scope.Account == "AccountsAssignedToCurrentUser") {
-      const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
+    if(series.Scope.Account == "AccountsAssignedToCurrentUser") {
       // taking the fields from the relation
       const accountFieldID = resourceRelationData.AccountFieldID;
       const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
-      const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
-      const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}='${currUserId}'&fields=Account.${accountFieldID}`);
+      const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}='${userID}'&fields=Account.${accountFieldID}`);
 
       //IndexedAccountFieldID
       const fieldName = resourceRelationData.IndexedAccountFieldID;
@@ -236,7 +238,7 @@ class ElasticService {
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(accountsFilter)]);
     }
 
-    if(!requestedUserID && series.Scope.Account == "AccountsOfUsersUnderMyRole") {
+    if(series.Scope.Account == "AccountsOfUsersUnderMyRole") {
       const usersUnderMyRole: any = await this.papiClient.get('/users?where=IsUnderMyRole=true');
       const accountFieldID = resourceRelationData.AccountFieldID;
       const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
