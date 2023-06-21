@@ -133,7 +133,6 @@ export class QueryFormComponent implements OnInit {
             }
             else {
                 seriesToAddOrUpdate.Resource = this.query.Resource;
-				this.userForPreview = null;
                 this.updateQuerySeries(seriesToAddOrUpdate);
                 this.query = await this.addonService.upsertDataQuery(this.query);
                 this.seriesDataSource = this.getSeriesDataSource();
