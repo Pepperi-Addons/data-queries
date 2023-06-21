@@ -133,6 +133,7 @@ export class QueryFormComponent implements OnInit {
             }
             else {
                 seriesToAddOrUpdate.Resource = this.query.Resource;
+				this.userForPreview = null;
                 this.updateQuerySeries(seriesToAddOrUpdate);
                 this.query = await this.addonService.upsertDataQuery(this.query);
                 this.seriesDataSource = this.getSeriesDataSource();
@@ -708,7 +709,7 @@ async previewDataHandler(data) {
         return [{
             key:'ChangeUser',
             text: this.translate.instant('Change User'),
-            hidden: !this.scopeFilterExistsOnQuery()
+            hidden: !this.scopeFiltersValidForChangeUser()
         },
         {
             key: 'ViewData',
@@ -767,12 +768,15 @@ async previewDataHandler(data) {
         this.openDialog(null,DataExportFormComponent,null,input,callback,true);
     }
 
-    scopeFilterExistsOnQuery() {
+    scopeFiltersValidForChangeUser() {
         let flag = false;
         for(const s of this.query.Series) {
-            if(s.Scope.Account!="AllAccounts" || s.Scope.User!="AllUsers") {
+			if(s.Scope.Account=="AccountsOfUsersUnderMyRole" || s.Scope.User=="UsersUnderMyRole") {
+                flag = false;
+				break;
+            }
+            if(s.Scope.Account=="AccountsUnderCurrentUser" || s.Scope.User=="CurrentUser") {
                 flag = true;
-                break;
             }
         }
         console.log(flag);
