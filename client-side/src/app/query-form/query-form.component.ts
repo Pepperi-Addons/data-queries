@@ -774,7 +774,7 @@ async previewDataHandler(data) {
                 flag = false;
 				break;
             }
-            if(s.Scope.Account=="AccountsUnderCurrentUser" || s.Scope.User=="CurrentUser") {
+            if(s.Scope.Account=="AccountsAssignedToCurrentUser" || s.Scope.User=="CurrentUser") {
                 flag = true;
             }
         }
