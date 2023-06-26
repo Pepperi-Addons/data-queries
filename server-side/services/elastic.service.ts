@@ -225,7 +225,7 @@ class ElasticService {
       // taking the fields from the relation
       const accountFieldID = resourceRelationData.AccountFieldID;
       const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
-      const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}='${userID}'&fields=Account.${accountFieldID}`);
+      const assignedAccounts = await this.papiClient.get(`/account_users?where=Hidden=false and User.${userFieldID}='${userID}'&fields=Account.${accountFieldID}`);
 
       //IndexedAccountFieldID
       const fieldName = resourceRelationData.IndexedAccountFieldID;
@@ -243,7 +243,7 @@ class ElasticService {
       const accountFieldID = resourceRelationData.AccountFieldID;
       const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
       const usersIds = this.buildUsersIdsString(usersUnderMyRole, userFieldID);
-      const accountsOfUsersUnderMyRole = await this.papiClient.get(`/account_users?where=User.${userFieldID} in ${usersIds}&fields=Account.${accountFieldID}`);
+      const accountsOfUsersUnderMyRole = await this.papiClient.get(`/account_users?where=Hidden=false and User.${userFieldID} in ${usersIds}&fields=Account.${accountFieldID}`);
       const fieldName = resourceRelationData.IndexedAccountFieldID;
       var accountsOfUsersFilter: JSONFilter = {
         FieldType: 'String',
