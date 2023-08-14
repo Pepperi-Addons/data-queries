@@ -98,7 +98,7 @@
                         </pep-select>
                         <pep-select *ngIf="IsDateBreakBy" class="flex25" [disabled]="!isLoaded ||!formFlags.useDynamicSeries" [(value)]="series.BreakBy.Interval" [label]="'Interval' | translate" [emptyOption]="false" [key]="'intervalSelect'" [xAlignment]="'left'" [options]='intervalOptions' (valueChange)="onChartSelected($event)">
                         </pep-select>
-                        <pep-select *ngIf="IsDateBreakBy" class="flex25" [label]="'Format' | translate" [(value)]="series.BreakBy.Format" [disabled]=" !isLoaded || !formFlags.useCategories" [emptyOption]="false" [key]="'formatSelect'" [xAlignment]="'left'" [(value)]="series.BreakBy && series.BreakBy.Format" [options]='formatOptions'>
+                        <pep-select *ngIf="IsDateBreakBy" class="flex25" [label]="'Format' | translate" [(value)]="series.BreakBy.Format" [disabled]=" !isLoaded || !formFlags.useDynamicSeries" [emptyOption]="false" [key]="'formatSelect'" [xAlignment]="'left'" [(value)]="series.BreakBy && series.BreakBy.Format" [options]='formatOptions'>
                         </pep-select>
                     </div>
                 </div>
