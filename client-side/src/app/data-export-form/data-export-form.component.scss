@@ -1,0 +1,15 @@
+::ng-deep .form-view{
+    padding: unset !important;
+    margin-top: unset !important;
+}
+.viewDataContent {
+    .generic-form {
+        height: 30rem;
+        width: 99.5%;
+    }
+    
+    .generic-list {
+        height: 25rem;
+        width: 99.5%;
+    }
+}

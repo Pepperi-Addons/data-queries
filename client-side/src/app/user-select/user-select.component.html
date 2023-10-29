@@ -1,0 +1,32 @@
+<pep-dialog [title]="'User filter' | translate">
+    <ng-container pep-dialog-content>
+        <span class="body-sm">{{ 'USER_FILTER_DESC1' | translate }}</span>
+        <span class="body-sm">{{ 'USER_FILTER_DESC2' | translate }}</span>
+        <span class="body-sm">{{ 'USER_FILTER_DESC3' | translate }}</span>
+        <span class="body-sm">{{ 'USER_FILTER_DESC4' | translate }}</span>
+        <pep-select
+            [(value)]="selectedUser"
+            [label]="'User' | translate"
+            type="select"
+            [disabled]="false"
+            xAlignment="left"
+            [options]="userOptions"
+            [showTitle]="true"
+            [emptyOption]="true"
+        ></pep-select>
+    </ng-container>
+
+    <ng-container pep-dialog-actions>
+        <div class="pep-spacing-element-negative">
+            <div>
+                <button  mat-button class="pep-spacing-element pep-button md weak" [mat-dialog-close]>
+                    {{'ACTIONS.CANCEL' | translate}}
+                </button>
+                <button mat-button class="pep-spacing-element pep-button md strong" (click)="onSave($event)" [mat-dialog-close]="selectedUser">
+                    {{'Apply' | translate}}
+                </button>
+            </div>
+        </div>
+    </ng-container>
+</pep-dialog>
+

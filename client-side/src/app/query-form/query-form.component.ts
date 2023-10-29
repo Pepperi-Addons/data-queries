@@ -15,7 +15,8 @@ import { MatDialogRef } from '@angular/material/dialog';
 import { IPepFormFieldClickEvent } from '@pepperi-addons/ngx-lib/form';
 import { VariableEditorComponent } from '../variable-editor/variable-editor.component';
 import { config } from '../addon.config';
-
+import { UserSelectComponent } from '../user-select/user-select.component';
+import { DataExportFormComponent } from '../data-export-form/data-export-form.component';
 
 
 @Component({
@@ -32,7 +33,11 @@ export class QueryFormComponent implements OnInit {
   querySaved: boolean = false;
   resourceRelations: Array<any> = [];
   resourceOptions: Array<any> = [];
-  queryLoaded: boolean = false;
+  styleOptions: Array<any> = [
+    { key: 'Decimal', value: 'Decimal' },
+    { key: 'Currency', value: 'Currency' },
+    { key: 'Custom', value: 'Custom' }
+  ];
   seriesDataSource: IPepGenericListDataSource = this.getSeriesDataSource();
   variablesDataSource: IPepGenericListDataSource = this.getVariablesDataSource();
   deleteError = 'Cannot delete Series';
@@ -42,6 +47,11 @@ export class QueryFormComponent implements OnInit {
   dialogRef: MatDialogRef<any>;
   dataFromExecute;
   resultsFromExecute;
+  menuItems;
+  userForPreview: string;
+  userOptions;
+  users;
+  selectedUserID;
 
   constructor(
     public addonService: AddonService,
@@ -53,26 +63,21 @@ export class QueryFormComponent implements OnInit {
     private utilitiesService: UtilitiesService,
     public loaderService: PepLoaderService) { }
 
-   async ngOnInit() {
+    async ngOnInit() {
         this.queryUUID = this.activateRoute.snapshot.params.query_uuid;
         this.addonService.addonUUID = config.AddonUUID;
         this.resourceRelations = await this.addonService.getResourceTypesFromRelation();
         this.resourceOptions = this.resourceRelations.map((resource) => {
           return { key: resource.Name, value: resource.Name }
         });
-        this.mode = this.router['form_mode'] || 'Add';
-        this.query = this.emptyQuery() as DataQuery;
-        this.query.Key = this.queryUUID;
-        if (this.mode == 'Edit') {
-            this.query = (await this.addonService.getDataQueryByKey(this.queryUUID))[0]
-            this.querySaved = true;
-        }
-        this.queryLoaded = true;
+        this.query = (await this.addonService.getDataQueryByKey(this.queryUUID))[0];
+        if(!this.query.Style) this.query.Style = 'Decimal';
+        if(!this.query.Format) this.query.Format = '{"style": "decimal"}';
+        this.querySaved = true;
         this.seriesDataSource = this.getSeriesDataSource();
         this.variablesDataSource = this.getVariablesDataSource();
         await this.executeSavedQuery();
-        this.previewDataSource = this.getPreviewDataSource();
-   }
+    }
 
   async saveClicked() {
     try {
@@ -109,12 +114,30 @@ export class QueryFormComponent implements OnInit {
     const callbackFunc = async (seriesToAddOrUpdate) => {
         this.addonService.addonUUID = config.AddonUUID;
         if (seriesToAddOrUpdate) {
-            seriesToAddOrUpdate.Resource = this.query.Resource;
-            this.updateQuerySeries(seriesToAddOrUpdate);
-            this.query = await this.addonService.upsertDataQuery(this.query);
-            this.seriesDataSource = this.getSeriesDataSource();
-            await this.executeSavedQuery();
-            this.previewDataSource = this.getPreviewDataSource();
+            const allSeriesExceptCurrent = this.query.Series.filter(s => s.Key!=seriesToAddOrUpdate.Key);
+            const anotherSeriesWithSameName = allSeriesExceptCurrent.find(s => s.Name==seriesToAddOrUpdate.Name);
+            if(anotherSeriesWithSameName) {
+                const actionButton: PepDialogActionButton = {
+                    title: "OK",
+                    className: "",
+                    callback: null
+                };
+                const dialogData = new PepDialogData({
+                    title: this.translate.instant('SeriesExistsTitle'),
+                    content: this.translate.instant('SeriesExistsContent'),
+                    actionButtons: [actionButton],
+                    actionsType: "custom",
+                    showClose: false
+                });
+                this.dialogService.openDefaultDialog(dialogData);
+            }
+            else {
+                seriesToAddOrUpdate.Resource = this.query.Resource;
+                this.updateQuerySeries(seriesToAddOrUpdate);
+                this.query = await this.addonService.upsertDataQuery(this.query);
+                this.seriesDataSource = this.getSeriesDataSource();
+                await this.executeSavedQuery();
+            }
         }
     }
 
@@ -131,7 +154,7 @@ export class QueryFormComponent implements OnInit {
       resourceRelationData: this.resourceRelations.filter(r => r.Name == this.query?.Resource)[0],
       inputVariables: this.query?.Variables
     };
-    this.openDialog(this.translate.instant('EditQuery'), SeriesEditorComponent, actionButton, input, callbackFunc);
+    this.openDialog(this.translate.instant('EditSeries'), SeriesEditorComponent, actionButton, input, callbackFunc);
   }
 
   protected updateQuerySeries(seriesToAddOrUpdate: any) {
@@ -191,7 +214,7 @@ export class QueryFormComponent implements OnInit {
                     Key: s.Key,
                     Name: s.Name,
                     Aggregator: s.AggregatedFields[0].Aggregator,
-                    FieldName: this.removecsSuffix(s.AggregatedFields[0].FieldID)
+                    FieldName: this.addonService.removecsSuffix(s.AggregatedFields[0].FieldID)
                 }
             })
             return Promise.resolve({
@@ -261,7 +284,8 @@ export class QueryFormComponent implements OnInit {
         return {
             Name: '',
             Series: [],
-            Variables: []
+            Variables: [],
+            Style: 'Decimal'
         }
     }
 
@@ -302,7 +326,6 @@ export class QueryFormComponent implements OnInit {
                 this.seriesDataSource = this.getSeriesDataSource();
                 this.variablesDataSource = this.getVariablesDataSource();
                 await this.executeSavedQuery();
-                this.previewDataSource = this.getPreviewDataSource();
                 }
                 catch (error) {
                     if (error.message.indexOf(this.deleteError) > 0)
@@ -362,7 +385,7 @@ getPreviewDataSource() {
                     Type: 'Grid',
                     Title: '',
                     Fields: this.PreviewListFields,
-                    Columns: Array(size).fill({ Width: 0 }),
+                    Columns: Array(size).fill({ Width: 30 }),
                     FrozenColumnsCount: 0,
                     MinimumColumnWidth: 0
                 },
@@ -407,11 +430,11 @@ async previewDataHandler(data) {
 
         data.DataSet.forEach(dataSet => {
             for(let i in dataSet) {
-                dataSet[i]+='';
+                dataSet[i] = dataSet[i].toLocaleString(undefined, data.NumberFormatter);
             }
             previewDataSet.push(dataSet);
         });
-        this.PreviewListFields = [...this.getPreviewListFields(distinctgroups),...this.getPreviewListFields(distinctSeries,'NumberReal')];
+        this.PreviewListFields = [...this.getPreviewListFields(distinctgroups),...this.getPreviewListFields(distinctSeries)];
         return previewDataSet;
     }
     catch (err) {
@@ -439,13 +462,13 @@ async previewDataHandler(data) {
     return previewFields;
   }
 
-  openDialog(title, content, buttons, input, callbackFunc = null): void {
+  openDialog(title, content, buttons, input, callbackFunc = null, fullScreen: boolean = false): void {
     const config = this.dialogService.getDialogConfig(
         {
             disableClose: true,
             panelClass: 'pepperi-standalone'
         },
-        'inline'
+        fullScreen ? 'full-screen' : 'inline'
     );
     const data = new PepDialogData({
         title: title,
@@ -519,7 +542,6 @@ async previewDataHandler(data) {
                 this.query = await this.addonService.upsertDataQuery(this.query);
                 this.variablesDataSource = this.getVariablesDataSource();
                 await this.executeSavedQuery();
-                this.previewDataSource = this.getPreviewDataSource();
             }
         }
     
@@ -622,13 +644,17 @@ async previewDataHandler(data) {
 
     async executeSavedQuery() {
         this.loaderService.show();
-        let varValues = {}
+        this.menuItems = this.getMenuItems();
+        let varValues = {};
         for(const v of this.query.Variables) {
-            varValues[v.Name] = v.PreviewValue
+            varValues[v.Name] = v.PreviewValue;
         }
-        const body = {"VariableValues": varValues}
+        let body = {"VariableValues": varValues};
+        if(this.userForPreview) {
+            body["UserID"] = this.selectedUserID;
+        }
         try {
-            var data = this.querySaved ? await this.addonService.executeQuery(this.query?.Key, body) : {DataSet: [], DataQueries: []};
+            let data = this.querySaved ? await this.addonService.executeQueryForAdmin(this.query?.Key, body) : {DataSet: [], DataQueries: []};
             this.dataFromExecute = data;
             let results = await this.previewDataHandler(data);
             this.resultsFromExecute = results;
@@ -638,6 +664,7 @@ async previewDataHandler(data) {
             } else {
                 this.previewNoDataMessage = this.translate.instant('PreviewNoDataFound');
             }
+            this.previewDataSource = this.getPreviewDataSource();
             this.loaderService.hide();
         } catch(ex) {
             this.loaderService.hide();
@@ -651,8 +678,112 @@ async previewDataHandler(data) {
         }
     }
 
-    removecsSuffix(str) {
-        return (str.slice(-3)==".cs") ? str.slice(0,-3) : str;
+    async formatChanged() {
+        if(this.query.Style=='Custom') {
+            if(this.query.Format=='') this.query.Format='{}';
+            try {
+                // test the format before execution
+                const parsed = JSON.parse(this.query.Format);
+                const testNumber = 123;
+                testNumber.toLocaleString(undefined, parsed);
+            } 
+            catch(ex) {
+                const dataMsg = new PepDialogData({
+                    title: this.translate.instant('Bad Format'),
+                    actionsType: 'close',
+                    content: ex
+                });
+                this.dialogService.openDefaultDialog(dataMsg);
+                return;
+            }
+        }
+        const currencyRegex = new RegExp(/^[A-Z]{3}$/g);
+        if(currencyRegex.test(this.query.Currency)) {
+            await this.saveClicked();
+            await this.executeSavedQuery();
+        }
+    }
+
+    getMenuItems() {
+        return [{
+            key:'ChangeUser',
+            text: this.translate.instant('Change User'),
+            hidden: !this.scopeFilterExistsOnQuery()
+        },
+        {
+            key: 'ViewData',
+            text: this.translate.instant('View Data'),
+        }]
+    }
+
+    menuItemClick(event: any) {
+        switch (event.source.key) {
+            case 'ChangeUser':
+                this.openUserSelectionDialog();
+                break;
+            case 'ViewData':
+                this.openViewDataDialog();
+                break;
+        }
+    }
+
+    async openUserSelectionDialog() {
+        const actionButton: PepDialogActionButton = {
+            title: "OK",
+            className: "",
+            callback: null,
+        };
+        await this.setUserOptions();
+        const input = {
+            userOptions: this.userOptions,
+            selectedUser: this.userForPreview
+        };
+        const callback = async (selectedUser: string) => {
+            if (selectedUser && selectedUser!='') {
+                console.log(selectedUser);
+                this.userForPreview = selectedUser;
+                const userData = this.users.find(u => u.UUID==selectedUser);
+                const resourceData = this.resourceRelations.find(r => r.Name==this.query.Resource)
+                const userFieldID = resourceData.UserFieldID;
+                this.selectedUserID = userFieldID == "InternalID" ? userData.InternalID.toString() : userData.UUID;
+                console.log(this.selectedUserID);
+                await this.executeSavedQuery();
+            }
+            else if (selectedUser=='') {
+                this.userForPreview = null;
+                await this.executeSavedQuery();
+            }
+        }
+        this.openDialog(this.translate.instant('Select user'),UserSelectComponent,actionButton,input,callback);
+    }
+
+    async openViewDataDialog() {
+        const input = {
+            userName: this.userOptions?.find(u => u.key==this.userForPreview)?.value,
+            userID: this.selectedUserID,
+            query: this.query
+        }
+        const callback = (data: any) => {};
+        this.openDialog(null,DataExportFormComponent,null,input,callback,true);
+    }
+
+    scopeFilterExistsOnQuery() {
+        let flag = false;
+        for(const s of this.query.Series) {
+            if(s.Scope.Account!="AllAccounts" || s.Scope.User!="AllUsers") {
+                flag = true;
+                break;
+            }
+        }
+        console.log(flag);
+        return flag;
+    }
+
+    async setUserOptions() {
+        this.users = await this.addonService.get('/users?fields=UUID,FirstName,LastName,InternalID');
+        this.userOptions = this.users.map((user) => {
+        return { key: user.UUID, value: `${user.FirstName} ${user.LastName}` };
+        });
     }
 
 }

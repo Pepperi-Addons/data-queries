@@ -213,6 +213,15 @@ export const QueriesScheme =
         },
         "Description": {
             "type": "string"
+        },
+        "Style": {
+            "type": "string"
+        },
+        "Currency": {
+            "type": "string"
+        },
+        "Format": {
+            "type": "string"
         }
     },
     "anyOf": [

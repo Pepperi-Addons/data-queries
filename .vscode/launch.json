@@ -28,6 +28,10 @@
             },
             "runtimeExecutable": "${workspaceFolder}/server-side/node_modules/.bin/nodemon",
             "restart": true,
+            "resolveSourceMapLocations": [
+                "${workspaceFolder}/**",
+                "!**/node_modules/**"
+            ]
         },
         {
             "type": "node",

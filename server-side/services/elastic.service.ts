@@ -1,9 +1,9 @@
 import { PapiClient } from '@pepperi-addons/papi-sdk'
 import { Client, Request } from '@pepperi-addons/debug-server';
 import config from '../../addon.config.json'
-import { AggregatedField, AggregatedParam, BreakBy, DataQuery, DataTypes, DATA_QUREIES_TABLE_NAME, GroupBy, Interval, Intervals, Serie } from '../models/data-query';
+import { AggregatedField, DataQuery, DATA_QUREIES_TABLE_NAME, GroupBy, Interval, Serie } from '../models/data-query';
 import { validate } from 'jsonschema';
-import esb, { Aggregation, Query } from 'elastic-builder';
+import esb, { Aggregation, Query, RequestBodySearch } from 'elastic-builder';
 import { callElasticSearchLambda } from '@pepperi-addons/system-addon-utils';
 import jwtDecode from 'jwt-decode';
 import { DataQueryResponse, SeriesData } from '../models/data-query-response';
@@ -33,6 +33,7 @@ class ElasticService {
     Year: 'yyyy',
     None: ''
   }
+  hitsFilter: Query = esb.matchAllQuery();
 
   async executeUserDefinedQuery(client: Client, request: Request) {
 
@@ -43,18 +44,43 @@ class ElasticService {
     }
 
     const query: DataQuery = await this.getUserDefinedQuery(request);
-    const distributorUUID = (<any>jwtDecode(client.OAuthAccessToken))["pepperi.distributoruuid"];
-    let endpoint = `${distributorUUID}/_search`;
-    const method = 'POST';
-
-    let elasticRequestBody = new esb.RequestBodySearch().size(0);
+    let elasticRequestBody: RequestBodySearch;
+    let hitsRequested = false;
+    // for filtering out hidden records
+    const hiddenFilter = esb.boolQuery().should([esb.matchQuery('Hidden', 'false'), esb.boolQuery().mustNot(esb.existsQuery('Hidden'))]);
+    if(!request.body?.PageSize && !request.body?.Page) {
+      elasticRequestBody = new esb.RequestBodySearch().size(0);
+    } else {
+      let pageSize = request.body?.PageSize ?? 100;
+      if(pageSize > 100) pageSize = 100;
+      let page = request.body?.Page ?? 1;
+      page = Math.max(page-1,0);
+      elasticRequestBody = new esb.RequestBodySearch().size(pageSize).from(pageSize*(page));
+      if(request.body?.Fields) elasticRequestBody = elasticRequestBody.source(request.body.Fields);
+      if(request.body?.Series) {
+        const requestedSeries = query.Series.find(s => s.Name === request.body.Series);
+        if(!requestedSeries) {
+          throw new Error(`Series '${request.body.Series}' does not exist on data query ID: ${query.Key}`);
+        }
+        if(requestedSeries?.Filter) {
+          this.hitsFilter = esb.boolQuery().must([this.hitsFilter, toKibanaQuery(requestedSeries.Filter)]);
+        }
+      }
+      if(request.body?.Filter) {
+        this.hitsFilter = esb.boolQuery().must([this.hitsFilter, toKibanaQuery(request.body?.Filter)]);
+      }
+      // filter out hidden hits
+      this.hitsFilter = esb.boolQuery().must([this.hitsFilter, hiddenFilter]);
+      hitsRequested = true;
+    }
 
     if (!query.Series || query.Series.length == 0) {
       return new DataQueryResponse();
     }
 
     // handle aggregation by series
-    let aggregationsList: { [key: string]: Aggregation[] } = this.buildSeriesAggregationList(query.Series);;
+    const series = request.body?.Series ? query.Series.filter(s => s.Name == request.body?.Series) : query.Series;
+    let aggregationsList: { [key: string]: Aggregation[] } = this.buildSeriesAggregationList(series);
 
     // need to get the relation data based on the resource name
     const resourceRelationData = (await this.papiClient.addons.data.relations.find({
@@ -62,11 +88,11 @@ class ElasticService {
     }))[0];
 
     // build one query with all series (each aggregation have query and aggs)
-    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, request.body?.VariableValues, resourceRelationData);
-
+    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, resourceRelationData, request.body, hitsRequested, hiddenFilter);
+    // this filter will be applied on the hits after aggregation is calculated
+    elasticRequestBody.postFilter(this.hitsFilter);
     elasticRequestBody.aggs(queryAggregation);
-
-    const body = elasticRequestBody.toJSON();
+    const body = {"DSL": elasticRequestBody.toJSON()};
     console.log(`lambdaBody: ${JSON.stringify(body)}`);
 
     //const lambdaResponse = await callElasticSearchLambda(endpoint, method, JSON.stringify(body), null, true);
@@ -79,7 +105,7 @@ class ElasticService {
       //const lambdaResponse = await this.papiClient.post(`/elasticsearch/search/${query.Resource}`,body);
       const lambdaResponse = await this.papiClient.post(resourceRelationData.AddonRelativeURL ?? '',body);
       console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
-      let response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query);
+      const response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query, request.body?.Series, hitsRequested);
       return response;
     }
     catch(ex){
@@ -89,10 +115,13 @@ class ElasticService {
 
   }
 
-  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[]; }, query: DataQuery, variableValues: {[varName: string]: string}, resourceRelationData) {
+  private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[] }, query: DataQuery, resourceRelationData, body, hitsRequested, hiddenFilter) {
+    const variableValues: {[varName: string]: string} = body?.VariableValues;
+    const filterObject: JSONFilter = body?.Filter;
+    const userID: string = body?.UserID;
     let queryAggregation: any = [];
-
-    for(var seriesName of Object.keys(aggregationsList)) {
+    let seriesToIterate = Object.keys(aggregationsList);
+    for(const seriesName of seriesToIterate) {
 
       // build nested aggregations from array of aggregations for each series
       let seriesAggregation: esb.Aggregation = this.buildNestedAggregations(aggregationsList[seriesName]);
@@ -106,8 +135,17 @@ class ElasticService {
         const serializedQuery: Query = toKibanaQuery(series.Filter);
         resourceFilter = esb.boolQuery().must([resourceFilter, serializedQuery]);
       }
-      
-      resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData);
+      resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData, userID);
+      if(hitsRequested) {
+        this.hitsFilter = esb.boolQuery().must([this.hitsFilter, resourceFilter]);
+      }
+      if(filterObject) {
+        resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(filterObject)]);
+      }
+
+      // filter out hidden records
+      resourceFilter = esb.boolQuery().must([resourceFilter, hiddenFilter]);
+
       const filterAggregation = esb.filterAggregation(seriesName, resourceFilter).agg(seriesAggregation);
       queryAggregation.push(filterAggregation);
     };
@@ -147,22 +185,26 @@ class ElasticService {
   }
 
   // if there is scope add user/accounts filters to resourceFilter
-  private async addScopeFilters(series, resourceFilter, resourceRelationData) {
-    if (series.Scope.User == "CurrentUser") {
+  private async addScopeFilters(series, resourceFilter, resourceRelationData, requestedUserID) {
+    if (requestedUserID || series.Scope.User == "CurrentUser") {
+      let userID = requestedUserID;
+      if(!requestedUserID) {
       const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
       const userFieldID = resourceRelationData.UserFieldID;
       const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
+      userID = currUserId;
+      }
       // IndexedUserFieldID
       const fieldName = resourceRelationData.IndexedUserFieldID;
       var userFilter: JSONFilter = {
         FieldType: 'String',
         ApiName: fieldName,
         Operation: 'IsEqual',
-        Values: [currUserId]
+        Values: [userID]
       }
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(userFilter)]);
     }
-    if(series.Scope.User == "UsersUnderMyRole") {
+    if(!requestedUserID && series.Scope.User == "UsersUnderMyRole") {
       const userFieldID = resourceRelationData.UserFieldID;
       const fieldName = resourceRelationData.IndexedUserFieldID;
       const usersUnderMyRole = await this.papiClient.get(`/users?where=IsUnderMyRole=true&fields=${userFieldID}`);
@@ -175,7 +217,7 @@ class ElasticService {
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(usersFilter)]);
     }
 
-    if(series.Scope.Account == "AccountsAssignedToCurrentUser") {
+    if(!requestedUserID && series.Scope.Account == "AccountsAssignedToCurrentUser") {
       const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
       // taking the fields from the relation
       const accountFieldID = resourceRelationData.AccountFieldID;
@@ -194,7 +236,7 @@ class ElasticService {
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(accountsFilter)]);
     }
 
-    if(series.Scope.Account == "AccountsOfUsersUnderMyRole") {
+    if(!requestedUserID && series.Scope.Account == "AccountsOfUsersUnderMyRole") {
       const usersUnderMyRole: any = await this.papiClient.get('/users?where=IsUnderMyRole=true');
       const accountFieldID = resourceRelationData.AccountFieldID;
       const userFieldID = resourceRelationData.UserFieldID;
@@ -303,7 +345,7 @@ class ElasticService {
     return esb.bucketSortAggregation('sort').sort([esb.sort(aggName, order)]).size(serie.Top.Max)
   }
 
-  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery) {
+  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string, hitsRequested: boolean) {
 
     // for debugging
     // lambdaResponse = {
@@ -466,8 +508,9 @@ class ElasticService {
     // }
 
     let response: DataQueryResponse = new DataQueryResponse();
+    const seriesToIterate = (seriesName) ? query.Series.filter(s => s.Name==seriesName) : query.Series;
 
-    query.Series.forEach(series => {
+    seriesToIterate.forEach(series => {
 
       let seriesData = new SeriesData(series.Name);
 
@@ -515,8 +558,25 @@ class ElasticService {
       }
       response.DataQueries.push(seriesData);
     });
-
+    if(hitsRequested) response.Objects = lambdaResponse.hits?.hits?.map(hit => hit['_source']);
+    response.NumberFormatter = this.getFormat(query);
     return response;
+  }
+
+  private getFormat(query) {
+    let format = {};
+    switch(query.Style) {
+        case 'Custom':
+            format = JSON.parse(query.Format);
+            break;
+        case 'Decimal':
+            format = {style: "decimal"};
+            break;
+        case 'Currency':
+            format = {style:"currency", currency: query.Currency};
+            break;
+    }
+    return format;
   }
 
   private handleBreakBy(series: Serie, groupBybuckets: any, response: DataQueryResponse, dataSet, seriesData: SeriesData) {
@@ -551,7 +611,7 @@ class ElasticService {
 
       const keyString = this.buildAggragationFieldString(aggregatedField);
       let val;
-      if (seriesAggregation[keyString]?.value) {
+      if (seriesAggregation[keyString]?.value != null) {
         val = seriesAggregation[keyString].value;
 
       } else {

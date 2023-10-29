@@ -1,0 +1,39 @@
+<div style="overflow: hidden !important">
+    <pep-dialog [title]="'View data' | translate" [showFooter]="false"
+        [showClose]="true" (close)="closeDialog($event)">
+        <ng-container pep-dialog-content>
+        <div class="viewDataContent">
+            <pep-generic-form class="generic-form"
+                [showTopBar]="false"
+                [dataSource]="dataSource"
+                [dataView]="dataView"
+                [inline]="true"
+                (valueChange)="valueChange($event)"
+                *ngIf="isLoaded">
+            </pep-generic-form>
+            <pep-generic-list class="generic-list"
+                [title]="'Result' | translate"
+                [showTopBar]="true"
+                [dataSource]="listData"
+                [inline]="true"
+                [addPadding]="false"
+                [showSearch]="false"
+                [selectionType] = "'none'"
+                [noDataFoundMsg]="' '"
+                *ngIf="isLoaded">
+                <ng-container right-buttons>
+                    <pep-button
+                        class="pep-spacing-element"
+                        [sizeType]="'sm'"
+                        [value]="'Run' | translate"
+                        [styleType]="'strong'"
+                        [disabled]="formInvalid()"
+                        (buttonClick)="onRunClicked()">
+                    </pep-button>
+                </ng-container>
+            </pep-generic-list>
+        </div>
+        </ng-container>
+    </pep-dialog>
+</div>
+

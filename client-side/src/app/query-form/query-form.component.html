@@ -1,7 +1,7 @@
 
-<pep-page-layout [addPadding]="true" *ngIf="queryLoaded">
+<pep-page-layout [addPadding]="true" *ngIf="querySaved">
     <ng-container pep-top-area>
-        <pep-top-bar [title]="mode == 'Add' ? ('Query_Add_Title' | translate) : ('Query_Edit_Title' | translate: {query_name: query.Name})">
+        <pep-top-bar [title]="('Query_Edit_Title' | translate: {query_name: query.Name})">
             <div header-start-content>
                 <!-- <pep-button class="pep-spacing-element" (buttonClick)="goBack()" [iconName]="'arrow_left_alt'"></pep-button> -->
             </div>
@@ -33,10 +33,42 @@
                 [emptyOption]="false"
                 (valueChange)="saveClicked()"
             ></pep-select>
+            <pep-select
+                [(value)]="query.Style"
+                [label]="'Value format' | translate"
+                type="select"
+                [mandatory]="false"
+                [disabled]="false"
+                xAlignment="left"
+                [options]="styleOptions"
+                [showTitle]="true"
+                [emptyOption]="false"
+                (valueChange)="formatChanged()"
+            ></pep-select>
+            <pep-textbox
+                [(value)]="query.Currency"
+                [label]="'Currency' | translate"
+                type="text"
+                [mandatory]="true"
+                [disabled]="false"
+                [regex]="'[A-Z]{3}'"
+                [regexError]="'Not a currency' | translate"
+                (valueChange)="formatChanged()"
+                *ngIf="query.Style=='Currency'"
+            ></pep-textbox>
+            <pep-textbox
+                [(value)]="query.Format"
+                [label]="'Format' | translate"
+                type="text"
+                [mandatory]="false"
+                [disabled]="false"
+                (valueChange)="formatChanged()"
+                *ngIf="query.Style=='Custom'"
+            ></pep-textbox>
         </div>
         <div class="genericListContainer">
                 <pep-generic-list class="generic-list"
-                [title] = "'Input variables' | translate"
+                [title]="'Input variables' | translate"
                 [description]="'Variables_Description' | translate"
                 [showTopBar]="true"
                 [dataSource]="variablesDataSource"
@@ -100,6 +132,18 @@
                 [noDataFoundMsg]="previewNoDataMessage"
                 *ngIf="(querySaved)"
                 >
+                <ng-container right-buttons>
+                    <pep-menu
+                        classNames="pep-spacing-element"
+                        iconName="system_menu"
+                        type="action"
+                        styleType="strong"
+                        sizeType="sm"
+                        [items]="menuItems"
+                        [disabled]="false"
+                        (menuItemClick)="menuItemClick($event)"
+                ></pep-menu>
+                </ng-container>
             </pep-generic-list>
         </div>
     </ng-container>

@@ -8,24 +8,24 @@ import { PepTextareaModule } from '@pepperi-addons/ngx-lib/textarea';
 import { PepAddonService, PepCustomizationService, PepFileService } from '@pepperi-addons/ngx-lib';
 import { PepDialogModule, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
 import { AddonService } from '../../services/addon.service';
-import { SeriesEditorComponent } from './series-editor.component';
+import { DataExportFormComponent } from './data-export-form.component';
 import { PepFieldTitleModule } from '@pepperi-addons/ngx-lib/field-title';
 import { TranslateLoader, TranslateModule, TranslateService, TranslateStore } from '@ngx-translate/core';
-import { HttpClient } from '@angular/common/http';
-import { config } from '../addon.config';
 import { PepIconModule } from '@pepperi-addons/ngx-lib/icon';
 import { MatIconModule } from '@angular/material/icon';
-import { MatDialogModule, MatDialogRef, MAT_DIALOG_DATA, MAT_DIALOG_DEFAULT_OPTIONS } from '@angular/material/dialog';
+import { MatDialogModule } from '@angular/material/dialog';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PepCheckboxModule } from '@pepperi-addons/ngx-lib/checkbox';
 import {PepQueryBuilderModule} from '@pepperi-addons/ngx-lib/query-builder'
-import { PepNgxLibModule } from '@pepperi-addons/ngx-lib';
-
+import { PepGenericFormModule } from '@pepperi-addons/ngx-composite-lib/generic-form';
+import { PepTopBarModule } from '@pepperi-addons/ngx-lib/top-bar';
+import { PepPageLayoutModule } from '@pepperi-addons/ngx-lib/page-layout';
+import { PepGenericListModule } from '@pepperi-addons/ngx-composite-lib/generic-list';
 
 
 
 @NgModule({
-  declarations: [SeriesEditorComponent],
+  declarations: [DataExportFormComponent],
   imports: [
     CommonModule,
     FormsModule,
@@ -37,24 +37,25 @@ import { PepNgxLibModule } from '@pepperi-addons/ngx-lib';
     PepTextareaModule,
     PepGroupButtonsModule,
     PepDialogModule,
+    PepGenericFormModule,
     PepFieldTitleModule,
     PepIconModule,
     MatIconModule,
     MatDialogModule,
-    PepNgxLibModule,
     PepQueryBuilderModule,
+    PepTopBarModule,
+    PepPageLayoutModule,
+    PepGenericListModule,
     TranslateModule.forChild(),
   ],
-  exports: [SeriesEditorComponent],
+  exports: [DataExportFormComponent],
   providers: [
     TranslateStore,
     AddonService,
     // Add here all used services.
-    { provide: MAT_DIALOG_DATA, useValue: {} },
-    { provide: MatDialogRef, useValue: {} }
   ]
 })
-export class SeriesEditorModule {
+export class DataExportFormModule {
   constructor(
     translate: TranslateService,
     private pepAddonService: PepAddonService

@@ -13,7 +13,7 @@ import { Relation } from '@pepperi-addons/papi-sdk'
 import MyService from './my.service';
 import { DATA_QUREIES_TABLE_NAME, queriesTableScheme } from './models';
 import { UtilitiesService } from './services/utilities.service';
-
+import semver from 'semver';
 
 export async function install(client: Client, request: Request): Promise<any> {
     // For page block template uncomment this.
@@ -24,7 +24,7 @@ export async function install(client: Client, request: Request): Promise<any> {
         await service.papiClient.addons.data.schemes.post(queriesTableScheme);
         await service.createDIMXRelations();
         await createPageBlockRelation(client);
-
+        await createPolicyAndProfile(service, client.AddonUUID);
         return {success:true, resultObject:{}}
     }
     catch (err) {
@@ -38,7 +38,7 @@ export async function install(client: Client, request: Request): Promise<any> {
 
 export async function uninstall(client: Client, request: Request): Promise<any> {
     try{
-        const service = new UtilitiesService(client)
+        const service = new UtilitiesService(client);
         await service.papiClient.post(`/addons/data/schemes/${DATA_QUREIES_TABLE_NAME}/purge`);
         return { success: true, resultObject: {} }
     }
@@ -51,7 +51,12 @@ export async function uninstall(client: Client, request: Request): Promise<any> 
 
 export async function upgrade(client: Client, request: Request): Promise<any> {
     try{
+        const service = new UtilitiesService(client);
         await createPageBlockRelation(client);
+        if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.0.0') < 0) 
+        {
+            await createPolicyAndProfile(service, client.AddonUUID);
+        }
         return {success:true,resultObject:{}}
     }
     catch(err){
@@ -103,4 +108,18 @@ function handleException(err: unknown): any {
         errorMessage: errorMessage,
         resultObject: {}
     };
+}
+
+async function createPolicyAndProfile(service, addonUUID) {
+    await service.papiClient.post('/policies', {
+        AddonUUID: addonUUID,
+        Name: "CALL_EXECUTE",
+        Description: "permission to call execute endpoint"
+    });
+    await service.papiClient.post('/policy_profiles', {
+        PolicyAddonUUID: addonUUID,
+        PolicyName: "CALL_EXECUTE",
+        ProfileID: "1",
+        Allowed: true
+    });
 }
