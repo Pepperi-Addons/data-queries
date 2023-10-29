@@ -399,8 +399,7 @@ export class SeriesEditorComponent implements OnInit {
   resourceIsValidForAccountFilter(resourceRelationData) {
     return (
       resourceRelationData.IndexedAccountFieldID &&
-      resourceRelationData.AccountFieldID &&
-      resourceRelationData.UserFieldID
+      resourceRelationData.AccountFieldID
     );
   }
 

@@ -56,5 +56,21 @@ export class UtilitiesService {
         return await this.papiClient.addons.data.uuid(this.addonUUID).table('DataQueries').find(options);
 
     }
+
+	// expects an array of objects with a Name property
+	caseInsensitiveSortByName(objects: any[]): any[] {
+		return objects.sort(function(a, b) {
+			const nameA = a.Name.toUpperCase(); // ignore upper and lowercase
+			const nameB = b.Name.toUpperCase(); // ignore upper and lowercase
+			if (nameA < nameB) {
+			  return -1;
+			}
+			if (nameA > nameB) {
+			  return 1;
+			}
+			// names must be equal
+			return 0;
+		});
+	}
         
 }

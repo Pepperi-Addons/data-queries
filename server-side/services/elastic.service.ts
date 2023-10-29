@@ -186,14 +186,17 @@ class ElasticService {
 
   // if there is scope add user/accounts filters to resourceFilter
   private async addScopeFilters(series, resourceFilter, resourceRelationData, requestedUserID) {
-    if (requestedUserID || series.Scope.User == "CurrentUser") {
-      let userID = requestedUserID;
-      if(!requestedUserID) {
-      const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
-      const userFieldID = resourceRelationData.UserFieldID;
-      const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
-      userID = currUserId;
-      }
+	let userID;
+	if(requestedUserID) {
+		userID = requestedUserID;
+	} else {
+		const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
+		const userFieldID = resourceRelationData.UserFieldID;
+		const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
+		userID = currUserId;
+	}
+	
+    if (series.Scope.User == "CurrentUser") {
       // IndexedUserFieldID
       const fieldName = resourceRelationData.IndexedUserFieldID;
       var userFilter: JSONFilter = {
@@ -204,7 +207,8 @@ class ElasticService {
       }
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(userFilter)]);
     }
-    if(!requestedUserID && series.Scope.User == "UsersUnderMyRole") {
+
+    if(series.Scope.User == "UsersUnderMyRole") {
       const userFieldID = resourceRelationData.UserFieldID;
       const fieldName = resourceRelationData.IndexedUserFieldID;
       const usersUnderMyRole = await this.papiClient.get(`/users?where=IsUnderMyRole=true&fields=${userFieldID}`);
@@ -217,13 +221,11 @@ class ElasticService {
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(usersFilter)]);
     }
 
-    if(!requestedUserID && series.Scope.Account == "AccountsAssignedToCurrentUser") {
-      const jwtData = <any>jwtDecode(this.client.OAuthAccessToken);
+    if(series.Scope.Account == "AccountsAssignedToCurrentUser") {
       // taking the fields from the relation
       const accountFieldID = resourceRelationData.AccountFieldID;
-      const userFieldID = resourceRelationData.UserFieldID;
-      const currUserId = userFieldID=="InternalID" ? jwtData["pepperi.id"] : jwtData["pepperi.useruuid"];
-      const assignedAccounts = await this.papiClient.get(`/account_users?where=User.${userFieldID}=${currUserId}&fields=Account.${accountFieldID}`);
+      const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
+      const assignedAccounts = await this.papiClient.get(`/account_users?where=Hidden=false and User.${userFieldID}='${userID}'&fields=Account.${accountFieldID}`);
 
       //IndexedAccountFieldID
       const fieldName = resourceRelationData.IndexedAccountFieldID;
@@ -236,12 +238,12 @@ class ElasticService {
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(accountsFilter)]);
     }
 
-    if(!requestedUserID && series.Scope.Account == "AccountsOfUsersUnderMyRole") {
+    if(series.Scope.Account == "AccountsOfUsersUnderMyRole") {
       const usersUnderMyRole: any = await this.papiClient.get('/users?where=IsUnderMyRole=true');
       const accountFieldID = resourceRelationData.AccountFieldID;
-      const userFieldID = resourceRelationData.UserFieldID;
+      const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
       const usersIds = this.buildUsersIdsString(usersUnderMyRole, userFieldID);
-      const accountsOfUsersUnderMyRole = await this.papiClient.get(`/account_users?where=User.${userFieldID} in ${usersIds}&fields=Account.${accountFieldID}`);
+      const accountsOfUsersUnderMyRole = await this.papiClient.get(`/account_users?where=Hidden=false and User.${userFieldID} in ${usersIds}&fields=Account.${accountFieldID}`);
       const fieldName = resourceRelationData.IndexedAccountFieldID;
       var accountsOfUsersFilter: JSONFilter = {
         FieldType: 'String',
@@ -279,12 +281,9 @@ class ElasticService {
         });
       }
 
-      // Second level handle break by - if no break by - create dummy break by becuase we works on buckets
+      // Second level handle break by
       if (serie.BreakBy && serie.BreakBy.FieldID) {
         aggregations.push(this.buildAggregationQuery(serie.BreakBy, aggregations));
-      }
-      else {
-        aggregations.push(this.buildDummyBreakBy());
       }
 
       // Third level - handle aggregated fields
@@ -335,177 +334,12 @@ class ElasticService {
     return aggregationsList;
   }
 
-  buildDummyBreakBy(): esb.Aggregation {
-    let query: Aggregation = esb.termsAggregation('DummyBreakBy').script(esb.script('inline', "'DummyBreakBy'")).minDocCount(0);
-    return query;
-  }
-
   private buildBucketSortAggregation(aggName, serie) {
     const order = serie.Top.Ascending === true ? 'asc' : 'desc';
     return esb.bucketSortAggregation('sort').sort([esb.sort(aggName, order)]).size(serie.Top.Max)
   }
 
   private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string, hitsRequested: boolean) {
-
-    // for debugging
-    // lambdaResponse = {
-    //   "aggregations" : {
-    //     "Total sales ($)" : {
-    //       "doc_count" : 6122,
-    //       "Item.MainCategory" : {
-    //         "doc_count_error_upper_bound" : 0,
-    //         "sum_other_doc_count" : 0,
-    //         "buckets" : [
-    //           {
-    //             "key" : "Pharmacy",
-    //             "doc_count" : 5203,
-    //             "DummyBreakBy" : {
-    //               "doc_count_error_upper_bound" : 0,
-    //               "sum_other_doc_count" : 0,
-    //               "buckets" : [
-    //                 {
-    //                   "key" : "DummyBreakBy",
-    //                   "doc_count" : 5203,
-    //                   "TotalUnitsPriceAfterDiscount_Sum" : {
-    //                     "value" : 1310815.0
-    //                   }
-    //                 }
-    //               ]
-    //             }
-    //           },
-    //           {
-    //             "key" : "Skincare",
-    //             "doc_count" : 779,
-    //             "DummyBreakBy" : {
-    //               "doc_count_error_upper_bound" : 0,
-    //               "sum_other_doc_count" : 0,
-    //               "buckets" : [
-    //                 {
-    //                   "key" : "DummyBreakBy",
-    //                   "doc_count" : 779,
-    //                   "TotalUnitsPriceAfterDiscount_Sum" : {
-    //                     "value" : 83446.0
-    //                   }
-    //                 }
-    //               ]
-    //             }
-    //           },
-    //           {
-    //             "key" : "Hand Cosmetics",
-    //             "doc_count" : 139,
-    //             "DummyBreakBy" : {
-    //               "doc_count_error_upper_bound" : 0,
-    //               "sum_other_doc_count" : 0,
-    //               "buckets" : [
-    //                 {
-    //                   "key" : "DummyBreakBy",
-    //                   "doc_count" : 139,
-    //                   "TotalUnitsPriceAfterDiscount_Sum" : {
-    //                     "value" : 3879.0
-    //                   }
-    //                 }
-    //               ]
-    //             }
-    //           },
-    //           {
-    //             "key" : "PPI_Package1",
-    //             "doc_count" : 1,
-    //             "DummyBreakBy" : {
-    //               "doc_count_error_upper_bound" : 0,
-    //               "sum_other_doc_count" : 0,
-    //               "buckets" : [
-    //                 {
-    //                   "key" : "DummyBreakBy",
-    //                   "doc_count" : 1,
-    //                   "TotalUnitsPriceAfterDiscount_Sum" : {
-    //                     "value" : 57.0
-    //                   }
-    //                 }
-    //               ]
-    //             }
-    //           }
-    //         ]
-    //       }
-    //     },
-    //     "Total sales (QTY)" : {
-    //       "doc_count" : 6122,
-    //       "Item.MainCategory" : {
-    //         "doc_count_error_upper_bound" : 0,
-    //         "sum_other_doc_count" : 0,
-    //         "buckets" : [
-    //           {
-    //             "key" : "Pharmacy",
-    //             "doc_count" : 5203,
-    //             "DummyBreakBy" : {
-    //               "doc_count_error_upper_bound" : 0,
-    //               "sum_other_doc_count" : 0,
-    //               "buckets" : [
-    //                 {
-    //                   "key" : "DummyBreakBy",
-    //                   "doc_count" : 5203,
-    //                   "UnitsQuantity_Sum" : {
-    //                     "value" : 66906.0
-    //                   }
-    //                 }
-    //               ]
-    //             }
-    //           },
-    //           {
-    //             "key" : "Skincare",
-    //             "doc_count" : 779,
-    //             "DummyBreakBy" : {
-    //               "doc_count_error_upper_bound" : 0,
-    //               "sum_other_doc_count" : 0,
-    //               "buckets" : [
-    //                 {
-    //                   "key" : "DummyBreakBy",
-    //                   "doc_count" : 779,
-    //                   "UnitsQuantity_Sum" : {
-    //                     "value" : 3742.0
-    //                   }
-    //                 }
-    //               ]
-    //             }
-    //           },
-    //           {
-    //             "key" : "Hand Cosmetics",
-    //             "doc_count" : 139,
-    //             "DummyBreakBy" : {
-    //               "doc_count_error_upper_bound" : 0,
-    //               "sum_other_doc_count" : 0,
-    //               "buckets" : [
-    //                 {
-    //                   "key" : "DummyBreakBy",
-    //                   "doc_count" : 139,
-    //                   "UnitsQuantity_Sum" : {
-    //                     "value" : 211.0
-    //                   }
-    //                 }
-    //               ]
-    //             }
-    //           },
-    //           {
-    //             "key" : "PPI_Package1",
-    //             "doc_count" : 1,
-    //             "DummyBreakBy" : {
-    //               "doc_count_error_upper_bound" : 0,
-    //               "sum_other_doc_count" : 0,
-    //               "buckets" : [
-    //                 {
-    //                   "key" : "DummyBreakBy",
-    //                   "doc_count" : 1,
-    //                   "UnitsQuantity_Sum" : {
-    //                     "value" : 1.0
-    //                   }
-    //                 }
-    //               ]
-    //             }
-    //           }
-    //         ]
-    //       }
-    //     }
-    //   }
-    // }
 
     let response: DataQueryResponse = new DataQueryResponse();
     const seriesToIterate = (seriesName) ? query.Series.filter(s => s.Name==seriesName) : query.Series;
@@ -526,9 +360,9 @@ class ElasticService {
           }
 
           seriesData.Groups.push(groupByString);
-          seriesAggregation[groupBy.FieldID].buckets.forEach(groupBybuckets => {
+          seriesAggregation[groupBy.FieldID].buckets.forEach(groupBybucket => {
 
-            const groupByValue = this.getKeyAggregationName(groupBybuckets).toString();
+            const groupByValue = this.getKeyAggregationName(groupBybucket).toString();
             let dataSet = <Map<string, any>>{};
 
             // If there are multiple Query Series, they should all have the same groups and then their series will be joined
@@ -542,7 +376,7 @@ class ElasticService {
               dataSet[groupByString] = groupByValue;
               response.DataSet.push(dataSet);
             }
-            this.handleBreakBy(series, groupBybuckets, response, dataSet, seriesData);
+            this.handleSeriesWithGroupBy(series, groupBybucket, response, dataSet, seriesData);
           });
         });
       }
@@ -554,7 +388,8 @@ class ElasticService {
         } else {
           response.DataSet.push(dataSet);
         }
-        this.handleBreakBy(series, seriesAggregation, response, dataSet, seriesData);
+
+		this.handleSeriesWithoutGroupBy(series, seriesAggregation, response, dataSet, seriesData);
       }
       response.DataQueries.push(seriesData);
     });
@@ -579,31 +414,45 @@ class ElasticService {
     return format;
   }
 
-  private handleBreakBy(series: Serie, groupBybuckets: any, response: DataQueryResponse, dataSet, seriesData: SeriesData) {
+  private handleSeriesWithoutGroupBy(series: Serie, seriesAggregation: any, response: DataQueryResponse, dataSet, seriesData: SeriesData) {
+	  // breakBy ONLY case
+	  if (series.BreakBy && series.BreakBy.FieldID) {
+		this.handleAggregatorsFieldsWithBreakBy(seriesAggregation[series.BreakBy.FieldID], series, dataSet, seriesData);
+	  }
+	  // no groupBy or breakBy case
+	  else {
+		// sending the aggregation itself as the bucket
+		this.handleBucket(series.Name, seriesAggregation, series, dataSet, seriesData);
+	  }
+  }
+
+  private handleSeriesWithGroupBy(series: Serie, groupBybucket: any, response: DataQueryResponse, dataSet, seriesData: SeriesData) {
+	// groupBy AND breakBy case
     if (series.BreakBy && series.BreakBy.FieldID) {
-      this.handleAggregatorsFieldsWithBreakBy(groupBybuckets[series.BreakBy.FieldID], series, dataSet, seriesData);
+      this.handleAggregatorsFieldsWithBreakBy(groupBybucket[series.BreakBy.FieldID], series, dataSet, seriesData);
     }
+	// groupBy ONLY case
+	// removed the dummyBreakBy from the query aggregation
     else {
-      this.handleAggregatorsFieldsWithBreakBy(groupBybuckets['DummyBreakBy'], series, dataSet, seriesData);
+		this.handleBucket(series.Name, groupBybucket, series, dataSet, seriesData);
     }
   }
 
-  private handleAggregatorsFieldsWithBreakBy(breakBy: any, series: Serie, dataSet: Map<string, any>, seriesData) {
+  private handleAggregatorsFieldsWithBreakBy(breakBy: any, series: Serie, dataSet: Map<string, any>, seriesData: SeriesData) {
     breakBy.buckets.forEach(bucket => {
-      let seriesName;
-      seriesName = this.getKeyAggregationName(bucket);
-      if (seriesName === 'DummyBreakBy') {
-        seriesName = series.Name;
-      }
-      if (series.Label) {
-        seriesName = this.buildDataSetKeyString(seriesName, series.Label);
-      }
-      if (seriesData.Series.indexOf(seriesName) == -1) {
-        seriesData.Series.push(seriesName);
-      }
-      this.handleAggregatedFields(seriesName, bucket, series.AggregatedFields, dataSet);
-
+      const seriesName = this.getKeyAggregationName(bucket);
+      this.handleBucket(seriesName, bucket, series, dataSet, seriesData);
     });
+  }
+
+  private handleBucket(seriesName: string, bucket: any, series: Serie, dataSet: Map<string, any>, seriesData: SeriesData) {
+	if (series.Label) {
+		seriesName = this.buildDataSetKeyString(seriesName, series.Label);
+	  }
+	  if (seriesData.Series.indexOf(seriesName) == -1) {
+		seriesData.Series.push(seriesName);
+	  }
+	  this.handleAggregatedFields(seriesName, bucket, series.AggregatedFields, dataSet);
   }
 
   private handleAggregatedFields(seriesName, seriesAggregation, aggregatedFields, dataSet: Map<string, any>) {

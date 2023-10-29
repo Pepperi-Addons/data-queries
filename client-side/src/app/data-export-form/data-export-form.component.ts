@@ -364,7 +364,7 @@ export class DataExportFormComponent implements OnInit {
         FieldType: this.breakByFieldType
       })
     }
-    if(this.fields.fromDate && this.fields.toDate) {
+    if(this.fields.fromDate != '' && this.fields.toDate != '') {
       filterNodes.push({
         Values: [
           this.fields.fromDate,
@@ -417,8 +417,8 @@ export class DataExportFormComponent implements OnInit {
     this.categoryOptions = await this.buildOptionalValuesOptions(this.selectedSeries.GroupBy[0].FieldID, true, dataSetFromExecute);
     this.dynamicSerieOptions = await this.buildOptionalValuesOptions(this.selectedSeries.BreakBy.FieldID, false, dataSetFromExecute);
     if(this.dateFilterField==null) {
-      this.fields.fromDate = null;
-      this.fields.toDate = null;
+      this.fields.fromDate = '';
+      this.fields.toDate = '';
     }
   }
 
@@ -455,7 +455,7 @@ export class DataExportFormComponent implements OnInit {
   }
 
   formInvalid() {
-    return (this.fields?.seriesKey=='' || this.fields?.fromDate=='' || this.fields?.toDate=='');
+    return (this.fields?.seriesKey=='');
   }
 
   getListDataSource() {

@@ -708,7 +708,7 @@ async previewDataHandler(data) {
         return [{
             key:'ChangeUser',
             text: this.translate.instant('Change User'),
-            hidden: !this.scopeFilterExistsOnQuery()
+            hidden: !this.scopeFiltersValidForChangeUser()
         },
         {
             key: 'ViewData',
@@ -767,12 +767,15 @@ async previewDataHandler(data) {
         this.openDialog(null,DataExportFormComponent,null,input,callback,true);
     }
 
-    scopeFilterExistsOnQuery() {
+    scopeFiltersValidForChangeUser() {
         let flag = false;
         for(const s of this.query.Series) {
-            if(s.Scope.Account!="AllAccounts" || s.Scope.User!="AllUsers") {
+			if(s.Scope.Account=="AccountsOfUsersUnderMyRole" || s.Scope.User=="UsersUnderMyRole") {
+                flag = false;
+				break;
+            }
+            if(s.Scope.Account=="AccountsAssignedToCurrentUser" || s.Scope.User=="CurrentUser") {
                 flag = true;
-                break;
             }
         }
         console.log(flag);
@@ -780,9 +783,10 @@ async previewDataHandler(data) {
     }
 
     async setUserOptions() {
-        this.users = await this.addonService.get('/users?fields=UUID,FirstName,LastName,InternalID');
+        this.users = await this.addonService.get('/users?fields=UUID,FirstName,LastName,InternalID,Name');
+		this.users = this.utilitiesService.caseInsensitiveSortByName(this.users);
         this.userOptions = this.users.map((user) => {
-        return { key: user.UUID, value: `${user.FirstName} ${user.LastName}` };
+        	return { key: user.UUID, value: user.Name };
         });
     }
 
