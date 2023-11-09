@@ -742,10 +742,8 @@ async previewDataHandler(data) {
             if (selectedUser && selectedUser!='') {
                 console.log(selectedUser);
                 this.userForPreview = selectedUser;
-                const userData = this.users.find(u => u.UUID==selectedUser);
-                const resourceData = this.resourceRelations.find(r => r.Name==this.query.Resource)
-                const userFieldID = resourceData.UserFieldID;
-                this.selectedUserID = userFieldID == "InternalID" ? userData.InternalID.toString() : userData.UUID;
+                const userData = this.users.find(u => u.Key==selectedUser);
+                this.selectedUserID = userData.Key;
                 console.log(this.selectedUserID);
                 await this.executeSavedQuery();
             }
@@ -783,10 +781,10 @@ async previewDataHandler(data) {
     }
 
     async setUserOptions() {
-        this.users = await this.addonService.get('/resources/users?fields=UUID,FirstName,LastName,InternalID,Name');
+        this.users = await this.addonService.get('/resources/users?fields=Key,FirstName,LastName,Name');
 		this.users = this.utilitiesService.caseInsensitiveSortByName(this.users);
         this.userOptions = this.users.map((user) => {
-        	return { key: user.UUID, value: user.Name };
+        	return { key: user.Key, value: user.Name };
         });
     }
 
