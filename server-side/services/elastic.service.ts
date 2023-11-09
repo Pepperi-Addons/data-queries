@@ -230,7 +230,8 @@ class ElasticService {
 	  let requestQuery = (userFieldID == "UUID") ?
 	   `where=Hidden=false and User='${userID}'&fields=${accountFullFieldID}` :
 	   `where=Hidden=false and User.${userFieldID}='${userID}'&fields=${accountFullFieldID}`;
-	
+	 
+	  console.log(`requestQuery sent to resources/account_users: ${requestQuery}`);
       const assignedAccounts = await this.papiClient.get(`/resources/account_users?${requestQuery}`);
 
       //IndexedAccountFieldID
