@@ -211,6 +211,7 @@ class ElasticService {
     if(series.Scope.User == "UsersUnderMyRole") {
       const userFieldID = resourceRelationData.UserFieldID;
       const fieldName = resourceRelationData.IndexedUserFieldID;
+	  // working with papi users (instead of adal users), because buyers doesn't have IsUnderMyRole
       const usersUnderMyRole = await this.papiClient.get(`/users?where=IsUnderMyRole=true&fields=${userFieldID}`);
       var usersFilter: JSONFilter = {
         FieldType: 'String',
@@ -223,9 +224,15 @@ class ElasticService {
 
     if(series.Scope.Account == "AccountsAssignedToCurrentUser") {
       // taking the fields from the relation
-      const accountFieldID = resourceRelationData.AccountFieldID;
-      const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
-      const assignedAccounts = await this.papiClient.get(`/account_users?where=Hidden=false and User.${userFieldID}='${userID}'&fields=Account.${accountFieldID}`);
+      let accountFieldID = resourceRelationData.AccountFieldID;
+      let userFieldID = resourceRelationData.UserFieldID ?? "UUID";
+	  let accountFullFieldID = (userFieldID == "UUID") ? `Account` : `Account.${accountFieldID}`;
+	  let requestQuery = (userFieldID == "UUID") ?
+	   `where=Hidden=false and User='${userID}'&fields=${accountFullFieldID}` :
+	   `where=Hidden=false and User.${userFieldID}='${userID}'&fields=${accountFullFieldID}`;
+	 
+	  console.log(`requestQuery sent to resources/account_users: ${requestQuery}`);
+      const assignedAccounts = await this.papiClient.get(`/resources/account_users?${requestQuery}`);
 
       //IndexedAccountFieldID
       const fieldName = resourceRelationData.IndexedAccountFieldID;
@@ -233,16 +240,19 @@ class ElasticService {
         FieldType: 'String',
         ApiName: fieldName,
         Operation: 'IsEqual',
-        Values: assignedAccounts.map(account => account[`Account.${accountFieldID}`])
+        Values: assignedAccounts.map(account => account[accountFullFieldID])
       }
       resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(accountsFilter)]);
     }
 
     if(series.Scope.Account == "AccountsOfUsersUnderMyRole") {
+	  // working with papi users (instead of adal users), because buyers doesn't have IsUnderMyRole
       const usersUnderMyRole: any = await this.papiClient.get('/users?where=IsUnderMyRole=true');
       const accountFieldID = resourceRelationData.AccountFieldID;
       const userFieldID = resourceRelationData.UserFieldID ?? "UUID";
       const usersIds = this.buildUsersIdsString(usersUnderMyRole, userFieldID);
+	  
+	  // working with papi account_users (instead of adal account_users), because buyers doesn't have IsUnderMyRole
       const accountsOfUsersUnderMyRole = await this.papiClient.get(`/account_users?where=Hidden=false and User.${userFieldID} in ${usersIds}&fields=Account.${accountFieldID}`);
       const fieldName = resourceRelationData.IndexedAccountFieldID;
       var accountsOfUsersFilter: JSONFilter = {
