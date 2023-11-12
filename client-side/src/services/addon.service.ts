@@ -117,4 +117,8 @@ export class AddonService {
           });
         }
     }
+
+	setTimeZoneOffetOnBody(body) {
+		body["TimeZoneOffset"] = (new Date().getTimezoneOffset() / 60) * (-1); // offset in hours
+	}
 }
