@@ -591,14 +591,23 @@ class ElasticService {
   private timeZoneOffsetToString(timeZoneOffset: number) {
 	let timeZoneOffsetString: string | undefined = undefined;
 
-	if(timeZoneOffset >= 0) {
-		timeZoneOffsetString = timeZoneOffset >= 10 ? `+${timeZoneOffset}:00` : `+0${timeZoneOffset}:00`;
-	}
-	else if(timeZoneOffset < 0) {
-		timeZoneOffsetString = timeZoneOffset <= -10 ? `-${Math.abs(timeZoneOffset)}:00` : `-0${Math.abs(timeZoneOffset)}:00`;
+	if(timeZoneOffset) {
+		timeZoneOffsetString = this.toHoursAndMinutes(Math.abs(timeZoneOffset));
+		timeZoneOffsetString = (timeZoneOffset >= 0) ? `+${timeZoneOffsetString}` : `-${timeZoneOffsetString}`;
 	}
 
 	return timeZoneOffsetString;
+  }
+
+  private toHoursAndMinutes(totalMinutes) {
+	const minutes = totalMinutes % 60;
+	const hours = Math.floor(totalMinutes / 60);
+  
+	return `${this.padTo2Digits(hours)}:${this.padTo2Digits(minutes)}`;
+  }
+  
+  private padTo2Digits(num) {
+	return num.toString().padStart(2, '0');
   }
 }
 

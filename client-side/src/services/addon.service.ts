@@ -121,6 +121,6 @@ export class AddonService {
     }
 
 	setTimeZoneOffsetOnBody(body) {
-		body["TimeZoneOffset"] = (new Date().getTimezoneOffset() / 60) * (-1); // offset in hours
+		body["TimeZoneOffset"] = (new Date().getTimezoneOffset()) * (-1); // offset in minutes
 	}
 }
