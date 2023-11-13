@@ -533,7 +533,8 @@ class ElasticService {
     if (aggregatedField.Aggregator === 'Script') {
       return `${aggregatedField.Aggregator}`
     } else {
-      return `${aggregatedField.FieldID.replace('.', '')}_${aggregatedField.Aggregator}`
+	  const dotRegex = new RegExp('\\.', 'g');
+      return `${aggregatedField.FieldID.replace(dotRegex, '')}_${aggregatedField.Aggregator}`
     }
   }
 
