@@ -41,10 +41,12 @@ export class AddonService {
     }
 
     async executeQuery(queryID, body = {}) {
+		this.setTimeZoneOffsetOnBody(body);
         return this.papiClient.post(`/data_queries/${queryID}/execute`, body);
     }
 
     async executeQueryForAdmin(queryID, body = {}) {
+		this.setTimeZoneOffsetOnBody(body);
         return this.papiClient.post(`/data_queries/${queryID}/execute/debug`, body);
     }
 
@@ -118,7 +120,7 @@ export class AddonService {
         }
     }
 
-	setTimeZoneOffetOnBody(body) {
+	setTimeZoneOffsetOnBody(body) {
 		body["TimeZoneOffset"] = (new Date().getTimezoneOffset() / 60) * (-1); // offset in hours
 	}
 }
