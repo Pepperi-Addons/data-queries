@@ -34,6 +34,7 @@ class ElasticService {
     None: ''
   }
   hitsFilter: Query = esb.matchAllQuery();
+  hitsRequested: boolean = false;
 
   async executeUserDefinedQuery(client: Client, request: Request) {
 
@@ -44,35 +45,11 @@ class ElasticService {
     }
 
     const query: DataQuery = await this.getUserDefinedQuery(request);
-    let elasticRequestBody: RequestBodySearch;
-    let hitsRequested = false;
+
     // for filtering out hidden records
-    const hiddenFilter = esb.boolQuery().should([esb.matchQuery('Hidden', 'false'), esb.boolQuery().mustNot(esb.existsQuery('Hidden'))]);
-    if(!request.body?.PageSize && !request.body?.Page) {
-      elasticRequestBody = new esb.RequestBodySearch().size(0);
-    } else {
-      let pageSize = request.body?.PageSize ?? 100;
-      if(pageSize > 100) pageSize = 100;
-      let page = request.body?.Page ?? 1;
-      page = Math.max(page-1,0);
-      elasticRequestBody = new esb.RequestBodySearch().size(pageSize).from(pageSize*(page));
-      if(request.body?.Fields) elasticRequestBody = elasticRequestBody.source(request.body.Fields);
-      if(request.body?.Series) {
-        const requestedSeries = query.Series.find(s => s.Name === request.body.Series);
-        if(!requestedSeries) {
-          throw new Error(`Series '${request.body.Series}' does not exist on data query ID: ${query.Key}`);
-        }
-        if(requestedSeries?.Filter) {
-          this.hitsFilter = esb.boolQuery().must([this.hitsFilter, toKibanaQuery(requestedSeries.Filter)]);
-        }
-      }
-      if(request.body?.Filter) {
-        this.hitsFilter = esb.boolQuery().must([this.hitsFilter, toKibanaQuery(request.body?.Filter)]);
-      }
-      // filter out hidden hits
-      this.hitsFilter = esb.boolQuery().must([this.hitsFilter, hiddenFilter]);
-      hitsRequested = true;
-    }
+    const hiddenFilter: esb.BoolQuery = esb.boolQuery().should([esb.matchQuery('Hidden', 'false'), esb.boolQuery().mustNot(esb.existsQuery('Hidden'))]);
+
+	let elasticRequestBody: RequestBodySearch = this.applyBodyParamsToQuery(request, query, hiddenFilter);
 
     if (!query.Series || query.Series.length == 0) {
       return new DataQueryResponse();
@@ -91,24 +68,17 @@ class ElasticService {
     }))[0];
 
     // build one query with all series (each aggregation have query and aggs)
-    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, resourceRelationData, request.body, hitsRequested, hiddenFilter, timeZoneOffsetString);
+    let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, resourceRelationData, request.body, hiddenFilter, timeZoneOffsetString);
     // this filter will be applied on the hits after aggregation is calculated
     elasticRequestBody.postFilter(this.hitsFilter);
     elasticRequestBody.aggs(queryAggregation);
     const body = {"DSL": elasticRequestBody.toJSON()};
     console.log(`lambdaBody: ${JSON.stringify(body)}`);
 
-    //const lambdaResponse = await callElasticSearchLambda(endpoint, method, JSON.stringify(body), null, true);
-
-    // if (!lambdaResponse.success) {
-    //   console.log(`Failed to execute data query ID: ${query.Key}, lambdaBody: ${JSON.stringify(body)}`)
-    //   throw new Error(`Failed to execute data query ID: ${query.Key}`);
-    // }
     try {
-      //const lambdaResponse = await this.papiClient.post(`/elasticsearch/search/${query.Resource}`,body);
       const lambdaResponse = await this.papiClient.post(resourceRelationData.AddonRelativeURL ?? '',body);
       console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
-      const response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query, request.body?.Series, hitsRequested);
+      const response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query, request.body?.Series);
       return response;
     }
     catch(ex){
@@ -118,8 +88,40 @@ class ElasticService {
 
   }
 
+  private applyBodyParamsToQuery(request: Request, query: DataQuery, hiddenFilter: esb.BoolQuery): RequestBodySearch {
+	let elasticRequestBody: RequestBodySearch;
+
+	if(!request.body?.PageSize && !request.body?.Page) {
+		elasticRequestBody = new esb.RequestBodySearch().size(0);
+	} 
+	else {
+		let pageSize = request.body?.PageSize ?? 100;
+		if(pageSize > 100) pageSize = 100;
+		let page = request.body?.Page ?? 1;
+		page = Math.max(page-1,0);
+		elasticRequestBody = new esb.RequestBodySearch().size(pageSize).from(pageSize*(page));
+		if(request.body?.Fields) elasticRequestBody = elasticRequestBody.source(request.body.Fields);
+		if(request.body?.Series) {
+		  const requestedSeries = query.Series.find(s => s.Name === request.body.Series);
+		  if(!requestedSeries) {
+			throw new Error(`Series '${request.body.Series}' does not exist on data query ID: ${query.Key}`);
+		  }
+		  if(requestedSeries?.Filter) {
+			this.hitsFilter = esb.boolQuery().must([this.hitsFilter, toKibanaQuery(requestedSeries.Filter)]);
+		  }
+		}
+		if(request.body?.Filter) {
+		  this.hitsFilter = esb.boolQuery().must([this.hitsFilter, toKibanaQuery(request.body?.Filter)]);
+		}
+		// filter out hidden hits
+		this.hitsFilter = esb.boolQuery().must([this.hitsFilter, hiddenFilter]);
+		this.hitsRequested = true;
+	}
+	return elasticRequestBody;
+  }
+
   private async buildAllSeriesAggregation(aggregationsList: { [key: string]: esb.Aggregation[] }, query: DataQuery,
-	resourceRelationData, body, hitsRequested, hiddenFilter, timeZoneOffsetString: string | undefined) 
+	resourceRelationData, body, hiddenFilter, timeZoneOffsetString: string | undefined) 
   {
     const variableValues: {[varName: string]: string} = body?.VariableValues;
     const filterObject: JSONFilter = body?.Filter;
@@ -141,7 +143,7 @@ class ElasticService {
         resourceFilter = esb.boolQuery().must([resourceFilter, serializedQuery]);
       }
       resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData, userID);
-      if(hitsRequested) {
+      if(this.hitsRequested) {
         this.hitsFilter = esb.boolQuery().must([this.hitsFilter, resourceFilter]);
       }
       if(filterObject) {
@@ -354,7 +356,7 @@ class ElasticService {
     return esb.bucketSortAggregation('sort').sort([esb.sort(aggName, order)]).size(serie.Top.Max)
   }
 
-  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string, hitsRequested: boolean) {
+  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string) {
 
     let response: DataQueryResponse = new DataQueryResponse();
     const seriesToIterate = (seriesName) ? query.Series.filter(s => s.Name==seriesName) : query.Series;
@@ -408,7 +410,7 @@ class ElasticService {
       }
       response.DataQueries.push(seriesData);
     });
-    if(hitsRequested) response.Objects = lambdaResponse.hits?.hits?.map(hit => hit['_source']);
+    if(this.hitsRequested) response.Objects = lambdaResponse.hits?.hits?.map(hit => hit['_source']);
     response.NumberFormatter = this.getFormat(query);
     return response;
   }
