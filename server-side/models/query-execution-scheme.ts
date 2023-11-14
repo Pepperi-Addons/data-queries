@@ -25,6 +25,9 @@ export const QueryExecutionScheme =
         },
         "UserID": {
             "type": "string"
+        },
+		"TimeZoneOffset": {
+            "type": "integer"
         }
     },
     "additionalProperties": false
