@@ -54,8 +54,8 @@ export class AddonService {
         return this.papiClient.get(`/data_queries?where=Key='${Key}'`);
     }
 
-    async getAllQueries(){
-        return this.papiClient.get(`/data_queries`);
+    async getAllQueriesForList(){
+        return this.papiClient.get(`/data_queries?fields=Key,Name,Resource&page_size=-1`);
     }
 
     async upsertDataQuery(body) {

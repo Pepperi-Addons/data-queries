@@ -94,7 +94,7 @@ export class QueryManagerComponent implements OnInit {
     const noDataMessageKey = this.recycleBin ? 'RecycleBin_NoDataFound' : 'Query_Manager_NoDataFound'
     return {
         init: async(params:any) => {
-            let queries = await this.addonService.getAllQueries();
+            let queries = await this.addonService.getAllQueriesForList();
             if(this.recycleBin) {
                 queries = await this.utilitiesService.getRecycledQueries();
             }
