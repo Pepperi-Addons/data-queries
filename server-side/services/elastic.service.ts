@@ -37,14 +37,16 @@ class ElasticService {
   hitsRequested: boolean = false;
 
   async executeUserDefinedQuery(client: Client, request: Request) {
-
+	const startTime = Date.now();
     const validation = validate(request.body, QueryExecutionScheme);
 
     if (!validation.valid) {
       throw new Error(validation.toString());
     }
 
+	let currentTime = Date.now();
     const query: DataQuery = await this.getUserDefinedQuery(request);
+	console.log(`getting query time: ${Date.now() - currentTime} milliseconds`);
 
     // for filtering out hidden records
     const hiddenFilter: esb.BoolQuery = esb.boolQuery().should([esb.matchQuery('Hidden', 'false'), esb.boolQuery().mustNot(esb.existsQuery('Hidden'))]);
@@ -62,13 +64,18 @@ class ElasticService {
     const series = request.body?.Series ? query.Series.filter(s => s.Name == request.body?.Series) : query.Series;
     let aggregationsList: { [key: string]: Aggregation[] } = this.buildSeriesAggregationList(series, timeZoneOffsetString);
 
+	currentTime = Date.now();
     // need to get the relation data based on the resource name
     const resourceRelationData = (await this.papiClient.addons.data.relations.find({
       where: `RelationName='DataQueries' AND Name='${query.Resource}'`
     }))[0];
+	console.log(`getting relation time: ${Date.now() - currentTime} milliseconds`);
 
+	currentTime = Date.now();
     // build one query with all series (each aggregation have query and aggs)
     let queryAggregation: any = await this.buildAllSeriesAggregation(aggregationsList, query, resourceRelationData, request.body, hiddenFilter, timeZoneOffsetString);
+	console.log(`buildAllSeriesAggregation time: ${Date.now() - currentTime} milliseconds`);
+
     // this filter will be applied on the hits after aggregation is calculated
     elasticRequestBody.postFilter(this.hitsFilter);
     elasticRequestBody.aggs(queryAggregation);
@@ -76,9 +83,15 @@ class ElasticService {
     console.log(`lambdaBody: ${JSON.stringify(body)}`);
 
     try {
+	  currentTime = Date.now();
       const lambdaResponse = await this.papiClient.post(resourceRelationData.AddonRelativeURL ?? '',body);
+	  console.log(`lambda run time: ${Date.now() - currentTime} milliseconds`);
+
       console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
       const response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query, request.body?.Series);
+
+	  console.log(`Total execution time: ${Date.now() - startTime} milliseconds`);
+
       return response;
     }
     catch(ex){
@@ -142,7 +155,11 @@ class ElasticService {
         const serializedQuery: Query = toKibanaQuery(series.Filter, timeZoneOffsetString);
         resourceFilter = esb.boolQuery().must([resourceFilter, serializedQuery]);
       }
+	  
+	  const beforeAddingScopeFilters = Date.now();
       resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData, userID);
+	  console.log(`addScopeFilters time: ${Date.now() - beforeAddingScopeFilters} milliseconds`);
+
       if(this.hitsRequested) {
         this.hitsFilter = esb.boolQuery().must([this.hitsFilter, resourceFilter]);
       }
