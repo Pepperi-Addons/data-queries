@@ -5,8 +5,11 @@ import ElasticService from "./services/elastic.service";
 export async function execute(client: Client, request: Request) {
     const service = new ElasticService(client);
     if (request.method == 'POST') {
-        // VariableValues is the only field allowed to be sent by all users.
-        request.body = {"VariableValues": request.body?.VariableValues};
+        // VariableValues and TimeZoneOffset is the only fields allowed to be sent by all users.
+        request.body = {
+			VariableValues: request.body?.VariableValues,
+			TimeZoneOffset: request.body?.TimeZoneOffset
+		};
         return await service.executeUserDefinedQuery(client, request);
     }
     else{
