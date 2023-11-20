@@ -327,6 +327,7 @@ async openPreFormDialog() {
                 Key: this.uuidGenerator(),
                 Name: res.name,
                 Resource: res.resource,
+				ResourceData: res.resourceData,
                 Series: [],
                 Variables: [],
                 Style: 'Decimal',

@@ -104,8 +104,9 @@ export class QueryFormComponent implements OnInit {
     })
   }
 
-  resourceChanged(e){
-
+  async resourceChanged(e){
+	this.query.ResourceData = this.resourceRelations.find(r => r.Name == this.query.Resource);
+	await this.saveClicked();
   }
 
   showSeriesEditorDialog(seriesKey) {

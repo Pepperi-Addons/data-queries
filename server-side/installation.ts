@@ -57,6 +57,12 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
         {
             await createPolicyAndProfile(service, client.AddonUUID);
         }
+
+		if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.2.20') < 0) 
+        {
+            await service.setResourceDataOnAllQueries();
+        }
+
         return {success:true,resultObject:{}}
     }
     catch(err){

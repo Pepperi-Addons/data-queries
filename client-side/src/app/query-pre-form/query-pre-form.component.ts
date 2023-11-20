@@ -20,6 +20,7 @@ export class QueryPreFormComponent implements OnInit {
   dataSource;
   mode: string = 'Add';
   fields: any;
+  resourceRelations: any = [];
   resourceOptions: any = [];
 
   constructor(
@@ -39,8 +40,8 @@ export class QueryPreFormComponent implements OnInit {
     }
 
    async ngOnInit() {
-    const resourceRelations = await this.addonService.getResourceTypesFromRelation();
-    this.resourceOptions = resourceRelations.map((resource) => {
+    this.resourceRelations = await this.addonService.getResourceTypesFromRelation();
+    this.resourceOptions = this.resourceRelations.map((resource) => {
         return { Key: resource.Name, Value: resource.Name }
     });
     this.dataView = this.getDataView();
@@ -122,6 +123,7 @@ export class QueryPreFormComponent implements OnInit {
    }
 
   onSave(e) {
+	this.fields.resourceData = this.resourceRelations.find((resource) => resource.Name === this.fields.resource);
     this.fields.moveToQueryForm = true;
   }
 

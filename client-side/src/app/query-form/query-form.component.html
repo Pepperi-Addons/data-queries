@@ -31,7 +31,7 @@
                 [options]="resourceOptions"
                 [showTitle]="true"
                 [emptyOption]="false"
-                (valueChange)="saveClicked()"
+                (valueChange)="resourceChanged($event)"
             ></pep-select>
             <pep-select
                 [(value)]="query.Style"
