@@ -64,12 +64,8 @@ class ElasticService {
     const series = request.body?.Series ? query.Series.filter(s => s.Name == request.body?.Series) : query.Series;
     let aggregationsList: { [key: string]: Aggregation[] } = this.buildSeriesAggregationList(series, timeZoneOffsetString);
 
-	currentTime = Date.now();
-    // need to get the relation data based on the resource name
-    const resourceRelationData = (await this.papiClient.addons.data.relations.find({
-      where: `RelationName='DataQueries' AND Name='${query.Resource}'`
-    }))[0];
-	console.log(`getting relation time: ${Date.now() - currentTime} milliseconds`);
+	// the resource relation data is needed for the scope filters, and for searching elastic
+    const resourceRelationData = query.ResourceData;
 
 	currentTime = Date.now();
     // build one query with all series (each aggregation have query and aggs)
