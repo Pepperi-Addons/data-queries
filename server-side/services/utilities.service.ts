@@ -44,5 +44,39 @@ export class UtilitiesService {
 
 		return await this.papiClient.post(`/addons/data/batch/${this.client.AddonUUID}/${DATA_QUREIES_TABLE_NAME}`, {Objects: queries});
 	}
+
+	async fixQueryRelation(query: any): Promise<boolean> {
+		const relationSavedOnQuery = query.ResourceData;
+		const actualRelation = await this.papiClient.get(`/addons/data/relations?key=${relationSavedOnQuery.Key}`);
+
+		if(this.relationsAreEqual(relationSavedOnQuery, actualRelation))
+		{
+			console.log(`Relation saved on ${query.Key} query is up to date`);
+			return true;
+		}
+		else
+		{
+			console.log(`Relation saved on ${query.Key} query is dirty, updating...`);
+			query.ResourceData = actualRelation;
+			await this.papiClient.post(`/data_queries`, query);
+			return false;
+		}
+	}
+
+	relationsAreEqual(relation1: any, relation2: any): boolean {
+		let equal = true;
+
+		if(Object.keys(relation1).length !== Object.keys(relation2).length) {
+			equal = false;
+		}
+
+		Object.keys(relation1).forEach(key => {
+			if(relation1[key] !== relation2[key]) {
+				equal = false;
+			}
+		});
+
+		return equal
+	}
 }
 
