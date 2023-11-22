@@ -52,8 +52,6 @@ class ElasticService {
     const query: DataQuery = await this.getUserDefinedQuery(request);
 	console.log(`getting query time: ${Date.now() - currentTime} milliseconds`);
 
-	const fixQueryRelationPromise: Promise<any> = this.utilitiesService.fixQueryRelation(query);
-
     // for filtering out hidden records
     const hiddenFilter: esb.BoolQuery = esb.boolQuery().should([esb.matchQuery('Hidden', 'false'), esb.boolQuery().mustNot(esb.existsQuery('Hidden'))]);
 
@@ -88,15 +86,6 @@ class ElasticService {
 	  currentTime = Date.now();
       const lambdaResponse = await this.papiClient.post(resourceRelationData.AddonRelativeURL ?? '',body);
 	  console.log(`lambda run time: ${Date.now() - currentTime} milliseconds`);
-
-	  currentTime = Date.now();
-	  const fixQueryRelationRes = await fixQueryRelationPromise;
-	  console.log(`fixQueryRelation wait time: ${Date.now() - currentTime} milliseconds`);
-	  
-	  if(fixQueryRelationRes === false) {
-		console.log(`query relation was fixed, rerunning execute`);
-		return await this.executeUserDefinedQuery(client, request);
-	  }
 
       console.log(`lambdaResponse: ${JSON.stringify(lambdaResponse)}`);
       const response: DataQueryResponse = this.buildResponseFromElasticResults(lambdaResponse, query, request.body?.Series);
