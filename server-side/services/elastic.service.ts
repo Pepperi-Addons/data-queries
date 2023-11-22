@@ -9,12 +9,10 @@ import jwtDecode from 'jwt-decode';
 import { DataQueryResponse, SeriesData } from '../models/data-query-response';
 import { QueryExecutionScheme } from '../models/query-execution-scheme';
 import {JSONFilter, toKibanaQuery} from '@pepperi-addons/pepperi-filters'
-import { UtilitiesService } from './utilities.service';
 
 class ElasticService {
 
   papiClient: PapiClient;
-  utilitiesService: UtilitiesService;
 
   constructor(private client: Client) {
     this.papiClient = new PapiClient({
@@ -23,8 +21,6 @@ class ElasticService {
       addonUUID: client.AddonUUID,
       addonSecretKey: client.AddonSecretKey
     });
-
-	this.utilitiesService = new UtilitiesService(client);
   }
 
   MaxAggregationSize = 100;
