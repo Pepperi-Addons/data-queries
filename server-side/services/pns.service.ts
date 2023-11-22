@@ -17,7 +17,7 @@ export class PnsService {
     }
 
     async subscribeToRelationsUpdate() {
-		const adalAddonUUID = "00000000-0000-0000-0000-00000000ada1";
+		const relationsAddonUUID = "5ac7d8c3-0249-4805-8ce9-af4aecd77794";
         await this.papiClient.notification.subscriptions.upsert({
             AddonUUID: config.AddonUUID,
             AddonRelativeURL: "/api/update_relations_on_queries",
@@ -26,7 +26,7 @@ export class PnsService {
             FilterPolicy: {
                 Action:['update'],
                 Resource:['relations'],
-                AddonUUID:[adalAddonUUID]
+                AddonUUID:[relationsAddonUUID]
             }
         })
 	}
