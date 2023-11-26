@@ -211,6 +211,9 @@ export const QueriesScheme =
         "Resource": {
             "type": "string"
         },
+		"ResourceData": {
+            "type": "object"
+        },
         "Description": {
             "type": "string"
         },

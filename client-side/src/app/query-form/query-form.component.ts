@@ -63,20 +63,27 @@ export class QueryFormComponent implements OnInit {
     private utilitiesService: UtilitiesService,
     public loaderService: PepLoaderService) { }
 
-    async ngOnInit() {
+    ngOnInit() {
         this.queryUUID = this.activateRoute.snapshot.params.query_uuid;
         this.addonService.addonUUID = config.AddonUUID;
-        this.resourceRelations = await this.addonService.getResourceTypesFromRelation();
-        this.resourceOptions = this.resourceRelations.map((resource) => {
-          return { key: resource.Name, value: resource.Name }
-        });
-        this.query = (await this.addonService.getDataQueryByKey(this.queryUUID))[0];
-        if(!this.query.Style) this.query.Style = 'Decimal';
-        if(!this.query.Format) this.query.Format = '{"style": "decimal"}';
-        this.querySaved = true;
-        this.seriesDataSource = this.getSeriesDataSource();
-        this.variablesDataSource = this.getVariablesDataSource();
-        await this.executeSavedQuery();
+        this.addonService.getResourceTypesFromRelation().then((relations) => {
+			this.resourceRelations = relations;
+			this.resourceOptions = this.resourceRelations.map((resource) => {
+				return { key: resource.Name, value: resource.Name }
+			});
+			this.addonService.getDataQueryByKey(this.queryUUID).then((queries) => {
+				this.query = queries[0];
+				this.updateQueryResourceData().then(() => {
+					if(!this.query.Style) this.query.Style = 'Decimal';
+					if(!this.query.Format) this.query.Format = '{"style": "decimal"}';
+					this.querySaved = true;
+					this.seriesDataSource = this.getSeriesDataSource();
+					this.variablesDataSource = this.getVariablesDataSource();
+					this.executeSavedQuery().then(() => {});
+				});
+			})
+		});
+        
     }
 
   async saveClicked() {
@@ -104,8 +111,9 @@ export class QueryFormComponent implements OnInit {
     })
   }
 
-  resourceChanged(e){
-
+  async resourceChanged(e){
+	this.query.ResourceData = this.resourceRelations.find(r => r.Name == this.query.Resource);
+	await this.saveClicked();
   }
 
   showSeriesEditorDialog(seriesKey) {
@@ -787,5 +795,10 @@ async previewDataHandler(data) {
         	return { key: user.Key, value: user.Name };
         });
     }
+
+	async updateQueryResourceData() {
+		this.query.ResourceData = this.resourceRelations.find(r => r.Name == this.query.Resource);
+		await this.saveClicked();
+	}
 
 }

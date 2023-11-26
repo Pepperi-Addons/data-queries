@@ -14,6 +14,7 @@ import MyService from './my.service';
 import { DATA_QUREIES_TABLE_NAME, queriesTableScheme } from './models';
 import { UtilitiesService } from './services/utilities.service';
 import semver from 'semver';
+import { PnsService } from './services/pns.service';
 
 export async function install(client: Client, request: Request): Promise<any> {
     // For page block template uncomment this.
@@ -21,10 +22,12 @@ export async function install(client: Client, request: Request): Promise<any> {
     // return res;
     try {
         const service = new UtilitiesService(client);
+		const pnsService = new PnsService(client);
         await service.papiClient.addons.data.schemes.post(queriesTableScheme);
         await service.createDIMXRelations();
         await createPageBlockRelation(client);
         await createPolicyAndProfile(service, client.AddonUUID);
+		await pnsService.subscribeToRelationsUpdate();
         return {success:true, resultObject:{}}
     }
     catch (err) {
@@ -57,6 +60,14 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
         {
             await createPolicyAndProfile(service, client.AddonUUID);
         }
+
+		if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.2.28') < 0) 
+        {
+            await service.setResourceDataOnAllQueries();
+			const pnsService = new PnsService(client);
+			await pnsService.subscribeToRelationsUpdate();
+        }
+
         return {success:true,resultObject:{}}
     }
     catch(err){

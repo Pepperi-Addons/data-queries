@@ -1,5 +1,6 @@
 import { Client, Request } from '@pepperi-addons/debug-server'
 import QueryService from './services/query.service'
+import { PnsService } from './services/pns.service';
 
 export async function queries(client: Client, request: Request) {
     const service = new QueryService(client)
@@ -29,6 +30,16 @@ export function export_data_source(client: Client, request: Request) {
     else if (request.method == 'GET') {
         throw new Error(`Method ${request.method} not supported`);       
     }
+}
+
+export function update_relations_on_queries(client: Client, request: Request) {
+	const service = new PnsService(client)
+	if (request.method == 'POST') {
+		return service.updateRelationsOnQueries(request.body);
+	}
+	else if (request.method == 'GET') {
+		throw new Error(`Method ${request.method} not supported`);       
+	}
 }
 
 
