@@ -1,4 +1,4 @@
-import { PapiClient } from '@pepperi-addons/papi-sdk';
+import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
 import { Client } from '@pepperi-addons/debug-server';
 import { DimxRelations } from '../models/metadata';
 import { DATA_QUREIES_TABLE_NAME } from '../models';
@@ -17,20 +17,20 @@ export class UtilitiesService {
         });
     }
 
-    async createDIMXRelations() {
+    async createDIMXRelations(): Promise<void> {
         await Promise.all(DimxRelations.map(async (singleRelation) => {
             singleRelation.Name = 'DataQueries';
             await this.papiClient.addons.data.relations.upsert(singleRelation);
         }));
     }
 
-	async setResourceDataOnAllQueries() {
-		const resourceToDataDict = {};
+	async setResourceDataOnAllQueries(): Promise<any[]> {
+		const resourceToDataDict: { [name: string] : Relation } = {};
 
-		const queries = await this.papiClient.get('/data_queries?fields=Key,Resource&page_size=-1');
-		const resourcesToGet = new Set<string>(queries.map(query => query.Resource));
-		const resourcesString = Array.from(resourcesToGet).join(',');
-		const resourceRelationData = (await this.papiClient.addons.data.relations.find({
+		const queries: any[] = await this.papiClient.get('/data_queries?fields=Key,Resource&page_size=-1');
+		const resourcesToGet: Set<string> = new Set<string>(queries.map(query => query.Resource));
+		const resourcesString: string = Array.from(resourcesToGet).join(',');
+		const resourceRelationData: Relation[] = (await this.papiClient.addons.data.relations.find({
 			where: `RelationName='DataQueries' AND Name in (${resourcesString})`
 		}));
 
@@ -46,8 +46,8 @@ export class UtilitiesService {
 	}
 
 	async fixQueryRelation(query: any): Promise<boolean> {
-		const relationSavedOnQuery = query.ResourceData;
-		const actualRelation = await this.papiClient.get(`/addons/data/relations?key=${relationSavedOnQuery.Key}`);
+		const relationSavedOnQuery: Relation = query.ResourceData;
+		const actualRelation: Relation = await this.papiClient.get(`/addons/data/relations?key=${relationSavedOnQuery.Key}`);
 
 		if(this.relationsAreEqual(relationSavedOnQuery, actualRelation))
 		{
@@ -76,7 +76,7 @@ export class UtilitiesService {
 			}
 		});
 
-		return equal
+		return equal;
 	}
 }
 

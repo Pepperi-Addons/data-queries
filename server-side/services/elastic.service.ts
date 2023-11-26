@@ -2,9 +2,8 @@ import { PapiClient } from '@pepperi-addons/papi-sdk'
 import { Client, Request } from '@pepperi-addons/debug-server';
 import config from '../../addon.config.json'
 import { AggregatedField, DataQuery, DATA_QUREIES_TABLE_NAME, GroupBy, Interval, Serie } from '../models/data-query';
-import { validate } from 'jsonschema';
+import { ValidatorResult, validate } from 'jsonschema';
 import esb, { Aggregation, Query, RequestBodySearch } from 'elastic-builder';
-import { callElasticSearchLambda } from '@pepperi-addons/system-addon-utils';
 import jwtDecode from 'jwt-decode';
 import { DataQueryResponse, SeriesData } from '../models/data-query-response';
 import { QueryExecutionScheme } from '../models/query-execution-scheme';
@@ -34,12 +33,13 @@ class ElasticService {
     Year: 'yyyy',
     None: ''
   }
+
   hitsFilter: Query = esb.matchAllQuery();
   hitsRequested: boolean = false;
 
-  async executeUserDefinedQuery(request: Request) {
+  async executeUserDefinedQuery(request: Request): Promise<DataQueryResponse> {
 	const startTime = Date.now();
-    const validation = validate(request.body, QueryExecutionScheme);
+    const validation: ValidatorResult = validate(request.body, QueryExecutionScheme);
 
     if (!validation.valid) {
       throw new Error(validation.toString());
@@ -174,7 +174,7 @@ class ElasticService {
     return queryAggregation;
   }
 
-  private replaceAllVariables(jsonFilter, variableValues: {[varName: string]: string}) {
+  private replaceAllVariables(jsonFilter, variableValues: {[varName: string]: string}): void {
     if (jsonFilter.Operation === 'AND' || jsonFilter.Operation === 'OR') {
       const f1 = this.replaceAllVariables(jsonFilter.LeftNode, variableValues);
       const f2 = this.replaceAllVariables(jsonFilter.RightNode, variableValues);
@@ -206,7 +206,7 @@ class ElasticService {
   }
 
   // if there is scope add user/accounts filters to resourceFilter
-  private async addScopeFilters(series, resourceFilter, resourceRelationData, requestedUserID) {
+  private async addScopeFilters(series, resourceFilter, resourceRelationData, requestedUserID): Promise<Query> {
 	let userID;
 	if(requestedUserID) {
 		userID = requestedUserID;
@@ -288,7 +288,7 @@ class ElasticService {
     return resourceFilter;
   }
 
-  private buildUsersIdsString(usersUnderMyRole, userFieldID) {
+  private buildUsersIdsString(usersUnderMyRole, userFieldID): string {
     let IdsString = '(';
     for(const user of usersUnderMyRole) {
       IdsString += `'${user[userFieldID]}',`;
@@ -296,7 +296,7 @@ class ElasticService {
     return IdsString.slice(0,-1)+')';
   }
 
-  private buildSeriesAggregationList(series, timeZoneOffsetString: string | undefined) {
+  private buildSeriesAggregationList(series, timeZoneOffsetString: string | undefined): { [key: string]: Aggregation[] } {
 
     let aggregationsList: { [key: string]: Aggregation[] } = {};
 
@@ -365,12 +365,12 @@ class ElasticService {
     return aggregationsList;
   }
 
-  private buildBucketSortAggregation(aggName, serie) {
+  private buildBucketSortAggregation(aggName, serie): esb.BucketSortAggregation {
     const order = serie.Top.Ascending === true ? 'asc' : 'desc';
     return esb.bucketSortAggregation('sort').sort([esb.sort(aggName, order)]).size(serie.Top.Max)
   }
 
-  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string) {
+  private buildResponseFromElasticResults(lambdaResponse, query: DataQuery, seriesName: string): DataQueryResponse {
 
     let response: DataQueryResponse = new DataQueryResponse();
     const seriesToIterate = (seriesName) ? query.Series.filter(s => s.Name==seriesName) : query.Series;
@@ -521,7 +521,7 @@ class ElasticService {
 
   // build sggregation - if the type field is date time build dateHistogramAggregation else termsAggregation
   // sourceAggs determine if its group by or break by so we can distinguish between them in the results
-  private buildAggregationQuery(groupBy: GroupBy, timeZoneOffsetString: string | undefined) {
+  private buildAggregationQuery(groupBy: GroupBy, timeZoneOffsetString: string | undefined): Aggregation {
 
     // Maximum size of each aggregation is 100
     //const topAggs = groupBy.Top?.Max ? groupBy.Top.Max : this.MaxAggregationSize;
@@ -563,11 +563,11 @@ class ElasticService {
     }
   }
 
-  buildDataSetKeyString(keyName: string, pattern: string) {
+  buildDataSetKeyString(keyName: string, pattern: string): string {
     return pattern.replace('${label}', keyName);
   }
 
-  private getAggregator(aggregatedField: AggregatedField, aggName: string) {
+  private getAggregator(aggregatedField: AggregatedField, aggName: string): esb.MetricsAggregationBase {
     let agg;
     switch (aggregatedField.Aggregator) {
       case 'Sum':
@@ -587,7 +587,7 @@ class ElasticService {
     return agg;
   }
 
-  private async getUserDefinedQuery(request: Request) {
+  private async getUserDefinedQuery(request: Request): Promise<DataQuery> {
 
     const queryKey = request.query.key;
 
@@ -615,14 +615,14 @@ class ElasticService {
 	return timeZoneOffsetString;
   }
 
-  private toHoursAndMinutes(totalMinutes) {
+  private toHoursAndMinutes(totalMinutes): string {
 	const minutes = totalMinutes % 60;
 	const hours = Math.floor(totalMinutes / 60);
   
 	return `${this.padTo2Digits(hours)}:${this.padTo2Digits(minutes)}`;
   }
   
-  private padTo2Digits(num) {
+  private padTo2Digits(num): string {
 	return num.toString().padStart(2, '0');
   }
 
