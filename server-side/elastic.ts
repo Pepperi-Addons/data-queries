@@ -10,7 +10,7 @@ export async function execute(client: Client, request: Request) {
 			VariableValues: request.body?.VariableValues,
 			TimeZoneOffset: request.body?.TimeZoneOffset
 		};
-        return await service.executeUserDefinedQuery(client, request);
+        return await service.executeUserDefinedQuery(request);
     }
     else{
         throw new Error('Bad request');
@@ -21,7 +21,7 @@ export async function execute_debug(client: Client, request: Request) {
     const service = new ElasticService(client);
     if (request.method == 'POST') {
         await client.ValidatePermission('CALL_EXECUTE');
-        return await service.executeUserDefinedQuery(client, request);
+        return await service.executeUserDefinedQuery(request);
     }
     else{
         throw new Error('Bad request');
@@ -29,3 +29,13 @@ export async function execute_debug(client: Client, request: Request) {
 
 };
 
+export async function execute_bulk(client: Client, request: Request) {
+    const service = new ElasticService(client);
+    if (request.method == 'POST') {
+        return await service.executeMultipleQueries(request.body);
+    }
+    else{
+        throw new Error('Bad request');
+    }
+
+};

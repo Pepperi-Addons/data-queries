@@ -8,6 +8,7 @@ import jwtDecode from 'jwt-decode';
 import { DataQueryResponse, SeriesData } from '../models/data-query-response';
 import { QueryExecutionScheme } from '../models/query-execution-scheme';
 import {JSONFilter, toKibanaQuery} from '@pepperi-addons/pepperi-filters'
+import { BulkExecuteBody } from '../models/execute-body';
 
 class ElasticService {
 
@@ -36,7 +37,7 @@ class ElasticService {
   hitsFilter: Query = esb.matchAllQuery();
   hitsRequested: boolean = false;
 
-  async executeUserDefinedQuery(client: Client, request: Request): Promise<DataQueryResponse> {
+  async executeUserDefinedQuery(request: Request): Promise<DataQueryResponse> {
 	const startTime = Date.now();
     const validation: ValidatorResult = validate(request.body, QueryExecutionScheme);
 
@@ -624,6 +625,29 @@ class ElasticService {
   private padTo2Digits(num): string {
 	return num.toString().padStart(2, '0');
   }
+
+  public async executeMultipleQueries(body: BulkExecuteBody) {
+	const startTime = Date.now();
+	const queriesData = body?.QueriesData;
+	const timeZoneOffset = body?.TimeZoneOffset;
+
+	const responses = await Promise.all(queriesData.map(queryData => {
+		let request: Request = {
+			query: {key: queryData.Key},
+			body: {
+				TimeZoneOffset: timeZoneOffset,
+				VariableValues: queryData.VariableValues,
+			},
+			method: "POST",
+			header: {}
+		}
+		return this.executeUserDefinedQuery(request);
+	}));
+
+	console.log(`Total execution time of ${queriesData.length} queries: ${Date.now() - startTime} milliseconds`);
+	return responses;
+  }
+
 }
 
 export default ElasticService;
