@@ -181,7 +181,8 @@ class ElasticService {
       return;
     } else {
       const op = jsonFilter.Operation;
-      if(op == 'IsEqualVariable' || op == 'LessThanVarible' || op == 'GreaterThanVarible' || op == 'BetweenVariable') {
+	  const valueType = jsonFilter.ValueType; // to be compatible with latest ngx-lib 
+      if(op == 'IsEqualVariable' || op == 'LessThanVarible' || op == 'GreaterThanVarible' || op == 'BetweenVariable' || valueType == 'Dynamic') {
         switch(op) {
           case 'IsEqualVariable':
             jsonFilter.Operation = 'IsEqual'
@@ -194,6 +195,8 @@ class ElasticService {
             break
           case 'BetweenVariable':
             jsonFilter.Operation = 'Between'
+		  default:
+			jsonFilter.Operation = op;
         }
         for( const varName in variableValues) {
           for(const i in jsonFilter.Values) {
