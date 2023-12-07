@@ -201,7 +201,14 @@ class ElasticService {
         for( const varName in variableValues) {
           for(const i in jsonFilter.Values) {
             if(jsonFilter.Values[i] == varName)
-              jsonFilter.Values[i] = variableValues[varName]
+			  // if the variable contains multiple values, we need to split the string and add each value as a separate value
+			  if(jsonFilter.FieldType == 'MultipleStringValues') {
+				jsonFilter.Values.splice(i,1); // remove the variable name
+				jsonFilter.Values = jsonFilter.Values.concat(variableValues[varName].split(','));
+			  }
+			  else {
+				jsonFilter.Values[i] = variableValues[varName];
+			  }
           }
         }
       }
