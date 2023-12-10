@@ -1,5 +1,5 @@
 import config from '../../addon.config.json';
-import { AddonDataScheme, Relation } from "@pepperi-addons/papi-sdk";
+import { Relation } from "@pepperi-addons/papi-sdk";
 
 export const DimxRelations: Relation[] = [{
     AddonUUID: config.AddonUUID,

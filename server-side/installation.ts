@@ -10,7 +10,6 @@ The error Message is importent! it will be written in the audit log and help the
 
 import { Client, Request } from '@pepperi-addons/debug-server'
 import { Relation } from '@pepperi-addons/papi-sdk'
-import MyService from './my.service';
 import { DATA_QUREIES_TABLE_NAME, queriesTableScheme } from './models';
 import { UtilitiesService } from './services/utilities.service';
 import semver from 'semver';
@@ -25,66 +24,66 @@ export async function install(client: Client, request: Request): Promise<any> {
 		const pnsService = new PnsService(client);
         await service.papiClient.addons.data.schemes.post(queriesTableScheme);
         await service.createDIMXRelations();
-        await createPageBlockRelation(client);
-        await createPolicyAndProfile(service, client.AddonUUID);
+        await create_page_block_relation(client);
+        await create_policy_and_profile(service, client.AddonUUID);
 		await pnsService.subscribeToRelationsUpdate();
-        return {success:true, resultObject:{}}
+        return {success: true, resultObject: {}}
     }
     catch (err) {
-        return { 
-            success: false, 
-            resultObject: err ,
+        return {
+            success: false,
+            resultObject: err,
             errorMessage: `Error in creating necessary objects . error - ${err}`
         };
     }
 }
 
 export async function uninstall(client: Client, request: Request): Promise<any> {
-    try{
+    try {
         const service = new UtilitiesService(client);
         await service.papiClient.post(`/addons/data/schemes/${DATA_QUREIES_TABLE_NAME}/purge`);
         return { success: true, resultObject: {} }
     }
-    catch(err){
+    catch (err){
         console.log('Failed to uninstall data-queries addon', err)
-        return handleException(err);
+        return handle_exception(err);
 
     }
 }
 
 export async function upgrade(client: Client, request: Request): Promise<any> {
-    try{
+    try {
         const service = new UtilitiesService(client);
-        await createPageBlockRelation(client);
-        if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.0.0') < 0) 
+        await create_page_block_relation(client);
+        if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.0.0') < 0)
         {
-            await createPolicyAndProfile(service, client.AddonUUID);
+            await create_policy_and_profile(service, client.AddonUUID);
         }
 
-		if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.2.28') < 0) 
+		if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.2.28') < 0)
         {
             await service.setResourceDataOnAllQueries();
 			const pnsService = new PnsService(client);
 			await pnsService.subscribeToRelationsUpdate();
         }
 
-        return {success:true,resultObject:{}}
+        return {success: true, resultObject: {}}
     }
-    catch(err){
+    catch (err){
         console.log('Failed to upgrade data-queries addon', err)
-        return handleException(err);
+        return handle_exception(err);
 
     }
 }
 
 export async function downgrade(client: Client, request: Request): Promise<any> {
-    return {success:true,resultObject:{}}
+    return {success: true, resultObject: {}}
 }
 
-async function createPageBlockRelation(client: Client): Promise<any> {
+async function create_page_block_relation(client: Client): Promise<any> {
     try {
         const settingsName = 'Settings';
-        
+
         const settingsBlockRelation: Relation = {
             RelationName: "SettingsBlock",
             GroupName: 'Configuration',
@@ -99,17 +98,17 @@ async function createPageBlockRelation(client: Client): Promise<any> {
             ModuleName: `${settingsName}Module`,
             ElementsModule: 'WebComponents',
             ElementName: `settings-element-${client.AddonUUID}`,
-        }; 
+        };
 
-        const service = new MyService(client);
+        const service = new UtilitiesService(client);
         const result = await service.upsertRelation(settingsBlockRelation);
-        return { success:true, resultObject: result };
-    } catch(err) {
-        return { success: false, resultObject: err , errorMessage: `Error in upsert relation. error - ${err}`};
+        return { success: true, resultObject: result };
+    } catch (err) {
+        return { success: false, resultObject: err, errorMessage: `Error in upsert relation. error - ${err}`};
     }
 }
 
-function handleException(err: unknown): any {
+function handle_exception(err: unknown): any {
     let errorMessage = 'Unknown Error Occured';
     if (err instanceof Error) {
         errorMessage = err.message;
@@ -121,7 +120,7 @@ function handleException(err: unknown): any {
     };
 }
 
-async function createPolicyAndProfile(service, addonUUID) {
+async function create_policy_and_profile(service, addonUUID): Promise<void> {
     await service.papiClient.post('/policies', {
         AddonUUID: addonUUID,
         Name: "CALL_EXECUTE",

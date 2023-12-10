@@ -24,16 +24,16 @@ export const QueriesScheme =
                                 },
                                 "Aggregator": {
                                     "type": "string",
-                                    "enum": ["None", "Sum", "Count", "Average","CountDistinct","Script"]
+                                    "enum": ["None", "Sum", "Count", "Average", "CountDistinct", "Script"]
                                 }
                             },
-                            "if": { 
+                            "if": {
                                 "properties": {
                                     "Aggregator": { "const": "Script" }
                                 },
-                                
+
                             },
-                            "then": { "required": ["Script"],"minLength": 1 },
+                            "then": { "required": ["Script"], "minLength": 1 },
                             "else": { "required": ["FieldID"] },
                             "additionalProperties": false,
                             "required": [
@@ -54,7 +54,7 @@ export const QueriesScheme =
                                 },
                                 "Aggregator": {
                                     "type": "string",
-                                    "enum": ["None", "Sum", "Count", "Average","CountDistinct","Script"]
+                                    "enum": ["None", "Sum", "Count", "Average", "CountDistinct", "Script"]
                                 }
                             },
                             "additionalProperties": false,
@@ -70,7 +70,7 @@ export const QueriesScheme =
                     },
                     "Label": {
                         "type": "string",
-                        "minLength":1,
+                        "minLength": 1,
                         "default": "${label}"
                     },
                     "Key": {
@@ -87,7 +87,7 @@ export const QueriesScheme =
                             },
                             "Interval": {
                                 "type": "string",
-                                "enum": ["None","Day", "Week", "Month", "Quarter", "Year"]
+                                "enum": ["None", "Day", "Week", "Month", "Quarter", "Year"]
                             },
                         },
                         "additionalProperties": false,
@@ -124,7 +124,7 @@ export const QueriesScheme =
                                 },
                                 "Interval": {
                                     "type": "string",
-                                    "enum": ["None","Day", "Week", "Month", "Quarter", "Year"]
+                                    "enum": ["None", "Day", "Week", "Month", "Quarter", "Year"]
                                 },
                                 "Alias": {
                                     "type": "string"
@@ -158,7 +158,7 @@ export const QueriesScheme =
                         }
                     },
                     "Filter": {
-                        "type": ["null","object"]
+                        "type": ["null", "object"]
                     }
                 },
                 "additionalProperties": false,

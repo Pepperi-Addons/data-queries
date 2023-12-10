@@ -12,8 +12,10 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "compile": "tsc",
-        "build": "rollup -c rollup.config.js",
-        "start": "tsc -w app.local.ts"
+        "build": "npm run lint && rollup -c rollup.config.js",
+        "start": "tsc -w app.local.ts",
+		"lint": "eslint './**/*.ts'",
+		"fix-lint": "eslint --fix './**/*.ts'"
     },
     "devDependencies": {
         "@rollup/plugin-commonjs": "^12.0.0",
@@ -25,7 +27,11 @@
         "rollup": "^2.10.9",
         "rollup-plugin-typescript2": "^0.27.1",
         "ts-node": "^8.10.1",
-        "typescript": "~3.8.0"
+        "typescript": "~3.8.0",
+		"@pepperi-addons/eslint-plugin-pepperi-lint": "*",
+		"@typescript-eslint/eslint-plugin": "^5.57.1",         
+		"@typescript-eslint/parser": "^5.57.1",         
+		"eslint": "^7.2.0"
     },
     "dependencies": {
         "@pepperi-addons/debug-server": "^0.0.38",
