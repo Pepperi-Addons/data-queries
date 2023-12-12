@@ -1,9 +1,10 @@
-import { PapiClient, Relation } from '@pepperi-addons/papi-sdk';
+import { PNSMessage, PapiClient, Relation } from '@pepperi-addons/papi-sdk';
 import { Client } from '@pepperi-addons/debug-server';
 import config from '../../addon.config.json';
+import { DataQuery } from '../models';
 
 export class PnsService {
-    
+
     papiClient: PapiClient
 
     constructor(client: Client) {
@@ -24,18 +25,18 @@ export class PnsService {
             Type: "data",
             Name: "relationsUpdated",
             FilterPolicy: {
-                Action:['update'],
-                Resource:['relations'],
-                AddonUUID:[relationsAddonUUID]
+                Action: ['update'],
+                Resource: ['relations'],
+                AddonUUID: [relationsAddonUUID]
             }
         })
 	}
 
-	async updateRelationsOnQueries(messageFromPNS: any): Promise<void> {
+	async updateRelationsOnQueries(messageFromPNS: PNSMessage): Promise<void> {
 		const relationsKeys: string[] = messageFromPNS.Message.ModifiedObjects.map(obj => obj.ObjectKey);
 		const relevantRelationsKeys: string[] = relationsKeys.filter(key => key.includes('DataQueries'));
 		const relevantRelationsNames: string[] = relevantRelationsKeys.map(key => this.extractResourceNameFromKey(key));
-		const queriesToUpdate: any[] = await this.papiClient.get(`/data_queries?where=Resource in (${relevantRelationsNames.join(',')})&fields=Key,ResourceData`);
+		const queriesToUpdate: DataQuery[] = await this.papiClient.get(`/data_queries?where=Resource in (${relevantRelationsNames.join(',')})&fields=Key,ResourceData`);
 		const promises = await Promise.all(queriesToUpdate.map(query => this.fixQueryRelation(query)));
 
 		console.log(`Done updating ${promises.length} queries. fixQueryRelation returned: ${JSON.stringify(promises)}`);
@@ -43,13 +44,13 @@ export class PnsService {
 
 	extractResourceNameFromKey(key: string): string {
 		// In our case the key format is: <resource_name>_<addon_uuid>_DataQueries
-		let keyParts: string[] = key.split('_');
+		const keyParts: string[] = key.split('_');
 		keyParts.pop(); // remove the relation name (DataQueries)
 		keyParts.pop(); // remove the addon uuid
 		return keyParts.join('_');
 	}
 
-	async fixQueryRelation(query: any): Promise<boolean> {
+	async fixQueryRelation(query: DataQuery): Promise<boolean> {
 		const relationSavedOnQuery: Relation = query.ResourceData;
 		const updatedRelation: Relation = await this.papiClient.get(`/addons/data/relations?key=${relationSavedOnQuery.Key}`);
 

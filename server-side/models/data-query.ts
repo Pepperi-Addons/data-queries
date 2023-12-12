@@ -1,4 +1,4 @@
-import { AddonData, AddonDataScheme } from "@pepperi-addons/papi-sdk";
+import { AddonData, AddonDataScheme, Relation } from "@pepperi-addons/papi-sdk";
 import { JSONFilter } from "@pepperi-addons/pepperi-filters/build/json-filter";
 
 export interface DataQuery extends AddonData {
@@ -6,11 +6,12 @@ export interface DataQuery extends AddonData {
     Name: string;
     Description?: string;
     Resource: string;
+	ResourceData: Relation;
     Series: Serie[];
     Variables: InputVariable[];
     Style: string;
     Currency?: string;
-    Format?: string;
+    Format: string;
 }
 
 export interface GroupBy {
@@ -47,8 +48,7 @@ export interface InputVariable {
     PreviewValue: string
 }
 
-export interface BreakBy extends GroupBy {
-}
+export type BreakBy = GroupBy
 
 export interface Top {
     Max: number,

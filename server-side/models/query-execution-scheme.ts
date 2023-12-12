@@ -1,6 +1,6 @@
 export const QueryExecutionScheme =
 {
-    "type": ["object","null"],
+    "type": ["object", "null"],
     "properties": {
         "VariableValues": {
             "type": "object"
