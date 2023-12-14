@@ -43,7 +43,7 @@ export class QueryFormComponent implements OnInit {
   deleteError = 'Cannot delete Series';
   previewDataSource: IPepGenericListDataSource;
   PreviewListFields: GridDataViewField[];
-  previewNoDataMessage = this.translate.instant('PreviewNoDataFound');
+  previewNoDataMessage = this.translate.instant('PreviewNoSeriesDefined');
   dialogRef: MatDialogRef<any>;
   dataFromExecute;
   resultsFromExecute;
@@ -667,10 +667,10 @@ async previewDataHandler(data) {
             let results = await this.previewDataHandler(data);
             this.resultsFromExecute = results;
             // for a case in which there is no actual data from the series execution
-            if(results.length>0 && Object.keys(results[0]).length === 0) {
-                this.previewNoDataMessage = this.translate.instant('No Data');
-            } else {
+            if(this.query.Series.length > 0) {
                 this.previewNoDataMessage = this.translate.instant('PreviewNoDataFound');
+            } else {
+                this.previewNoDataMessage = this.translate.instant('PreviewNoSeriesDefined');
             }
             this.previewDataSource = this.getPreviewDataSource();
             this.loaderService.hide();
