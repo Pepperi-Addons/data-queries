@@ -128,7 +128,10 @@ export class VariableEditorComponent implements OnInit {
             OptionalValues: [{Key: 'String', Value: 'String'},
                              {Key: 'Number', Value: 'Number'},
                              {Key: 'Date', Value: 'Date'},
-                             {Key: 'Boolean', Value: 'Boolean'}]
+                             {Key: 'Boolean', Value: 'Boolean'}],
+			AdditionalProps: {
+				emptyOption: false
+			}
           },
           {
             FieldID: "DefaultValue",
