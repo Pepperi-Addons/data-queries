@@ -756,6 +756,7 @@ async previewDataHandler(data) {
                 await this.executeSavedQuery();
             }
             else if (selectedUser=='') {
+				this.selectedUserID = null;
                 this.userForPreview = null;
                 await this.executeSavedQuery();
             }
@@ -767,7 +768,8 @@ async previewDataHandler(data) {
         const input = {
             userName: this.userOptions?.find(u => u.key==this.userForPreview)?.value,
             userID: this.selectedUserID,
-            query: this.query
+            query: this.query,
+			userOptions: this.userOptions
         }
         const callback = (data: any) => {};
         this.openDialog(null,DataExportFormComponent,null,input,callback,true);

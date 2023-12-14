@@ -41,7 +41,7 @@ export class DataExportFormComponent implements OnInit {
   dateFilterField = null;
   userID = null;
   selectedUser = null;
-  dataFromExecute;
+  userOptions = [];
 
   constructor(
     public addonService: AddonService,
@@ -56,7 +56,9 @@ export class DataExportFormComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public incoming: any) {
       this.selectedUser = incoming?.userName;
       this.userID = incoming?.userID;
-      this.dataFromExecute = incoming?.dataFromExecute;
+      this.userOptions = incoming?.userOptions.map((u) => {
+		return { Key: u.key, Value: u.value }
+	  });
       this.query = incoming?.query;
     }
 
@@ -78,7 +80,7 @@ export class DataExportFormComponent implements OnInit {
         seriesKey: this.selectedSeries.Key,
         groupByField: null,
         breakByField: null,
-        user: this.selectedUser,
+        user: this.userID,
         fromDate: monthAgoDateTime.toJSON(),
         toDate: todayDateTime.toJSON(),
         description: this.translate.instant('DATA_EXPORT_DESCRIPTION')
@@ -190,10 +192,10 @@ export class DataExportFormComponent implements OnInit {
            },
            {
             FieldID: "user",
-            Type: "TextBox",
+            Type: this.userID ? "ComboBox" : "TextBox",
             Title: "User",
             Mandatory: false,
-            ReadOnly: true,
+            ReadOnly: !this.userID,
             Layout: {
               Origin: {
                 X: 1,
@@ -209,7 +211,8 @@ export class DataExportFormComponent implements OnInit {
                 Horizontal: "Stretch",
                 Vertical: "Stretch",
               },
-            }
+            },
+			OptionalValues: this.userOptions
           },
            {
             FieldID: "groupByField",
@@ -333,7 +336,7 @@ export class DataExportFormComponent implements OnInit {
       Page: 1,
       Fields: fieldsNames,
       VariableValues: variableValues,
-      UserID: this.userID
+      ...(this.fields.user && {UserID: this.fields.user})
     }
     this.objectsFromExecute = (await this.addonService.executeQueryForAdmin(this.queryKey, body)).Objects;
     this.listData  = this.getListDataSource();
@@ -413,7 +416,7 @@ export class DataExportFormComponent implements OnInit {
     const body = {
       Series: this.selectedSeries.Name,
       Page: 1,
-      UserID: this.userID
+      ...(this.fields.user && {UserID: this.fields.user})
     };
     const dataSetFromExecute = (await this.addonService.executeQueryForAdmin(this.queryKey, body)).DataSet;
     this.categoryOptions = await this.buildOptionalValuesOptions(this.selectedSeries.GroupBy[0].FieldID, true, dataSetFromExecute);
