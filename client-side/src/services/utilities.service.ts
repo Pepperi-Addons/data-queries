@@ -57,15 +57,15 @@ export class UtilitiesService {
 
     }
 
-	// expects an array of objects with a Name property
-	caseInsensitiveSortByName(objects: any[]): any[] {
+	// expects an array of objects which contain the given field, default is 'Name'
+	caseInsensitiveSortByField(objects: any[], field: string = "Name"): any[] {
 		return objects.sort(function(a, b) {
-			const nameA = a.Name.toUpperCase(); // ignore upper and lowercase
-			const nameB = b.Name.toUpperCase(); // ignore upper and lowercase
-			if (nameA < nameB) {
+			const valueA = a[field].toUpperCase(); // ignore upper and lowercase
+			const valueB = b[field].toUpperCase(); // ignore upper and lowercase
+			if (valueA < valueB) {
 			  return -1;
 			}
-			if (nameA > nameB) {
+			if (valueA > valueB) {
 			  return 1;
 			}
 			// names must be equal

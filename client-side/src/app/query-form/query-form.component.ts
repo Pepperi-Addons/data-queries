@@ -790,7 +790,7 @@ async previewDataHandler(data) {
 
     async setUserOptions() {
         this.users = await this.addonService.get('/resources/users?fields=Key,FirstName,LastName,Name');
-		this.users = this.utilitiesService.caseInsensitiveSortByName(this.users);
+		this.users = this.utilitiesService.caseInsensitiveSortByField(this.users);
         this.userOptions = this.users.map((user) => {
         	return { key: user.Key, value: user.Name };
         });
