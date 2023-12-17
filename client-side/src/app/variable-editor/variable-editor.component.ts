@@ -2,14 +2,13 @@ import { Component, Inject, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
 import { PepGenericListService } from '@pepperi-addons/ngx-composite-lib/generic-list';
-import { PepDialogActionButton, PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
+import { PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
 import { AddonService } from 'src/services/addon.service';
 import { UtilitiesService } from 'src/services/utilities.service';
 import { DataQuery, InputVariable } from '../../../../server-side/models/data-query';
 import { PepLoaderService } from '@pepperi-addons/ngx-lib';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { v4 as uuid } from 'uuid';
-import { IPepGenericFormFieldUpdate } from '@pepperi-addons/ngx-composite-lib/generic-form';
 
 
 @Component({
@@ -46,7 +45,7 @@ export class VariableEditorComponent implements OnInit {
             this.variable = {
                 Key: uuid(),
                 Name: incoming?.varName,
-                Type: null,
+                Type: 'String',
                 DefaultValue: '0',
                 PreviewValue: '0'
             }
@@ -129,7 +128,10 @@ export class VariableEditorComponent implements OnInit {
             OptionalValues: [{Key: 'String', Value: 'String'},
                              {Key: 'Number', Value: 'Number'},
                              {Key: 'Date', Value: 'Date'},
-                             {Key: 'Boolean', Value: 'Boolean'}]
+                             {Key: 'Boolean', Value: 'Boolean'}],
+			AdditionalProps: {
+				emptyOption: false
+			}
           },
           {
             FieldID: "DefaultValue",

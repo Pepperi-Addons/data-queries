@@ -101,7 +101,7 @@ export class QueryManagerComponent implements OnInit {
             if(params.searchString){
                 queries = await this.utilitiesService.getQueriesByName(params.searchString);
             }
-            queries = this.utilitiesService.caseInsensitiveSortByName(queries);
+            queries = this.utilitiesService.caseInsensitiveSortByField(queries);
 
             return Promise.resolve({
                 dataView: {

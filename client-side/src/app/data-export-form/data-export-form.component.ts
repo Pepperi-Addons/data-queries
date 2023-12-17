@@ -8,6 +8,7 @@ import { PepLoaderService } from '@pepperi-addons/ngx-lib';
 import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { config } from '../addon.config';
 import { GridDataViewField } from '@pepperi-addons/papi-sdk';
+import { UtilitiesService } from 'src/services/utilities.service';
 
 
 @Component({
@@ -50,6 +51,7 @@ export class DataExportFormComponent implements OnInit {
     public dialogService: PepDialogService,
     public loaderService: PepLoaderService,
     private dialogRef: MatDialogRef<DataExportFormComponent>,
+	private utilitiesService: UtilitiesService,
     private router: Router,
     @Inject(MAT_DIALOG_DATA) public incoming: any) {
       this.selectedUser = incoming?.userName;
@@ -445,9 +447,12 @@ export class DataExportFormComponent implements OnInit {
         optionalValues = optionalValues.filter(v => v != this.selectedSeries.GroupBy[0].Alias);
       }
     }
-    return optionalValues.map((v) => {
-      return { Key: v, Value: v }
-    });
+	optionalValues = optionalValues.map((v) => {
+		return { Key: v, Value: v }
+	});
+	
+	const sorted = this.utilitiesService.caseInsensitiveSortByField(optionalValues, 'Key');
+	return sorted;
   }
 
   isDisabled(fieldID, type) {
