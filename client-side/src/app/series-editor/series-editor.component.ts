@@ -87,7 +87,8 @@ export class SeriesEditorComponent implements OnInit {
       Interval: 'Month',
       Format: 'yyyy MMM',
       Alias: ''
-    }]
+    }],
+	ConditionalFilters: []
   }
 
   formatOptionsMap = {
@@ -414,6 +415,9 @@ export class SeriesEditorComponent implements OnInit {
     else {
       this.currentAggregatorFieldsOptions = this.aggregationsFieldsOptions['All']
     }
+  }
+
+  addConditionalFilter() {
   }
 
 }

@@ -14,7 +14,7 @@ import { VariableEditorModule } from './variable-editor/variable-editor.module'
 import { UserSelectModule } from './user-select/user-select.module'
 import { QueryPreFormModule } from './query-pre-form/query-pre-form.module'
 import { DataExportFormModule } from './data-export-form/data-export-form.module'
-
+import { ConditionalFilterCardModule } from './conditional-filter-card/conditional-filter-card.module'
 import { config } from './addon.config';
 import { SettingsComponent, SettingsModule } from './settings';
 @NgModule({
@@ -32,6 +32,7 @@ import { SettingsComponent, SettingsModule } from './settings';
         DataExportFormModule,
         QueryManagerModule,
         UserSelectModule,
+		ConditionalFilterCardModule,
         SettingsModule,
         TranslateModule.forRoot({
             loader: {

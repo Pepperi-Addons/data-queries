@@ -37,13 +37,14 @@ export interface Serie {
     Scope: {
         User: UserType,
         Account: AccountType
-    }
+    },
+	ConditionalFilters: ConditionalFilter[]
 }
 
 export interface InputVariable {
     Key: string,
     Name: string,
-    Type: any,
+    Type: string,
     DefaultValue: string,
     PreviewValue: string
 }
@@ -64,6 +65,12 @@ export interface AggregatedParam {
     FieldID: string,
     Aggregator: ScriptAggregator,
     Name: string,
+}
+
+export interface ConditionalFilter {
+	id: number,
+	Condition: JSONFilter,
+	Filter: JSONFilter
 }
 export const UserTypes = ["AllUsers", "CurrentUser"];
 export declare type UserType = typeof UserTypes[number];
