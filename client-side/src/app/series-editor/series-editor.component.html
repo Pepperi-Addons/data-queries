@@ -148,13 +148,16 @@
 
                 </div>
 
-				<div id="conditional-filters">
+				<div id="conditional-filters" *ngIf="filterRuleStringVariables.length > 0 || series?.ConditionalFilters.length > 0">
                     <h2>{{'Conditional Filters' | translate}}
                     </h2>
                     <hr class="hr">
-                    <pep-query-builder #cardContainer *ngFor="let currentCard of series.ConditionalFilters"
-                    [query]="seriesFilterRule" [fields]="filterRuleFieldsOptions" [variableFields]="filterRuleVariables" (queryChange)="onFilterRuleChanged($event)" (formValidationChange)="isformValid = $event">
-                    </pep-query-builder>
+					<conditional-filter-card *ngFor="let currentCard of series?.ConditionalFilters;"
+						[id]="currentCard?.ID" [series]="series"
+						[filterRuleFieldsOptions]="filterRuleFieldsOptions" [filterRuleStringVariables]="filterRuleStringVariables"
+						(removeClick)="onCardRemoveClick($event)" (editClick)="onCardEdit($event);">
+                	</conditional-filter-card>
+                    
 					<pep-button
 						[value]="'ADD_CONDITIONAL_FILTER' | translate" sizeType="md" (buttonClick)="addConditionalFilter()">
 					</pep-button>

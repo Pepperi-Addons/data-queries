@@ -17,6 +17,8 @@ import { PepSelectModule } from '@pepperi-addons/ngx-lib/select';
 import { PepTextareaModule } from '@pepperi-addons/ngx-lib/textarea';
 
 import { config } from '../addon.config';
+import { PepQueryBuilderModule } from '@pepperi-addons/ngx-lib/query-builder';
+import { PepGenericFormModule } from '@pepperi-addons/ngx-composite-lib/generic-form';
 
 @NgModule({
     declarations: [ConditionalFilterCardComponent],
@@ -35,6 +37,8 @@ import { config } from '../addon.config';
         PepColorModule,
         PepImageModule,
         PepTextareaModule,
+		PepQueryBuilderModule,
+		PepGenericFormModule,
         TranslateModule.forChild({
             loader: {
                 provide: TranslateLoader,

@@ -1,4 +1,23 @@
 <div class="card-editor-container">
+	<pep-button sizeType="md" iconName="system_bin" (buttonClick)="onRemoveClick();" style="float: right;"></pep-button>
+		<!-- the filter condition -->
+	<h6>
+		{{'FILTER_CONDITION' | translate}}
+	</h6>
+	<pep-generic-form class="generic-form"
+		[showTopBar]="false"
+		[dataSource]="dataSource"
+		[dataView]="dataView"
+		[inline]="true"
+		(valueChange)="valueChange($event)"
+		*ngIf="isLoaded">
+    </pep-generic-form>
 
-    
+	<!-- the filter itself -->
+	<h6>
+		{{'FILTER' | translate}}
+	</h6>
+	<pep-query-builder
+        [query]="series.ConditionalFilters[id].Filter" [fields]="filterRuleFieldsOptions" [variableFields]="filterRuleStringVariables" (queryChange)="onFilterRuleChanged($event)" (formValidationChange)="isFilterValid = $event">
+    </pep-query-builder>
 </div>

@@ -20,6 +20,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { PepCheckboxModule } from '@pepperi-addons/ngx-lib/checkbox';
 import {PepQueryBuilderModule} from '@pepperi-addons/ngx-lib/query-builder'
 import { PepNgxLibModule } from '@pepperi-addons/ngx-lib';
+import { ConditionalFilterCardModule } from '../conditional-filter-card/conditional-filter-card.module';
 
 
 
@@ -43,6 +44,7 @@ import { PepNgxLibModule } from '@pepperi-addons/ngx-lib';
     MatDialogModule,
     PepNgxLibModule,
     PepQueryBuilderModule,
+	ConditionalFilterCardModule,
     TranslateModule.forChild(),
   ],
   exports: [SeriesEditorComponent],

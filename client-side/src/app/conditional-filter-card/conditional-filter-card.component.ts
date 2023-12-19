@@ -1,7 +1,8 @@
 import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
-import { config } from '../addon.config';
+import { IPepQueryBuilderField } from '@pepperi-addons/ngx-lib/query-builder';
+import { Serie, ConditionalFilter } from '../../../../server-side/models/data-query';
 
 @Component({
     selector: 'conditional-filter-card',
@@ -10,16 +11,11 @@ import { config } from '../addon.config';
 })
 export class ConditionalFilterCardComponent implements OnInit {
 
-    @Input() configuration: any;
-    @Input() id: string;
-    @Input() charts: any;
-    @Input() chartsOptions: { key: string, value: string }[];
-    @Input() pageParametersOptions;
-    @Input() isScorecard: boolean;
-    @Input() isDraggable = false;
-    @Input() showActions = true;
+    @Input() series: any;
+    @Input() id: number;
+	@Input() filterRuleStringVariables: IPepQueryBuilderField[];
+	@Input() filterRuleFieldsOptions: IPepQueryBuilderField[];
 
-    @Output() hostEvents: EventEmitter<any> = new EventEmitter<any>();
     @Output() removeClick: EventEmitter<any> = new EventEmitter();
     @Output() editClick: EventEmitter<any> = new EventEmitter();
 
@@ -29,7 +25,12 @@ export class ConditionalFilterCardComponent implements OnInit {
     inputVars;
     benchmarkInputVars;
     blockLoaded = false;
-	
+	isFilterValid = false;
+	filterCondition;
+	dataView = null;
+	dataSource = null;
+	isLoaded = false;
+	filterRule: Serie["Filter"];
     constructor(
         public routeParams: ActivatedRoute,
         protected translate: TranslateService,
@@ -37,117 +38,155 @@ export class ConditionalFilterCardComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-        // this.title = this.configuration?.cards[this.id].titleContent;
-        // this.getQueryOptions().then(queries => {
-        //     const sorted_queries = queries.sort((a, b) => (a.Name > b.Name) ? 1 : ((b.Name > a.Name) ? -1 : 0));
-        //     sorted_queries.forEach(q => {
-        //         this.queryOptions.push({key: q.Key, value: q.Name})
-        //         this.benchmarkQueryOptions.push({key: q.Key, value: q.Name})
-        //     });
-        // })
-        // const queryID = this.configuration?.cards[this.id].query;
-        // if (queryID) {
-        //     this.pluginService.getDataQueryByKey(queryID).then(queryData => {
-        //         if (queryData[0]) {
-        //           this.inputVars = queryData[0].Variables;
-        //         }
-        //       })
-        // }
-        // const secondQueryID = this.configuration?.cards[this.id].secondQuery;
-        // if (secondQueryID) {
-        //     this.pluginService.getDataQueryByKey(secondQueryID).then(secondQueryData => {
-        //         if(secondQueryData[0]) {
-        //             this.benchmarkInputVars = secondQueryData[0].Variables;
-        //         }
-        //     })
-        // }
-
-        // const chartID = this.configuration?.cards[this.id].chart;
-        // if (!chartID) {
-        //     // set the first chart to be default
-        //     const firstChart = this.charts[0];
-        //     this.configuration.cards[this.id].chart = firstChart.Key;
-        //     this.configuration.cards[this.id].chartCache = firstChart.ScriptURI;
-        // }
-        // this.blockLoaded = true;
-        // this.updateHostObject();
+		this.filterRule = this.series.ConditionalFilters[this.id].Filter;
+		if(this.series.ConditionalFilters[this.id].Condition) {
+			this.filterCondition = this.series.ConditionalFilters[this.id].Condition;
+		}
+		else {
+			this.filterCondition = {
+				variable: this.filterRuleStringVariables[0].FieldID,
+				operation: 'Equal to',
+				value: ''
+			}
+		}
+		this.dataView = this.getDataView();
+    	this.dataSource = this.getDataSource();
+		this.isLoaded = true;
     }
 
     onRemoveClick() {
         this.removeClick.emit({id: this.id});
     }
 
-    onEditClick() {
-        this.editClick.emit({id: this.id});
+    cardEdited() {
+		const conditionalFilter: ConditionalFilter = {
+			ID: this.id,
+			Condition: this.filterCondition,
+			Filter: this.filterRule
+		};
+        this.editClick.emit({conditionalFilter: conditionalFilter});
     }
 
-    onCardFieldChange(key, event) {
-        const value = key.indexOf('image') > -1 && key.indexOf('src') > -1 ? event.fileStr :  event && event.source && event.source.key ? event.source.key : event && event.source && event.source.value ? event.source.value :  event;
+	getDataSource(){
+        return this.filterCondition;
+    }
+
+   getDataView() {
+       return {
+         Type: "Form",
+         Hidden: false,
+         Columns: [],
+         Context: {
+           Object: {
+             Resource: "transactions",
+             InternalID: 0,
+             Name: "Object Name",
+           },
+           Name: "Context Name",
+           ScreenSize: "Tablet",
+           Profile: {
+             InternalID: 0,
+             Name: "Profile Name",
+           },
+         },
+         Fields: [
+           {
+             FieldID: "variable",
+             Type: "ComboBox",
+             Title: "",
+             Mandatory: false,
+             ReadOnly: false,
+             Layout: {
+               Origin: {
+                 X: 0,
+                 Y: 0,
+               },
+               Size: {
+                 Width: 1,
+                 Height: 0,
+               },
+             },
+             Style: {
+               Alignment: {
+                 Horizontal: "Stretch",
+                 Vertical: "Stretch",
+               },
+             },
+             OptionalValues: this.filterRuleStringVariables.map(variable => {return {Key: variable.FieldID, Value: variable.FieldID}}),
+			 AdditionalProps: {
+				emptyOption: false
+			}
+           },
+		   {
+			FieldID: "operation",
+			Type: "ComboBox",
+			Title: "",
+			Mandatory: false,
+			ReadOnly: false,
+			Layout: {
+			  Origin: {
+				X: 1,
+				Y: 0,
+			  },
+			  Size: {
+				Width: 1,
+				Height: 0,
+			  },
+			},
+			Style: {
+			  Alignment: {
+				Horizontal: "Stretch",
+				Vertical: "Stretch",
+			  },
+			},
+			OptionalValues: [{Key: 'Equal to', Value: 'Equal to'}, {Key: 'Not equal to', Value: 'Not equal to'}]
+		  },
+		  {
+			FieldID: "value",
+			Type: "TextBox",
+			Title: "",
+			Mandatory: false,
+			ReadOnly: false,
+			Layout: {
+			  Origin: {
+				X: 2,
+				Y: 0,
+			  },
+			  Size: {
+				Width: 1,
+				Height: 0,
+			  },
+			},
+			Style: {
+			  Alignment: {
+				Horizontal: "Stretch",
+				Vertical: "Stretch",
+			  },
+			}
+		  }
+         ],
+         Rows: [],
+       };
+   }
+
+	// private updatePageConfiguration() {
+    //     this.hostEvents.emit({
+    //         action: 'set-page-configuration'
+    //     });
+    // }
+
+	onFilterConditionChanged(event) {
+	}
+
+	onFilterRuleChanged(event) {
+      this.filterRule = event;
+	  this.cardEdited();
+    }
   
-        if(key.indexOf('.') > -1) {
-            let keyObj = key.split('.');
-            this.configuration.cards[this.id][keyObj[0]][keyObj[1]] = value;
-        }
-        else {
-            this.configuration.cards[this.id][key] = value;
-        }
-        this.updateHostObject();
-    }
 
-    private updateHostObject() {
-        this.hostEvents.emit({
-            action: 'set-configuration',
-            configuration: this.configuration,
-        });
-    }
+	async valueChange(e) {
+		this.cardEdited();
+	  }
 
-	private updatePageConfiguration() {
-        this.hostEvents.emit({
-            action: 'set-page-configuration'
-        });
-    }
-
-    designChanged(e){
-        const selectedChart = this.charts.filter(c => c.Key == e)[0];
-        this.configuration.cards[this.id].chart = selectedChart.Key;
-        this.configuration.cards[this.id].chartCache = selectedChart.ScriptURI;
-        this.updateHostObject();
-    }
-
-    variablesDataChanged(e, varName, field, isBenchmark) {
-        if(!isBenchmark) {
-          if(field=='source') {
-            this.configuration.cards[this.id].variablesData[varName].source = e
-            this.configuration.cards[this.id].variablesData[varName].value = null
-            if(e == 'Default')
-            this.configuration.cards[this.id].variablesData[varName].value = this.getDefaultValue(varName);
-          } else {
-            this.configuration.cards[this.id].variablesData[varName].value = e
-          }
-        }
-        else {
-          if(field=='source') {
-            this.configuration.cards[this.id].benchmarkVariablesData[varName].source = e
-            this.configuration.cards[this.id].benchmarkVariablesData[varName].value = null
-            if(e == 'Default') 
-            this.configuration.cards[this.id].benchmarkVariablesData[varName].value = this.getDefaultValue(varName);
-          } else {
-            this.configuration.cards[this.id].benchmarkVariablesData[varName].value = e
-          }
-        }
-        this.updateHostObject();
-		this.updatePageConfiguration();
-    }
-
-    getDefaultValue(varName) {
-        return this.inputVars.filter(v => v.Name == varName)[0].DefaultValue;
-    }
-
-    onVariablesDataChanged(data: any) {
-        this.variablesDataChanged(data.event, data.name, data.field, false);
-    }
-
-    onBenchmarkVariablesDataChanged(data: any) {
-        this.variablesDataChanged(data.event, data.name, data.field, true);
-    }
+	
 }

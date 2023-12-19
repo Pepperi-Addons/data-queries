@@ -68,9 +68,15 @@ export interface AggregatedParam {
 }
 
 export interface ConditionalFilter {
-	id: number,
-	Condition: JSONFilter,
+	ID: number,
+	Condition: FilterCondition,
 	Filter: JSONFilter
+}
+
+export interface FilterCondition {
+	variable: string,
+	operation: string,
+	value: string
 }
 export const UserTypes = ["AllUsers", "CurrentUser"];
 export declare type UserType = typeof UserTypes[number];
