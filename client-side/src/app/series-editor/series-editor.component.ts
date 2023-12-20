@@ -121,6 +121,7 @@ export class SeriesEditorComponent implements OnInit {
     if (incoming?.currentSeries) {
       this.mode = 'Update';
       this.series = incoming.currentSeries;
+	  this.series.ConditionalFilters = this.series.ConditionalFilters ?? [];
       this.seriesFilterRule = this.series.Filter;
       this.formFlags.useCategories = this.series.GroupBy[0].FieldID ? true : false;
       this.formFlags.useDynamicSeries = this.series.BreakBy.FieldID ? true : false;
