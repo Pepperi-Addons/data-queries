@@ -56,7 +56,7 @@ export class DataExportFormComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public incoming: any) {
       this.selectedUser = incoming?.userName;
       this.userID = incoming?.userID;
-      this.userOptions = incoming?.userOptions.map((u) => {
+      this.userOptions = incoming?.userOptions?.map((u) => {
 		return { Key: u.key, Value: u.value }
 	  });
       this.query = incoming?.query;

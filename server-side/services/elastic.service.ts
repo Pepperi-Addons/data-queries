@@ -234,7 +234,7 @@ class ElasticService {
 	resourceFilter = await this.addUserFilters(series, resourceFilter, resourceRelationData, userID);
 	resourceFilter = await this.addAccountsFilters(series, resourceFilter, resourceRelationData, userID);
 
-	if (series.ConditionalFilters) {
+	if (series.ConditionalFilters && variableValues) {
 		resourceFilter = this.applyConditionalFilters(resourceFilter, series.ConditionalFilters, variableValues);
 	}
 
