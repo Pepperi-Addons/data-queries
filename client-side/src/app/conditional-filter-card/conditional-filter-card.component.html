@@ -9,7 +9,7 @@
 		[dataSource]="dataSource"
 		[dataView]="dataView"
 		[inline]="true"
-		(valueChange)="valueChange($event)"
+		(valueChange)="onFilterConditionChanged($event)"
 		*ngIf="isLoaded">
     </pep-generic-form>
 
@@ -18,6 +18,6 @@
 		{{'FILTER' | translate}}
 	</h6>
 	<pep-query-builder
-        [query]="series.ConditionalFilters[id].Filter" [fields]="filterRuleFieldsOptions" [variableFields]="filterRuleStringVariables" (queryChange)="onFilterRuleChanged($event)" (formValidationChange)="isFilterValid = $event">
+        [query]="inputFilterRule" [fields]="filterRuleFieldsOptions" [variableFields]="filterRuleStringVariables" (queryChange)="onFilterRuleChanged($event)" (formValidationChange)="isFilterValid = $event">
     </pep-query-builder>
 </div>

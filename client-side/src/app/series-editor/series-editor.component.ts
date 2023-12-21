@@ -435,8 +435,9 @@ export class SeriesEditorComponent implements OnInit {
 	this.series?.ConditionalFilters.forEach(function(card, index, arr) {card.ID = index; });
   }
 
-  onCardEdit(event) {
-	this.series.ConditionalFilters[event.conditionalFilter.ID] = event.conditionalFilter;
+  onCardFieldEdit(event) {
+	const fieldName = Object.keys(event)[0];
+	this.series.ConditionalFilters[event.ID][fieldName] = event[fieldName];
   }
 
 }

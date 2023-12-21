@@ -155,7 +155,7 @@
 					<conditional-filter-card *ngFor="let currentCard of series?.ConditionalFilters;"
 						[id]="currentCard?.ID" [series]="series"
 						[filterRuleFieldsOptions]="filterRuleFieldsOptions" [filterRuleStringVariables]="filterRuleStringVariables"
-						(removeClick)="onCardRemoveClick($event)" (editClick)="onCardEdit($event);">
+						(removeClick)="onCardRemoveClick($event)" (editClick)="onCardFieldEdit($event);">
                 	</conditional-filter-card>
                     
 					<pep-button

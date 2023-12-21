@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, Output, TemplateRef, ViewChild, ViewContainerRef } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
 import { ActivatedRoute } from '@angular/router';
 import { IPepQueryBuilderField } from '@pepperi-addons/ngx-lib/query-builder';
@@ -30,6 +30,7 @@ export class ConditionalFilterCardComponent implements OnInit {
 	dataView = null;
 	dataSource = null;
 	isLoaded = false;
+	inputFilterRule: Serie["Filter"];
 	filterRule: Serie["Filter"];
     constructor(
         public routeParams: ActivatedRoute,
@@ -38,7 +39,7 @@ export class ConditionalFilterCardComponent implements OnInit {
     }
 
     async ngOnInit(): Promise<void> {
-		this.filterRule = this.series.ConditionalFilters[this.id].Filter;
+			this.inputFilterRule = this.series.ConditionalFilters[this.id].Filter;
 		if(this.series.ConditionalFilters[this.id].Condition) {
 			this.filterCondition = this.series.ConditionalFilters[this.id].Condition;
 		}
@@ -65,6 +66,17 @@ export class ConditionalFilterCardComponent implements OnInit {
 			Filter: this.filterRule
 		};
         this.editClick.emit({conditionalFilter: conditionalFilter});
+    }
+
+	cardFieldEdited(fieldName: string) {
+        switch (fieldName) {
+			case 'Condition':
+				this.editClick.emit({Condition: this.filterCondition, ID: this.id});
+				break;
+			case 'Filter':
+				this.editClick.emit({Filter: this.filterRule, ID: this.id});
+				break;
+		}
     }
 
 	getDataSource(){
@@ -169,24 +181,15 @@ export class ConditionalFilterCardComponent implements OnInit {
        };
    }
 
-	// private updatePageConfiguration() {
-    //     this.hostEvents.emit({
-    //         action: 'set-page-configuration'
-    //     });
-    // }
-
-	onFilterConditionChanged(event) {
-	}
-
 	onFilterRuleChanged(event) {
-      this.filterRule = event;
-	  this.cardEdited();
+		this.filterRule = event;
+		this.cardFieldEdited('Filter');
     }
   
 
-	async valueChange(e) {
-		this.cardEdited();
-	  }
+	async onFilterConditionChanged(event) {
+		this.cardFieldEdited('Condition');
+	}
 
 	
 }
