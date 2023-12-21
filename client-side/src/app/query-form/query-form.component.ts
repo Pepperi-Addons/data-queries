@@ -119,6 +119,7 @@ export class QueryFormComponent implements OnInit {
   showSeriesEditorDialog(seriesKey) {
     const seriesCount = this.query.Series?.length ? this.query.Series?.length : 0
     const series = this.query.Series.filter(s => s.Key == seriesKey)[0]
+	const seriesCopy = JSON.parse(JSON.stringify(series)); // deep copy
     const callbackFunc = async (seriesToAddOrUpdate) => {
         this.addonService.addonUUID = config.AddonUUID;
         if (seriesToAddOrUpdate) {
@@ -155,7 +156,7 @@ export class QueryFormComponent implements OnInit {
         callback: null,
     };
     const input = {
-      currentSeries: series,
+      currentSeries: seriesCopy,
       parent: 'query',
       seriesName: series?.Name ? series.Name : `Series ${seriesCount + 1}`,
       resource: this.query?.Resource,
@@ -769,6 +770,7 @@ async previewDataHandler(data) {
             userName: this.userOptions?.find(u => u.key==this.userForPreview)?.value,
             userID: this.selectedUserID,
             query: this.query,
+			allowUserSelection: this.scopeFiltersValidForChangeUser(),
 			userOptions: this.userOptions
         }
         const callback = (data: any) => {};

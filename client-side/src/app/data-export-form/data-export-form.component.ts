@@ -42,6 +42,7 @@ export class DataExportFormComponent implements OnInit {
   userID = null;
   selectedUser = null;
   userOptions = [];
+  allowUserSelection = false;
 
   constructor(
     public addonService: AddonService,
@@ -60,6 +61,7 @@ export class DataExportFormComponent implements OnInit {
 		return { Key: u.key, Value: u.value }
 	  });
       this.query = incoming?.query;
+	  this.allowUserSelection = incoming?.allowUserSelection;
     }
 
    async ngOnInit() {
@@ -192,10 +194,10 @@ export class DataExportFormComponent implements OnInit {
            },
            {
             FieldID: "user",
-            Type: this.userID ? "ComboBox" : "TextBox",
+            Type: this.allowUserSelection ? "ComboBox" : "TextBox",
             Title: "User",
             Mandatory: false,
-            ReadOnly: !this.userID,
+            ReadOnly: !this.allowUserSelection,
             Layout: {
               Origin: {
                 X: 1,
