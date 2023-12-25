@@ -4,7 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { IPepFieldValueChangeEvent, KeyValuePair, PepAddonService } from '@pepperi-addons/ngx-lib';
 import { PepButton } from '@pepperi-addons/ngx-lib/button';
 import { AddonService } from '../../services/addon.service';
-import { AccountTypes, Aggregators, DateOperation, InputVariable, Intervals, OrderType, ScriptAggregators, Serie, SERIES_LABEL_DEFAULT_VALUE, UserTypes } from '../../../../server-side/models/data-query';
+import { AccountTypes, Aggregators, ConditionalFilter, DateOperation, InputVariable, Intervals, OrderType, ScriptAggregators, Serie, SERIES_LABEL_DEFAULT_VALUE, UserTypes } from '../../../../server-side/models/data-query';
 import { MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { v4 as uuid } from 'uuid';
 import { IPepQueryBuilderField } from '@pepperi-addons/ngx-lib/query-builder';
@@ -30,8 +30,9 @@ export class SeriesEditorComponent implements OnInit {
   accountFilterOptions: Array<PepButton> = [];
   periodOptions: Array<PepButton> = [];
   isLoaded = false;
-  filterRuleFieldsOptions: IPepQueryBuilderField = [] as unknown as IPepQueryBuilderField;
-  filterRuleVariables: IPepQueryBuilderField = [] as unknown as IPepQueryBuilderField;
+  filterRuleFieldsOptions: IPepQueryBuilderField[] = [];
+  filterRuleVariables: IPepQueryBuilderField[] = [];
+  filterRuleStringVariables: IPepQueryBuilderField[] = [];
   isformValid = true;
   filterRule = null;
   seriesFilterRule = null;
@@ -87,7 +88,8 @@ export class SeriesEditorComponent implements OnInit {
       Interval: 'Month',
       Format: 'yyyy MMM',
       Alias: ''
-    }]
+    }],
+	ConditionalFilters: []
   }
 
   formatOptionsMap = {
@@ -119,6 +121,7 @@ export class SeriesEditorComponent implements OnInit {
     if (incoming?.currentSeries) {
       this.mode = 'Update';
       this.series = incoming.currentSeries;
+	  this.series.ConditionalFilters = this.series.ConditionalFilters ?? [];
       this.seriesFilterRule = this.series.Filter;
       this.formFlags.useCategories = this.series.GroupBy[0].FieldID ? true : false;
       this.formFlags.useDynamicSeries = this.series.BreakBy.FieldID ? true : false;
@@ -142,6 +145,7 @@ export class SeriesEditorComponent implements OnInit {
         FieldType: this.toFilterType(v.Type),
         Title: v.Name
       }))
+	  this.filterRuleStringVariables = this.filterRuleVariables.filter(v => v.FieldType === 'String');
     }
     this.pluginService.addonUUID = config.AddonUUID;
   }
@@ -414,6 +418,26 @@ export class SeriesEditorComponent implements OnInit {
     else {
       this.currentAggregatorFieldsOptions = this.aggregationsFieldsOptions['All']
     }
+  }
+
+  addConditionalFilter() {
+	const card: ConditionalFilter = {
+		ID: this.series.ConditionalFilters.length,
+		Condition: undefined,
+		Filter: undefined
+	};
+	this.series.ConditionalFilters.push(card);
+	console.log('card added');
+  }
+
+  onCardRemoveClick(event) {
+	this.series?.ConditionalFilters.splice(event.id, 1);
+	this.series?.ConditionalFilters.forEach(function(card, index, arr) {card.ID = index; });
+  }
+
+  onCardFieldEdit(event) {
+	const fieldName = Object.keys(event)[0];
+	this.series.ConditionalFilters[event.ID][fieldName] = event[fieldName];
   }
 
 }

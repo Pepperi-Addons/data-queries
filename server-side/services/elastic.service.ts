@@ -1,7 +1,7 @@
-import { PapiClient } from '@pepperi-addons/papi-sdk'
+import { PapiClient, Relation } from '@pepperi-addons/papi-sdk'
 import { Client, Request } from '@pepperi-addons/debug-server';
 import config from '../../addon.config.json'
-import { AggregatedField, DataQuery, DATA_QUREIES_TABLE_NAME, GroupBy, Interval, Serie } from '../models/data-query';
+import { AggregatedField, DataQuery, DATA_QUREIES_TABLE_NAME, GroupBy, Interval, Serie, ConditionalFilter, FilterCondition } from '../models/data-query';
 import { ValidatorResult, validate } from 'jsonschema';
 import esb, { Aggregation, Query, RequestBodySearch } from 'elastic-builder';
 import jwtDecode from 'jwt-decode';
@@ -156,8 +156,8 @@ class ElasticService {
         resourceFilter = esb.boolQuery().must([resourceFilter, serializedQuery]);
       }
       const beforeAddingScopeFilters = Date.now();
-      resourceFilter = await this.addScopeFilters(series, resourceFilter, resourceRelationData, userID);
-      console.log(`addScopeFilters time: ${Date.now() - beforeAddingScopeFilters} milliseconds`);
+      resourceFilter = await this.applyAdditionalFilters(series, resourceFilter, resourceRelationData, userID, variableValues);
+      console.log(`applyAdditionalFilters time: ${Date.now() - beforeAddingScopeFilters} milliseconds`);
 
       if (this.hitsRequested) {
         this.hitsFilter = esb.boolQuery().must([this.hitsFilter, resourceFilter]);
@@ -219,8 +219,8 @@ class ElasticService {
 	}
   }
 
-  // if there is scope add user/accounts filters to resourceFilter
-  private async addScopeFilters(series, resourceFilter, resourceRelationData, requestedUserID): Promise<Query> {
+  // apply scope filters and conditional filters
+  private async applyAdditionalFilters(series: Serie, resourceFilter: Query, resourceRelationData: Relation, requestedUserID: string, variableValues: {[varName: string]: string}): Promise<Query> {
 	let userID;
 	if (requestedUserID) {
 		userID = requestedUserID;
@@ -234,10 +234,14 @@ class ElasticService {
 	resourceFilter = await this.addUserFilters(series, resourceFilter, resourceRelationData, userID);
 	resourceFilter = await this.addAccountsFilters(series, resourceFilter, resourceRelationData, userID);
 
+	if (series.ConditionalFilters && variableValues) {
+		resourceFilter = this.applyConditionalFilters(resourceFilter, series.ConditionalFilters, variableValues);
+	}
+
     return resourceFilter;
   }
 
-  private async addUserFilters(series, resourceFilter, resourceRelationData, userID): Promise<Query> {
+  private async addUserFilters(series: Serie, resourceFilter: Query, resourceRelationData: Relation, userID: string): Promise<Query> {
 	if (series.Scope.User === "CurrentUser") {
 		// IndexedUserFieldID
 		const fieldName = resourceRelationData.IndexedUserFieldID;
@@ -257,7 +261,7 @@ class ElasticService {
 	return resourceFilter;
   }
 
-  private async addAccountsFilters(series, resourceFilter, resourceRelationData, userID): Promise<Query> {
+  private async addAccountsFilters(series: Serie, resourceFilter: Query, resourceRelationData: Relation, userID: string): Promise<Query> {
 	if (series.Scope.Account === "AccountsAssignedToCurrentUser") {
 		// taking the fields from the relation
 		const accountFieldID = resourceRelationData.AccountFieldID;
@@ -677,6 +681,30 @@ class ElasticService {
 
 	console.log(`Total execution time of ${queriesData.length} queries: ${Date.now() - startTime} milliseconds`);
 	return responses;
+  }
+
+  // apply only filters which are fullfilled by the defined condition
+  private applyConditionalFilters(resourceFilter: Query, conditionalFilters: ConditionalFilter[], variableValues: {[varName: string]: string}): Query {
+	for (const conditionalFilter of conditionalFilters) {
+		if (this.filterConditionIsFullfilled(conditionalFilter.Condition, variableValues)) {
+			this.replaceAllVariables(conditionalFilter.Filter, variableValues); // replace all variables with their values
+			resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(conditionalFilter.Filter)]);
+		}
+	}
+	return resourceFilter;
+  }
+
+  filterConditionIsFullfilled(filterCondition: FilterCondition, variableValues: {[varName: string]: string}): boolean {
+	let isFullfilled = false;
+
+	if (filterCondition.operation === 'Equal to') {
+		isFullfilled = variableValues[filterCondition.variable] === filterCondition.value;
+	}
+	else if (filterCondition.operation === 'Not equal to') {
+		isFullfilled = variableValues[filterCondition.variable] !== filterCondition.value;
+	}
+
+	return isFullfilled;
   }
 
 }

@@ -159,7 +159,25 @@ export const QueriesScheme =
                     },
                     "Filter": {
                         "type": ["null", "object"]
-                    }
+                    },
+					"ConditionalFilters": {
+						"type": "array",
+						"items": {
+							"type": "object",
+							"properties": {
+								"ID": {
+									"type": "integer"
+								},
+								"Condition": {
+									"type": ["null", "object"]
+								},
+								"Filter": {
+									"type": ["null", "object"]
+								}
+							},
+							"additionalProperties": false
+						}
+					}
                 },
                 "additionalProperties": false,
                 "required": [

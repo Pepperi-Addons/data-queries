@@ -15,7 +15,7 @@
                 <div id="metric">
                     <h2>{{'Metric' | translate}}
                     </h2>
-                    <hr>
+                    <hr class="hr">
                     <pep-field-title [label]="'AggregationDescription' | translate" class="header">
                     </pep-field-title>
                     <div class="flex-gap">
@@ -74,7 +74,7 @@
                 </div>
                 <div id="categories" *ngIf="this.seriesEditorType !== 'scorecards'">
                     <pep-checkbox  [disabled]="!isLoaded" [value]="formFlags.useCategories" [label]="'Categories' | translate" [renderTitle]="false" (valueChange)="onEventCheckboxChanged('Categories',$event)"></pep-checkbox>
-                    <hr>
+                    <hr class="hr">
                     <pep-field-title [label]="'CategoriesDescription' | translate" class="header">
                     </pep-field-title>
                     <div class="flex-gap">
@@ -90,7 +90,7 @@
                 </div>
                 <div id="dynamic-series" *ngIf="this.seriesEditorType !== 'scorecards'">
                     <pep-checkbox  [disabled]="!isLoaded" [value]="formFlags.useDynamicSeries" [label]="'DynamicSeries' | translate" [renderTitle]="false" (valueChange)="onEventCheckboxChanged('DynamicSeries',$event)"></pep-checkbox>
-                    <hr>
+                    <hr class="hr">
                     <pep-field-title [label]="'DynamicSeriesDescriptions' | translate" class="header">
                     </pep-field-title>
                     <div class="flex-gap">
@@ -120,7 +120,7 @@
                 <div id="filter">
                     <h2>{{'Filter' | translate}}
                     </h2>
-                    <hr>
+                    <hr class="hr">
                 <div >
                     <div *ngIf="resourceIsValidForAccountFilter(resourceRelationData)" class="flex-gap">
                         <pep-select class="flex" [emptyOption]="false" [(value)]="series.Scope.Account" [label]="'AccountFilter' | translate" 
@@ -145,6 +145,22 @@
                     <pep-query-builder
                     [query]="seriesFilterRule" [fields]="filterRuleFieldsOptions" [variableFields]="filterRuleVariables" (queryChange)="onFilterRuleChanged($event)" (formValidationChange)="isformValid = $event">
                     </pep-query-builder>
+
+                </div>
+
+				<div id="conditional-filters" *ngIf="filterRuleStringVariables.length > 0 || series?.ConditionalFilters.length > 0">
+                    <h2>{{'Conditional Filters' | translate}}
+                    </h2>
+                    <hr class="hr">
+					<conditional-filter-card *ngFor="let currentCard of series?.ConditionalFilters;"
+						[id]="currentCard?.ID" [series]="series"
+						[filterRuleFieldsOptions]="filterRuleFieldsOptions" [filterRuleStringVariables]="filterRuleStringVariables"
+						(removeClick)="onCardRemoveClick($event)" (editClick)="onCardFieldEdit($event);">
+                	</conditional-filter-card>
+                    
+					<pep-button
+						[value]="'ADD_CONDITIONAL_FILTER' | translate" sizeType="md" (buttonClick)="addConditionalFilter()">
+					</pep-button>
 
                 </div>
 
