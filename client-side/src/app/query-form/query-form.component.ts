@@ -119,7 +119,7 @@ export class QueryFormComponent implements OnInit {
   showSeriesEditorDialog(seriesKey) {
     const seriesCount = this.query.Series?.length ? this.query.Series?.length : 0
     const series = this.query.Series.filter(s => s.Key == seriesKey)[0]
-	const seriesCopy = JSON.parse(JSON.stringify(series)); // deep copy
+	const seriesCopy = series ? JSON.parse(JSON.stringify(series)) : undefined; // deep copy
     const callbackFunc = async (seriesToAddOrUpdate) => {
         this.addonService.addonUUID = config.AddonUUID;
         if (seriesToAddOrUpdate) {
