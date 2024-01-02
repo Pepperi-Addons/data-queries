@@ -32,21 +32,26 @@ export class UtilitiesService {
 		const resourceToDataDict: { [name: string] : Relation } = {};
 
 		const queries: DataQuery[] = await this.papiClient.get('/data_queries?fields=Key,Resource&page_size=-1');
-		const resourcesToGet: Set<string> = new Set<string>(queries.map(query => query.Resource));
-		const resourcesString: string = Array.from(resourcesToGet).join(',');
-		const resourceRelationData: Relation[] = (await this.papiClient.addons.data.relations.find({
-			where: `RelationName='DataQueries' AND Name in (${resourcesString})`
-		}));
+		if (queries.length > 0) {
+			const resourcesToGet: Set<string> = new Set<string>(queries.map(query => query.Resource));
+			const resourcesString: string = Array.from(resourcesToGet).join(',');
+			const resourceRelationData: Relation[] = (await this.papiClient.addons.data.relations.find({
+				where: `RelationName='DataQueries' AND Name in (${resourcesString})`
+			}));
 
-		resourceRelationData.forEach(resourceData => {
-			resourceToDataDict[resourceData.Name] = resourceData;
-		});
+			resourceRelationData.forEach(resourceData => {
+				resourceToDataDict[resourceData.Name] = resourceData;
+			});
 
-		queries.forEach(query => {
-			query.ResourceData = resourceToDataDict[query.Resource];
-		});
+			queries.forEach(query => {
+				query.ResourceData = resourceToDataDict[query.Resource];
+			});
 
-		return await this.papiClient.post(`/addons/data/batch/${this.client.AddonUUID}/${DATA_QUREIES_TABLE_NAME}`, {Objects: queries});
+			return await this.papiClient.post(`/addons/data/batch/${this.client.AddonUUID}/${DATA_QUREIES_TABLE_NAME}`, {Objects: queries});
+		}
+		else {
+			return [];
+		}
 	}
 
 	async fixQueryRelation(query: DataQuery): Promise<boolean> {
