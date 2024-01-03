@@ -698,13 +698,17 @@ class ElasticService {
 	let isFullfilled = false;
 
 	if (filterCondition.operation === 'Equal to') {
-		isFullfilled = variableValues[filterCondition.variable] === filterCondition.value;
+		isFullfilled = this.equalsIgnoringCase(variableValues[filterCondition.variable], filterCondition.value);
 	}
 	else if (filterCondition.operation === 'Not equal to') {
-		isFullfilled = variableValues[filterCondition.variable] !== filterCondition.value;
+		isFullfilled = !this.equalsIgnoringCase(variableValues[filterCondition.variable], filterCondition.value);
 	}
 
 	return isFullfilled;
+  }
+
+  equalsIgnoringCase(str1: string, str2: string): boolean {
+	return str1.localeCompare(str2, undefined, { sensitivity: 'base' }) === 0;
   }
 
 }
