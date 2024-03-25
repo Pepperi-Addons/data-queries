@@ -69,7 +69,7 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
 			await pnsService.subscribeToRelationsUpdate();
         }
 
-		if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.4.8') < 0)
+		if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.4.9') < 0)
         {
 			const varSettingsService = new VarSettingsService(client);
             await service.upsertRelation(varSettingsRelation);
