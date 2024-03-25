@@ -51,7 +51,7 @@ class ElasticService {
     const query: DataQuery = await this.getUserDefinedQuery(request);
 	console.log(`getting query time: ${Date.now() - currentTime} milliseconds`);
 
-	if (query.VarSettings.License === 'Free version' && query.VarSettings.TrialEndDate < currentTime) {
+	if (query.VarSettings.License === 'Free version' && query.VarSettings.TrialEndDate < new Date().toLocaleString()) {
 		// No license and trial has ended, so we need to limit the results
 		this.applyDataLimitFilter(query.VarSettings.DaysLimit, query.Resource);
 	}
