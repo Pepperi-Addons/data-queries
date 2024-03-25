@@ -1,6 +1,7 @@
 import { Client, Request } from '@pepperi-addons/debug-server'
 import QueryService from './services/query.service'
 import { PnsService } from './services/pns.service';
+import { VarSettingsService } from './services/varSettings.service';
 
 export async function queries(client: Client, request: Request): Promise<any> {
     const service = new QueryService(client)
@@ -39,6 +40,16 @@ export async function update_relations_on_queries(client: Client, request: Reque
 	}
 	else if (request.method === 'GET') {
 		throw new Error(`Method ${request.method} not supported`);
+	}
+}
+
+export async function insights_var_settings(client: Client, request: Request): Promise<any> {
+	const service = new VarSettingsService(client)
+	if (request.method === 'POST') {
+		return service.upsertVarSettings(request.body);
+	}
+	else if (request.method === 'GET') {
+		return service.getVarSettings();
 	}
 }
 

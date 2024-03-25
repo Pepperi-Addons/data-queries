@@ -232,6 +232,9 @@ export const QueriesScheme =
 		"ResourceData": {
             "type": "object"
         },
+		"VarSettings": {
+			"type": "object"
+		},
         "Description": {
             "type": "string"
         },

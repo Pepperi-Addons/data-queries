@@ -6,6 +6,7 @@ import { DATA_QUREIES_TABLE_NAME, Serie, SERIES_LABEL_DEFAULT_VALUE } from '../m
 import { Schema, validate, Validator } from 'jsonschema';
 import { QueriesScheme } from '../models/queries-scheme';
 import jwtDecode from 'jwt-decode';
+import { VarSettingsService } from './varSettings.service';
 
 class QueryService {
 
@@ -106,6 +107,7 @@ class QueryService {
             }
             return item;
         }));
+		body.DIMXObjects = await this.setVarSettingsOnImportedQueries(body.DIMXObjects);
         console.log('returned object is:', JSON.stringify(body));
         return body;
     }
@@ -133,6 +135,17 @@ class QueryService {
 				}
 			}
 		}
+	}
+
+	async setVarSettingsOnImportedQueries(DIMXObjects: any[]): Promise<any[]> {
+		const varSettingsService = new VarSettingsService(this.client);
+		const varSettings = await varSettingsService.getVarSettings();
+
+		// iterate over all queries to update the settings values saved on the queries
+		return DIMXObjects.map(DIMXObject => {
+			DIMXObject.Object.VarSettings = varSettings;
+			return DIMXObject;
+		});
 	}
 
     async exportDataSource(body: any): Promise<any> {

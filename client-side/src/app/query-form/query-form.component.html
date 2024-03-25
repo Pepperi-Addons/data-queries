@@ -123,6 +123,7 @@
         <div class="genericListContainer">
             <pep-generic-list class="generic-list"
                 [title]="'Preview' | translate"
+				[description]="('Preview_Description' | translate: {number: query.VarSettings.DaysLimit})"
                 [showTopBar]="true"
                 [dataSource]="previewDataSource"
                 [inline]="true"

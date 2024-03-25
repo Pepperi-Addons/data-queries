@@ -14,6 +14,8 @@ import { DATA_QUREIES_TABLE_NAME, queriesTableScheme } from './models';
 import { UtilitiesService } from './services/utilities.service';
 import semver from 'semver';
 import { PnsService } from './services/pns.service';
+import { varSettingsRelation } from './metadata/varSettingsData';
+import { VarSettingsService } from './services/varSettings.service';
 
 export async function install(client: Client, request: Request): Promise<any> {
     // For page block template uncomment this.
@@ -65,6 +67,13 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
             await service.setResourceDataOnAllQueries();
 			const pnsService = new PnsService(client);
 			await pnsService.subscribeToRelationsUpdate();
+        }
+
+		if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.4.8') < 0)
+        {
+			const varSettingsService = new VarSettingsService(client);
+            await service.upsertRelation(varSettingsRelation);
+			await varSettingsService.setDefaultVarSettings();
         }
 
         return {success: true, resultObject: {}}
@@ -133,3 +142,5 @@ async function create_policy_and_profile(service, addonUUID): Promise<void> {
         Allowed: true
     });
 }
+
+
