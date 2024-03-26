@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ViewContainerRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListInitData, IPepGenericListPager, PepGenericListService } from "@pepperi-addons/ngx-composite-lib/generic-list";
+import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListInitData, IPepGenericListPager, IPepGenericListParams, PepGenericListService } from "@pepperi-addons/ngx-composite-lib/generic-list";
 import { PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
 import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
 import { PepMenuItem } from '@pepperi-addons/ngx-lib/menu';
@@ -93,8 +93,8 @@ export class QueryManagerComponent implements OnInit {
   getDataSource() {
     const noDataMessageKey = this.recycleBin ? 'RecycleBin_NoDataFound' : 'Query_Manager_NoDataFound'
     return {
-        init: async(params:any) => {
-            let queries = await this.addonService.getAllQueriesForList();
+        init: async(params: IPepGenericListParams) => {
+            let queries = await this.addonService.getAllQueriesForList()//(params.sorting?.sortBy);
             if(this.recycleBin) {
                 queries = await this.utilitiesService.getRecycledQueries();
             }
@@ -127,13 +127,23 @@ export class QueryManagerComponent implements OnInit {
                             Mandatory: false,
                             ReadOnly: true
                         },
+						{
+                            FieldID: 'ModificationDateTime',
+                            Type: 'TextBox',
+                            Title: this.translate.instant('ModificationDateTime'),
+                            Mandatory: false,
+                            ReadOnly: true
+                        }
                     ],
                     Columns: [
                         {
-                            Width: 50
+                            Width: 40
                         },
                         {
-                            Width: 50
+                            Width: 30
+                        },
+						{
+                            Width: 30
                         }
                     ],
       
