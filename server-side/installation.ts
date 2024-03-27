@@ -14,6 +14,8 @@ import { DATA_QUREIES_TABLE_NAME, queriesTableScheme } from './models';
 import { UtilitiesService } from './services/utilities.service';
 import semver from 'semver';
 import { PnsService } from './services/pns.service';
+import { varSettingsRelation } from './metadata/varSettingsData';
+import { VarSettingsService } from './services/varSettings.service';
 
 export async function install(client: Client, request: Request): Promise<any> {
     // For page block template uncomment this.
@@ -27,6 +29,7 @@ export async function install(client: Client, request: Request): Promise<any> {
         await create_page_block_relation(client);
         await create_policy_and_profile(service, client.AddonUUID);
 		await pnsService.subscribeToRelationsUpdate();
+		await create_var_settings(client);
         return {success: true, resultObject: {}}
     }
     catch (err) {
@@ -65,6 +68,11 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
             await service.setResourceDataOnAllQueries();
 			const pnsService = new PnsService(client);
 			await pnsService.subscribeToRelationsUpdate();
+        }
+
+		if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.4.9') < 0)
+        {
+			await create_var_settings(client);
         }
 
         return {success: true, resultObject: {}}
@@ -133,3 +141,11 @@ async function create_policy_and_profile(service, addonUUID): Promise<void> {
         Allowed: true
     });
 }
+
+async function create_var_settings(client: Client): Promise<void> {
+	const varSettingsService = new VarSettingsService(client);
+	await varSettingsService.upsertVarSettingsRelation();
+	await varSettingsService.setDefaultVarSettings();
+}
+
+

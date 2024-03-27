@@ -38,6 +38,7 @@
     "Variables_NoDataFound": "Click Add to define a variable",
     "PreviewNoSeriesDefined": "Preview will be shown after adding a series",
 	"PreviewNoDataFound": "No data found",
+	"Preview_Description": "The queries are limited to {{number}} days. Please contact us If you wish to increase the period.",
     "GroupByField": "Group by field",
     "Alias": "Alias",
     "AggregatedField":"Aggregated field",

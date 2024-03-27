@@ -9,6 +9,7 @@ import { DataQueryResponse, SeriesData } from '../models/data-query-response';
 import { QueryExecutionScheme } from '../models/query-execution-scheme';
 import {JSONFilter, toKibanaQuery} from '@pepperi-addons/pepperi-filters'
 import { BulkExecuteBody } from '../models/execute-body';
+import { licenseOptions } from '../metadata/varSettingsData';
 
 class ElasticService {
 
@@ -37,6 +38,7 @@ class ElasticService {
   hitsFilter: Query = esb.matchAllQuery();
   hitsRequested = false;
   timeZoneOffsetString: string | undefined;
+  dataLimitFilter: Query = esb.matchAllQuery();
 
   async executeUserDefinedQuery(request: Request): Promise<DataQueryResponse> {
 	const startTime = Date.now();
@@ -50,6 +52,10 @@ class ElasticService {
     const query: DataQuery = await this.getUserDefinedQuery(request);
 	console.log(`getting query time: ${Date.now() - currentTime} milliseconds`);
 
+	if (query.VarSettings.License === licenseOptions.Free && query.VarSettings.TrialEndDate < new Date().toLocaleString()) {
+		// No license and trial has ended, so we need to limit the results
+		this.applyDataLimitFilter(query.VarSettings.DaysLimit, query.Resource);
+	}
     // for filtering out hidden records
     const hiddenFilter: esb.BoolQuery = esb.boolQuery().should([esb.matchQuery('Hidden', 'false'), esb.boolQuery().mustNot(esb.existsQuery('Hidden'))]);
 
@@ -105,7 +111,6 @@ class ElasticService {
 
   private applyBodyParamsToQuery(request: Request, query: DataQuery, hiddenFilter: esb.BoolQuery): RequestBodySearch {
 	let elasticRequestBody: RequestBodySearch;
-
 	if (!request.body?.PageSize && !request.body?.Page) {
 		elasticRequestBody = new esb.RequestBodySearch().size(0);
 	}
@@ -128,8 +133,9 @@ class ElasticService {
 		if (request.body?.Filter) {
 			this.hitsFilter = esb.boolQuery().must([this.hitsFilter, toKibanaQuery(request.body?.Filter)]);
 		}
-		// filter out hidden hits
-		this.hitsFilter = esb.boolQuery().must([this.hitsFilter, hiddenFilter]);
+		// filter out hidden hits and apply data limit filter
+		this.hitsFilter = esb.boolQuery().must([this.hitsFilter, hiddenFilter, this.dataLimitFilter]);
+
 		this.hitsRequested = true;
 	}
 	return elasticRequestBody;
@@ -166,8 +172,8 @@ class ElasticService {
         resourceFilter = esb.boolQuery().must([resourceFilter, toKibanaQuery(filterObject, this.timeZoneOffsetString)]);
       }
 
-      // filter out hidden records
-      resourceFilter = esb.boolQuery().must([resourceFilter, hiddenFilter]);
+      // filter out hidden records and apply data limit filter
+      resourceFilter = esb.boolQuery().must([resourceFilter, hiddenFilter, this.dataLimitFilter]);
 
       const filterAggregation = esb.filterAggregation(seriesName, resourceFilter).agg(seriesAggregation);
       queryAggregation.push(filterAggregation);
@@ -709,6 +715,17 @@ class ElasticService {
 
   equalsIgnoringCase(str1: string, str2: string): boolean {
 	return str1?.localeCompare(str2, undefined, { sensitivity: 'base' }) === 0;
+  }
+
+  applyDataLimitFilter(daysLimit: string, resource: string): void {
+	const filterObject = {
+		FieldType: 'DateTime',
+		ApiName: (resource === 'all_activities' || resource === 'transaction_lines') ? 'ActionDateTime' : 'ModificationDateTime',
+		Operation: 'InTheLast',
+		Values: [daysLimit, 'Days']
+	}
+
+	this.dataLimitFilter = esb.boolQuery().must([this.dataLimitFilter, toKibanaQuery(filterObject as JSONFilter)]);
   }
 
 }
