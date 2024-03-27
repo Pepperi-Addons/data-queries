@@ -29,6 +29,7 @@ export async function install(client: Client, request: Request): Promise<any> {
         await create_page_block_relation(client);
         await create_policy_and_profile(service, client.AddonUUID);
 		await pnsService.subscribeToRelationsUpdate();
+		await create_var_settings(client);
         return {success: true, resultObject: {}}
     }
     catch (err) {
@@ -71,9 +72,7 @@ export async function upgrade(client: Client, request: Request): Promise<any> {
 
 		if (request.body.FromVersion && semver.compare(request.body.FromVersion, '1.4.9') < 0)
         {
-			const varSettingsService = new VarSettingsService(client);
-            await service.upsertRelation(varSettingsRelation);
-			await varSettingsService.setDefaultVarSettings();
+			await create_var_settings(client);
         }
 
         return {success: true, resultObject: {}}
@@ -141,6 +140,12 @@ async function create_policy_and_profile(service, addonUUID): Promise<void> {
         ProfileID: "1",
         Allowed: true
     });
+}
+
+async function create_var_settings(client: Client): Promise<void> {
+	const varSettingsService = new VarSettingsService(client);
+	await varSettingsService.upsertVarSettingsRelation();
+	await varSettingsService.setDefaultVarSettings();
 }
 
 

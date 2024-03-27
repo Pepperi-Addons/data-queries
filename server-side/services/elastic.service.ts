@@ -9,6 +9,7 @@ import { DataQueryResponse, SeriesData } from '../models/data-query-response';
 import { QueryExecutionScheme } from '../models/query-execution-scheme';
 import {JSONFilter, toKibanaQuery} from '@pepperi-addons/pepperi-filters'
 import { BulkExecuteBody } from '../models/execute-body';
+import { licenseOptions } from '../metadata/varSettingsData';
 
 class ElasticService {
 
@@ -51,7 +52,7 @@ class ElasticService {
     const query: DataQuery = await this.getUserDefinedQuery(request);
 	console.log(`getting query time: ${Date.now() - currentTime} milliseconds`);
 
-	if (query.VarSettings.License === 'Free version' && query.VarSettings.TrialEndDate < new Date().toLocaleString()) {
+	if (query.VarSettings.License === licenseOptions.Free && query.VarSettings.TrialEndDate < new Date().toLocaleString()) {
 		// No license and trial has ended, so we need to limit the results
 		this.applyDataLimitFilter(query.VarSettings.DaysLimit, query.Resource);
 	}
