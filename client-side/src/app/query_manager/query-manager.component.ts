@@ -38,6 +38,7 @@ export class QueryManagerComponent implements OnInit {
     recycleBinTitle = '';
 
     deleteError = 'Cannot delete Query';
+	private maxQueries: number;
 
     constructor(
         public addonService: AddonService,
@@ -331,6 +332,7 @@ onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {
 }
 
 async openPreFormDialog() {
+
     this.dialogService.openDialog(QueryPreFormComponent).afterClosed().subscribe(async res => {
         if(res?.moveToQueryForm) {
             const query = {

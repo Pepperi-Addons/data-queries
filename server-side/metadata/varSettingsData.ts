@@ -91,6 +91,29 @@ const dataview = {
 					Vertical: "Stretch",
 				}
 			}
+		},
+		{
+			FieldID: "MaxQueries",
+			Type: "TextBox",
+			Title: "Maximum queries allowed",
+			Mandatory: false,
+			ReadOnly: false,
+			Layout: {
+				Origin: {
+					X: 3,
+					Y: 0,
+				},
+				Size: {
+					Width: 2,
+					Height: 0,
+				}
+			},
+			Style: {
+				Alignment: {
+					Horizontal: "Stretch",
+					Vertical: "Stretch",
+				}
+			}
 		}
 	],
 	Rows: []
@@ -111,5 +134,6 @@ export interface VarSettingsObject {
     License: string;
     DaysLimit: string;
     TrialEndDate: string;
+	MaxQueries: string;
 }
 
