@@ -119,6 +119,13 @@ const dataview = {
 	Rows: []
 };
 
+
+// eslint-disable-next-line no-shadow
+export enum licenseOptions {
+	Free = 'Free version',
+	Full = 'Full version'
+}
+
 export const varSettingsRelation: Relation = {
 	RelationName: "VarSettings",
 	AddonUUID: config.AddonUUID,
