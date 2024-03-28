@@ -39,6 +39,7 @@ export class QueryManagerComponent implements OnInit {
 
     deleteError = 'Cannot delete Query';
 	private maxQueries: number;
+	private numberOfQueries: number;
 
     constructor(
         public addonService: AddonService,
@@ -96,6 +97,8 @@ export class QueryManagerComponent implements OnInit {
     return {
         init: async(params: IPepGenericListParams) => {
             let queries = await this.addonService.getAllQueriesForList()//(params.sorting?.sortBy);
+			this.maxQueries = parseInt(queries[0]?.VarSettings?.MaxQueries ?? "100"); // varSettings are saved on each query
+			this.numberOfQueries = queries.length;
             if(this.recycleBin) {
                 queries = await this.utilitiesService.getRecycledQueries();
             }
@@ -332,31 +335,49 @@ onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {
 }
 
 async openPreFormDialog() {
-
-    this.dialogService.openDialog(QueryPreFormComponent).afterClosed().subscribe(async res => {
-        if(res?.moveToQueryForm) {
-            const query = {
-                Key: this.uuidGenerator(),
-                Name: res.name,
-                Resource: res.resource,
-				ResourceData: res.resourceData,
-                Series: [],
-                Variables: [],
-                Style: 'Decimal',
-                Currency: (await this.addonService.get('/distributor')).Currency.Name
-            }
-            await this.addonService.upsertDataQuery(query);
-            this.navigateToQueryForm('Edit', query.Key);
-        }
-    });
+	if(this.maxQueries && this.maxQueries <= this.numberOfQueries) {
+		this.openQueriesLimitDialog();
+	}
+	else {
+		this.dialogService.openDialog(QueryPreFormComponent).afterClosed().subscribe(async res => {
+			if(res?.moveToQueryForm) {
+				const query = {
+					Key: this.uuidGenerator(),
+					Name: res.name,
+					Resource: res.resource,
+					ResourceData: res.resourceData,
+					Series: [],
+					Variables: [],
+					Style: 'Decimal',
+					Currency: (await this.addonService.get('/distributor')).Currency.Name
+				}
+				await this.addonService.upsertDataQuery(query);
+				this.navigateToQueryForm('Edit', query.Key);
+			}
+		});
+	}
 }
 
 async duplicateQuery(key) {
-    let originalQuery = (await this.addonService.getDataQueryByKey(key))[0];
-    originalQuery.Key = this.uuidGenerator();
-    originalQuery.Name = `${originalQuery.Name}-copy`;
-    await this.addonService.upsertDataQuery(originalQuery);
-    this.dataSource = this.getDataSource();
+	if(this.maxQueries && this.maxQueries <= this.numberOfQueries) {
+		this.openQueriesLimitDialog();
+	}
+	else {
+		let originalQuery = (await this.addonService.getDataQueryByKey(key))[0];
+		originalQuery.Key = this.uuidGenerator();
+		originalQuery.Name = `${originalQuery.Name}-copy`;
+		await this.addonService.upsertDataQuery(originalQuery);
+		this.dataSource = this.getDataSource();
+	}
+}
+
+openQueriesLimitDialog() {
+	const data = new PepDialogData({
+		title: this.translate.instant('Queries_Limit_Dialog_Title'),
+		actionsType: 'close',
+		content: this.translate.instant('Queries_Limit_Dialog_Content')
+	});
+	this.dialogService.openDefaultDialog(data);
 }
 
 

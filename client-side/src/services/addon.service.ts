@@ -55,7 +55,7 @@ export class AddonService {
     }
 
     async getAllQueriesForList(orderBy: string = 'CreationDateTime desc') {
-        return this.papiClient.get(`/data_queries?fields=Key,Name,Resource,ModificationDateTime&page_size=-1&order_by=${orderBy}`);
+        return this.papiClient.get(`/data_queries?fields=Key,Name,Resource,ModificationDateTime,VarSettings&page_size=-1&order_by=${orderBy}`);
     }
 
     async upsertDataQuery(body) {

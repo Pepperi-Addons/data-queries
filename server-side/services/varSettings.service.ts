@@ -26,10 +26,17 @@ export class VarSettingsService {
     }
 
 	async upsertVarSettings(varSettings: VarSettingsObject): Promise<DIMXObject[]> {
+		if (parseInt(varSettings.DaysLimit) > 180) {
+			throw new Error('Days limit value cannot exceed 180');
+		}
+		if (parseInt(varSettings.MaxQueries) > 150) {
+			throw new Error('Max queries value cannot exceed 150');
+		}
+
 		await this.setKmsParameter('License', varSettings.License);
 		await this.setKmsParameter('DaysLimit', varSettings.DaysLimit);
 		await this.setKmsParameter('TrialEndDate', varSettings.TrialEndDate);
-		await this.setKmsParameter('MaxQueries', varSettings.MaxQueries); // TODO: add validation for max queries
+		await this.setKmsParameter('MaxQueries', varSettings.MaxQueries);
 
 		// iterate over all queries to update the settings values saved on the queries
 		const queries: DataQuery[] = (await this.queryService.find({fields: 'Key', page_size: -1})) as DataQuery[];
