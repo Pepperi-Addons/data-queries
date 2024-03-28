@@ -96,16 +96,21 @@ export class QueryManagerComponent implements OnInit {
     const noDataMessageKey = this.recycleBin ? 'RecycleBin_NoDataFound' : 'Query_Manager_NoDataFound'
     return {
         init: async(params: IPepGenericListParams) => {
-            let queries = await this.addonService.getAllQueriesForList()//(params.sorting?.sortBy);
-			this.maxQueries = parseInt(queries[0]?.VarSettings?.MaxQueries ?? "100"); // varSettings are saved on each query
-			this.numberOfQueries = queries.length;
+            let queries;
+			
             if(this.recycleBin) {
                 queries = await this.utilitiesService.getRecycledQueries();
             }
-            if(params.searchString){
+            else if(params.searchString) {
                 queries = await this.utilitiesService.getQueriesByName(params.searchString);
             }
-            queries = this.utilitiesService.caseInsensitiveSortByField(queries);
+			else {
+				queries = await this.addonService.getAllQueriesForList();
+			}
+
+            queries = this.utilitiesService.caseInsensitiveSortByField(queries, params.sorting?.sortBy);
+			this.maxQueries = parseInt(queries[0]?.VarSettings?.MaxQueries ?? "100"); // varSettings are saved on each query
+			this.numberOfQueries = queries.length;
 
             return Promise.resolve({
                 dataView: {
@@ -178,11 +183,7 @@ actions: IPepGenericListActions = {
                 actions.push({
                     title: this.translate.instant('Restore'),
                     handler: async (objs) => {
-                        await this.addonService.upsertDataQuery({
-                            Key: objs.rows[0],
-                            Hidden: false,
-                        });
-                        this.dataSource = this.getDataSource();
+                        await this.restoreQuery(objs.rows[0]);
                     }
                 })
             }
@@ -296,10 +297,6 @@ showDeleteDialog(uuid: any) {
     });      
 }
 
-onDIMXProcessDone(event){
-    this.dataSource = this.getDataSource();
-}
-
 exportQueryScheme(queryKey) {
     this.dimxService?.export({
         DIMXExportFormat: "csv",
@@ -335,7 +332,7 @@ onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {
 }
 
 async openPreFormDialog() {
-	if(this.maxQueries && this.maxQueries <= this.numberOfQueries) {
+	if(this.maxQueries <= this.numberOfQueries) {
 		this.openQueriesLimitDialog();
 	}
 	else {
@@ -359,7 +356,7 @@ async openPreFormDialog() {
 }
 
 async duplicateQuery(key) {
-	if(this.maxQueries && this.maxQueries <= this.numberOfQueries) {
+	if(this.maxQueries <= this.numberOfQueries) {
 		this.openQueriesLimitDialog();
 	}
 	else {
@@ -378,6 +375,19 @@ openQueriesLimitDialog() {
 		content: this.translate.instant('Queries_Limit_Dialog_Content')
 	});
 	this.dialogService.openDefaultDialog(data);
+}
+
+async restoreQuery(key) {
+	if(this.maxQueries <= this.numberOfQueries) {
+		this.openQueriesLimitDialog();
+	}
+	else {
+		await this.addonService.upsertDataQuery({
+			Key: key,
+			Hidden: false,
+		});
+		this.dataSource = this.getDataSource();
+	}
 }
 
 
