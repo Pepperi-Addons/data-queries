@@ -20,6 +20,29 @@ const dataview = {
 	},
 	Fields: [
 		{
+			FieldID: '',
+			Type: "Separator",
+			Title: "License",
+			Mandatory: false,
+			ReadOnly: false,
+			Layout: {
+				Origin: {
+				X: 0,
+				Y: 0,
+				},
+				Size: {
+				Width: 2,
+				Height: 0,
+				},
+			},
+			Style: {
+				Alignment: {
+				Horizontal: "Stretch",
+				Vertical: "Stretch",
+				},
+			},
+		},
+		{
 			FieldID: "License",
 			Type: "ComboBox",
 			Title: "License",
@@ -28,10 +51,10 @@ const dataview = {
 			Layout: {
 				Origin: {
 					X: 0,
-					Y: 0,
+					Y: 1,
 				},
 				Size: {
-					Width: 2,
+					Width: 1,
 					Height: 0,
 				}
 			},
@@ -48,17 +71,17 @@ const dataview = {
 		},
 		{
 			FieldID: "DaysLimit",
-			Type: "TextBox",
+			Type: "NumberInteger",
 			Title: "Data is limited to the following number of days (valid only for the free version)",
 			Mandatory: false,
 			ReadOnly: false,
 			Layout: {
 				Origin: {
-					X: 1,
-					Y: 0,
+					X: 0,
+					Y: 2,
 				},
 				Size: {
-					Width: 2,
+					Width: 1,
 					Height: 0,
 				}
 			},
@@ -77,11 +100,57 @@ const dataview = {
 			ReadOnly: false,
 			Layout: {
 				Origin: {
-					X: 2,
-					Y: 0,
+					X: 0,
+					Y: 3,
 				},
 				Size: {
-					Width: 2,
+					Width: 1,
+					Height: 0,
+				}
+			},
+			Style: {
+				Alignment: {
+					Horizontal: "Stretch",
+					Vertical: "Stretch",
+				}
+			}
+		},
+		{
+			FieldID: '',
+			Type: "Separator",
+			Title: "Data Queries",
+			Mandatory: false,
+			ReadOnly: false,
+			Layout: {
+				Origin: {
+				X: 0,
+				Y: 4,
+				},
+				Size: {
+				Width: 2,
+				Height: 0,
+				},
+			},
+			Style: {
+				Alignment: {
+				Horizontal: "Stretch",
+				Vertical: "Stretch",
+				},
+			},
+		},
+		{
+			FieldID: "MaxQueries",
+			Type: "NumberInteger",
+			Title: "Maximum queries allowed",
+			Mandatory: false,
+			ReadOnly: false,
+			Layout: {
+				Origin: {
+					X: 0,
+					Y: 5,
+				},
+				Size: {
+					Width: 1,
 					Height: 0,
 				}
 			},
@@ -118,5 +187,6 @@ export interface VarSettingsObject {
     License: string;
     DaysLimit: string;
     TrialEndDate: string;
+	MaxQueries: string;
 }
 

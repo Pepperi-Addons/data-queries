@@ -26,9 +26,17 @@ export class VarSettingsService {
     }
 
 	async upsertVarSettings(varSettings: VarSettingsObject): Promise<DIMXObject[]> {
+		if (parseInt(varSettings.DaysLimit) > 180) {
+			throw new Error('Days limit value cannot exceed 180');
+		}
+		if (parseInt(varSettings.MaxQueries) > 150) {
+			throw new Error('Max queries value cannot exceed 150');
+		}
+
 		await this.setKmsParameter('License', varSettings.License);
 		await this.setKmsParameter('DaysLimit', varSettings.DaysLimit);
 		await this.setKmsParameter('TrialEndDate', varSettings.TrialEndDate);
+		await this.setKmsParameter('MaxQueries', varSettings.MaxQueries);
 
 		// iterate over all queries to update the settings values saved on the queries
 		const queries: DataQuery[] = (await this.queryService.find({fields: 'Key', page_size: -1})) as DataQuery[];
@@ -44,11 +52,13 @@ export class VarSettingsService {
 		const license = await this.getKmsParameter('License');
 		const daysLimit = await this.getKmsParameter('DaysLimit');
 		const trialEndDate = await this.getKmsParameter('TrialEndDate');
+		const maxQueries = await this.getKmsParameter('MaxQueries');
 
 		return {
 			License: license.Value,
 			DaysLimit: daysLimit.Value,
-			TrialEndDate: trialEndDate.Value
+			TrialEndDate: trialEndDate.Value,
+			MaxQueries: maxQueries.Value
 		};
 	}
 
@@ -56,7 +66,8 @@ export class VarSettingsService {
 		await this.upsertVarSettings({
 			License: 'Free version',
 			DaysLimit: '90',
-			TrialEndDate: new Date().toISOString()
+			TrialEndDate: new Date().toISOString(),
+			MaxQueries: '100'
 		});
 	}
 

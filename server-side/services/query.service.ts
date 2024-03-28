@@ -10,7 +10,8 @@ import { VarSettingsService } from './varSettings.service';
 
 class QueryService {
 
-    papiClient: PapiClient
+    private papiClient: PapiClient
+	private varSettingsService: VarSettingsService;
 
     constructor(private client: Client) {
         this.papiClient = new PapiClient({
@@ -19,6 +20,7 @@ class QueryService {
             addonUUID: client.AddonUUID,
             addonSecretKey: client.AddonSecretKey
         });
+		this.varSettingsService = new VarSettingsService(client);
     }
 
     async upsert(client: Client, request: Request): Promise<AddonData> {
@@ -49,6 +51,9 @@ class QueryService {
         if (!body.Key) {
             body.Key = uuid();
         }
+
+		// set the VarSettings on the query
+		body.VarSettings = await this.varSettingsService.getVarSettings();
 
         const query = await adal.upsert(body);
         return query;

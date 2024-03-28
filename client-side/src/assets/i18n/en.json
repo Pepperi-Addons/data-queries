@@ -73,6 +73,8 @@
     "USER_FILTER_DESC4":"the account and user filter is ignored.",
 	"ADD_CONDITIONAL_FILTER": "Add conditional filter",
 	"FILTER_CONDITION": "Filter condition",
-	"FILTER": "Filter"
+	"FILTER": "Filter",
+	"Queries_Limit_Dialog_Title": "Queries limit exceeded",
+	"Queries_Limit_Dialog_Content": "You exceeded your queries number limit - please contact your administrator."
 
 }

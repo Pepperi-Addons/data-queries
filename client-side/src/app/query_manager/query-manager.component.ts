@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, OnInit, Output, ViewChild, ViewContainerRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateService } from '@ngx-translate/core';
-import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListInitData, IPepGenericListPager, PepGenericListService } from "@pepperi-addons/ngx-composite-lib/generic-list";
+import { IPepGenericListActions, IPepGenericListDataSource, IPepGenericListInitData, IPepGenericListPager, IPepGenericListParams, PepGenericListService } from "@pepperi-addons/ngx-composite-lib/generic-list";
 import { PepDialogData, PepDialogService } from '@pepperi-addons/ngx-lib/dialog';
 import { PepSelectionData } from '@pepperi-addons/ngx-lib/list';
 import { PepMenuItem } from '@pepperi-addons/ngx-lib/menu';
@@ -38,6 +38,8 @@ export class QueryManagerComponent implements OnInit {
     recycleBinTitle = '';
 
     deleteError = 'Cannot delete Query';
+	private maxQueries: number;
+	private numberOfQueries: number;
 
     constructor(
         public addonService: AddonService,
@@ -93,15 +95,22 @@ export class QueryManagerComponent implements OnInit {
   getDataSource() {
     const noDataMessageKey = this.recycleBin ? 'RecycleBin_NoDataFound' : 'Query_Manager_NoDataFound'
     return {
-        init: async(params:any) => {
-            let queries = await this.addonService.getAllQueriesForList();
+        init: async(params: IPepGenericListParams) => {
+            let queries;
+			
             if(this.recycleBin) {
                 queries = await this.utilitiesService.getRecycledQueries();
             }
-            if(params.searchString){
+            else if(params.searchString) {
                 queries = await this.utilitiesService.getQueriesByName(params.searchString);
             }
-            queries = this.utilitiesService.caseInsensitiveSortByField(queries);
+			else {
+				queries = await this.addonService.getAllQueriesForList();
+			}
+
+            queries = this.utilitiesService.caseInsensitiveSortByField(queries, params.sorting?.sortBy);
+			this.maxQueries = parseInt(queries[0]?.VarSettings?.MaxQueries ?? "100"); // varSettings are saved on each query
+			this.numberOfQueries = queries.length;
 
             return Promise.resolve({
                 dataView: {
@@ -127,13 +136,23 @@ export class QueryManagerComponent implements OnInit {
                             Mandatory: false,
                             ReadOnly: true
                         },
+						{
+                            FieldID: 'ModificationDateTime',
+                            Type: 'TextBox',
+                            Title: this.translate.instant('ModificationDateTime'),
+                            Mandatory: false,
+                            ReadOnly: true
+                        }
                     ],
                     Columns: [
                         {
-                            Width: 50
+                            Width: 40
                         },
                         {
-                            Width: 50
+                            Width: 30
+                        },
+						{
+                            Width: 30
                         }
                     ],
       
@@ -164,11 +183,7 @@ actions: IPepGenericListActions = {
                 actions.push({
                     title: this.translate.instant('Restore'),
                     handler: async (objs) => {
-                        await this.addonService.upsertDataQuery({
-                            Key: objs.rows[0],
-                            Hidden: false,
-                        });
-                        this.dataSource = this.getDataSource();
+                        await this.restoreQuery(objs.rows[0]);
                     }
                 })
             }
@@ -282,10 +297,6 @@ showDeleteDialog(uuid: any) {
     });      
 }
 
-onDIMXProcessDone(event){
-    this.dataSource = this.getDataSource();
-}
-
 exportQueryScheme(queryKey) {
     this.dimxService?.export({
         DIMXExportFormat: "csv",
@@ -321,30 +332,62 @@ onCustomizeFieldClick(fieldClickEvent: IPepFormFieldClickEvent) {
 }
 
 async openPreFormDialog() {
-    this.dialogService.openDialog(QueryPreFormComponent).afterClosed().subscribe(async res => {
-        if(res?.moveToQueryForm) {
-            const query = {
-                Key: this.uuidGenerator(),
-                Name: res.name,
-                Resource: res.resource,
-				ResourceData: res.resourceData,
-                Series: [],
-                Variables: [],
-                Style: 'Decimal',
-                Currency: (await this.addonService.get('/distributor')).Currency.Name
-            }
-            await this.addonService.upsertDataQuery(query);
-            this.navigateToQueryForm('Edit', query.Key);
-        }
-    });
+	if(this.maxQueries <= this.numberOfQueries) {
+		this.openQueriesLimitDialog();
+	}
+	else {
+		this.dialogService.openDialog(QueryPreFormComponent).afterClosed().subscribe(async res => {
+			if(res?.moveToQueryForm) {
+				const query = {
+					Key: this.uuidGenerator(),
+					Name: res.name,
+					Resource: res.resource,
+					ResourceData: res.resourceData,
+					Series: [],
+					Variables: [],
+					Style: 'Decimal',
+					Currency: (await this.addonService.get('/distributor')).Currency.Name
+				}
+				await this.addonService.upsertDataQuery(query);
+				this.navigateToQueryForm('Edit', query.Key);
+			}
+		});
+	}
 }
 
 async duplicateQuery(key) {
-    let originalQuery = (await this.addonService.getDataQueryByKey(key))[0];
-    originalQuery.Key = this.uuidGenerator();
-    originalQuery.Name = `${originalQuery.Name}-copy`;
-    await this.addonService.upsertDataQuery(originalQuery);
-    this.dataSource = this.getDataSource();
+	if(this.maxQueries <= this.numberOfQueries) {
+		this.openQueriesLimitDialog();
+	}
+	else {
+		let originalQuery = (await this.addonService.getDataQueryByKey(key))[0];
+		originalQuery.Key = this.uuidGenerator();
+		originalQuery.Name = `${originalQuery.Name}-copy`;
+		await this.addonService.upsertDataQuery(originalQuery);
+		this.dataSource = this.getDataSource();
+	}
+}
+
+openQueriesLimitDialog() {
+	const data = new PepDialogData({
+		title: this.translate.instant('Queries_Limit_Dialog_Title'),
+		actionsType: 'close',
+		content: this.translate.instant('Queries_Limit_Dialog_Content')
+	});
+	this.dialogService.openDefaultDialog(data);
+}
+
+async restoreQuery(key) {
+	if(this.maxQueries <= this.numberOfQueries) {
+		this.openQueriesLimitDialog();
+	}
+	else {
+		await this.addonService.upsertDataQuery({
+			Key: key,
+			Hidden: false,
+		});
+		this.dataSource = this.getDataSource();
+	}
 }
 
 
